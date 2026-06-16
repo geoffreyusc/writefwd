@@ -328,6 +328,12 @@
       .plan { padding: 36px 20px; }
     }
   </style>
+<!-- Privacy-friendly analytics by Plausible -->
+<script async src="https://plausible.io/js/pa-OaYeADhGkddNPCZ5q7CiN.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
 </head>
 <body>
 
@@ -712,7 +718,7 @@
     props.variant = variant;
     props.demo_theme = v.demoTheme;
     console.log('[writefwd]', event, props);
-    // if (window.plausible) window.plausible(event, { props: props });
+    if (window.plausible) window.plausible(event, { props: props });
     // if (window.posthog) posthog.capture(event, props);
   }
 
