@@ -118,7 +118,7 @@
     .headline { font-size: 44px; font-weight: bold; color: var(--ink); line-height: 1.1; letter-spacing: -0.01em; }
     .headline .strike { text-decoration: line-through; color: var(--faint); }
     .headline .dim { color: var(--faint); }
-    .hero-body { font-size: 16px; color: #444; line-height: 1.85; max-width: 340px; margin: 24px 0 28px; }
+    .hero-body { font-size: 15px; color: #444; line-height: 1.85; max-width: 340px; margin: 24px 0 28px; }
     .hero-cta { display: flex; align-items: center; gap: 18px; }
     .cta-primary {
       font-family: 'Courier New', monospace; font-size: 11px;
@@ -260,27 +260,27 @@
     .how-cell:last-child { border-right: none; }
     .how-num { font-size: 28px; font-weight: bold; color: var(--ghost); margin-bottom: 10px; }
     .how-head { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); margin-bottom: 8px; }
-    .how-body { font-size: 16px; color: #444; line-height: 1.8; }
+    .how-body { font-size: 14px; color: #555; line-height: 1.8; }
 
     .quote-section { padding: 52px 48px; border-bottom: 2px solid var(--rule); display: grid; grid-template-columns: 140px 1fr; gap: 48px; }
     .quote-label { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mid); padding-top: 5px; }
     .quote-text { font-size: 19px; color: var(--ink); font-style: italic; line-height: 1.8; margin-bottom: 12px; }
-    .quote-attr { font-size: 11px; color: #666; letter-spacing: 0.14em; text-transform: uppercase; }
+    .quote-attr { font-size: 12px; color: #666; letter-spacing: 0.14em; text-transform: uppercase; }
 
     .pricing { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 2px solid var(--rule); }
     .plan { padding: 44px 48px; }
     .plan:first-child { border-right: 2px solid var(--rule); }
     .plan.dark { background: var(--dark); }
-    .plan-name { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #666; margin-bottom: 12px; }
+    .plan-name { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: #666; margin-bottom: 12px; }
     .plan.dark .plan-name { color: #999; }
     .plan-price { font-size: 40px; font-weight: bold; color: var(--ink); margin-bottom: 4px; }
     .plan.dark .plan-price { color: #ffffff; }
     .plan-once { font-size: 12px; color: #666; letter-spacing: 0.1em; margin-bottom: 20px; }
     .plan.dark .plan-once { color: #888; }
     .plan-feats { list-style: none; padding: 0; margin-bottom: 24px; }
-    .plan-feats li { font-size: 14px; color: #444; line-height: 2.2; }
+    .plan-feats li { font-size: 13px; color: #555; line-height: 2.2; }
     .plan-feats li::before { content: "→ "; color: var(--mid); }
-    .plan.dark .plan-feats li { color: #d4d4d4; }
+    .plan.dark .plan-feats li { color: #ccc; }
     .plan.dark .plan-feats li::before { color: #666; }
     .plan-btn { font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; padding: 12px 24px; cursor: pointer; display: inline-block; transition: all 0.15s; font-weight: bold; }
     .plan-btn.lt { color: var(--ink); background: transparent; border: 2px solid var(--ink); }
@@ -492,7 +492,6 @@
   document.getElementById('headline').innerHTML = v.headline;
   document.getElementById('hero-body').textContent = v.body;
   document.getElementById('cta-begin').textContent = v.cta;
-  document.getElementById('ab-badge').textContent = 'variant: ' + variant + ' (' + v.demoTheme + ' demo)';
 
   var heroRight = document.getElementById('hero-right');
   heroRight.classList.add(v.panelClass);
