@@ -40,7 +40,7 @@ exports.handler = async function (event) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        email: email,
+        email_address: email,
         tags: ['waitlist'],
         metadata: { variant: variant }
       })
