@@ -57,7 +57,11 @@ exports.handler = async function (event) {
       return json(200, { ok: true, alreadySubscribed: true });
     }
 
-    return json(502, { error: 'Upstream error', status: res.status });
+    return json(502, {
+      error: 'Upstream error',
+      status: res.status,
+      detail: detail
+    });
   } catch (err) {
     return json(502, { error: 'Request failed' });
   }
