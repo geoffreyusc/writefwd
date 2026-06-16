@@ -166,11 +166,12 @@
       white-space: pre-wrap;
       word-break: break-word;
       min-height: 42px;
-      transition: color 0.3s ease;
+      transition: color 0.6s cubic-bezier(0.25, 0, 0.5, 1),
+                  opacity 0.6s cubic-bezier(0.25, 0, 0.5, 1);
     }
-    .line.a1 { color: var(--text-dim1); }
-    .line.a2 { color: var(--text-dim2); }
-    .line.a3 { color: var(--text-dim3); }
+    .line.a1 { color: var(--text-dim1); opacity: 0.85; }
+    .line.a2 { color: var(--text-dim2); opacity: 0.55; }
+    .line.a3 { color: var(--text-dim3); opacity: 0.25; }
     #curline {
       font-size: 22px;
       line-height: 1.9;
@@ -565,6 +566,7 @@
 
   // State
   var allText = '', lastLen = 0, lastWc = 0;
+  var lineEls = {};   // result index -> rendered <div>, reused across renders so the fade transitions in place
   var durationMins = 0;
   var started = false;
   var secsElapsed = 0, timerTotal = 0, timerRemaining = 0;
@@ -830,6 +832,7 @@
     inp.value = '';
     curtext.textContent = '';
     linesEl.innerHTML = '';
+    lineEls = {};
     wcEl.textContent = '0 words';
     wordmark.textContent = 'draft';
     finishBtn.classList.remove('visible');
@@ -885,16 +888,35 @@
 
     var w = wrap(allText);
     curtext.textContent = w.cur;
-    linesEl.innerHTML = '';
 
     var SHOW = 4;
     var start = Math.max(0, w.result.length - SHOW);
+    // Drop line elements that have scrolled out of the visible window
+    for (var key in lineEls) {
+      var ki = +key;
+      if (ki < start || ki >= w.result.length) {
+        linesEl.removeChild(lineEls[key]);
+        delete lineEls[key];
+      }
+    }
+
+    // Reconcile visible lines in place: reuse existing nodes and only update
+    // their age class, so the CSS color/opacity transition fires on the same
+    // element as a line recedes - no innerHTML rebuild, no DOM jump.
     for (var i = start; i < w.result.length; i++) {
       var age = w.result.length - i;
-      var d = document.createElement('div');
-      d.className = 'line a' + Math.min(age, 3);
-      d.textContent = w.result[i] || ' ';
-      linesEl.appendChild(d);
+      var cls = 'line a' + Math.min(age, 3);
+      var text = w.result[i] || ' ';
+      var el = lineEls[i];
+      if (!el) {
+        el = document.createElement('div');
+        el.textContent = text;
+        lineEls[i] = el;
+        linesEl.appendChild(el);
+      } else if (el.textContent !== text) {
+        el.textContent = text;
+      }
+      if (el.className !== cls) el.className = cls;
     }
 
     var n = wc(allText);
