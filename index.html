@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ── Primary SEO ── -->
+  <title>writefwd — Forward-Only Writing Tool. No Backspace. No Editing.</title>
+  <meta name="description" content="writefwd is a free freewriting tool that disables the backspace key. No editing, no going back. Write truer, faster, and more honestly than anything you'd produce with a delete key. Try it free — no account needed.">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="writefwd">
+  <meta name="keywords" content="freewriting tool, distraction free writing, no backspace writing, freewrite alternative, overcome writer's block, forward only writing, writing tool online, free writing app">
+  <link rel="canonical" href="https://writefwd.com">
+
+  <!-- ── Favicon ── -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><text y='78' x='50' text-anchor='middle' font-size='72' font-family='serif' fill='%23e0e0e0'>¶</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><text y='78' x='50' text-anchor='middle' font-size='72' font-family='serif' fill='%23e0e0e0'>¶</text></svg>">
+
+  <!-- ── Open Graph (link previews in iMessage, Slack, LinkedIn, etc) ── -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://writefwd.com">
+  <meta property="og:site_name" content="writefwd">
+  <meta property="og:title" content="writefwd — Write forward. No backspace. No editing.">
+  <meta property="og:description" content="A free freewriting tool that disables the delete key. Your words fade behind you as you type. What comes out is more honest than anything you'd write with a backspace. No account needed.">
+  <meta property="og:image" content="https://writefwd.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="writefwd — Write forward. Never back.">
+  <meta property="og:locale" content="en_US">
+
+  <!-- ── Twitter / X Card ── -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@writefwd">
+  <meta name="twitter:creator" content="@writefwd">
+  <meta name="twitter:title" content="writefwd — Write forward. No backspace. No editing.">
+  <meta name="twitter:description" content="A free freewriting tool that disables the delete key. No editing, no going back. What comes out is more honest than anything you'd write with a backspace.">
+  <meta name="twitter:image" content="https://writefwd.com/og-image.png">
+  <meta name="twitter:image:alt" content="writefwd — Write forward. Never back.">
+
+  <!-- ── Structured Data: SoftwareApplication schema ── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "writefwd",
+    "url": "https://writefwd.com",
+    "description": "A forward-only freewriting tool that disables the backspace key. No editing, no going back. Write more honestly by removing the ability to delete.",
+    "applicationCategory": "WritingApplication",
+    "operatingSystem": "Web",
+    "browserRequirements": "Requires JavaScript",
+    "offers": [
+      {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "name": "Free"
+      },
+      {
+        "@type": "Offer",
+        "price": "12",
+        "priceCurrency": "USD",
+        "name": "Writer's Edition",
+        "description": "One-time purchase. Session history, ambient sounds, markdown export, streak tracker."
+      }
+    ],
+    "featureList": [
+      "Forward-only writing — backspace disabled",
+      "Fading text as you write",
+      "Timer modes: 5, 10, 15, 30 minutes or no limit",
+      "Typewriter sounds",
+      "Read your draft when done",
+      "No account required"
+    ],
+    "screenshot": "https://writefwd.com/og-image.png",
+    "creator": {
+      "@type": "Person",
+      "name": "writefwd"
+    }
+  }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f4ef;
+      --ink: #111;
+      --mid: #888;
+      --faint: #bbb;
+      --ghost: #ddd;
+      --rule: #111;
+      --red: #c0392b;
+      --dark: #111;
+    }
+
+    html, body { background: var(--bg); color: var(--ink); font-family: 'Courier New', Courier, monospace; }
+
+    nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 48px; border-bottom: 2px solid var(--rule);
+    }
+    .wordmark { font-size: 13px; letter-spacing: 0.22em; font-weight: bold; }
+    .nav-btn {
+      font-family: 'Courier New', monospace; font-size: 11px;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--ink); background: transparent;
+      border: 2px solid var(--ink); padding: 9px 20px; cursor: pointer; transition: all 0.15s;
+    }
+    .nav-btn:hover { background: var(--ink); color: var(--bg); }
+    .nav-btn:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+
+    .hero { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 2px solid var(--rule); min-height: 420px; }
+    .hero-left { padding: 56px 48px; border-right: 2px solid var(--rule); display: flex; flex-direction: column; justify-content: space-between; }
+    .hero-right { padding: 36px 32px; display: flex; flex-direction: column; justify-content: center; }
+    .hero-right.dark-panel { background: #111; }
+    .hero-right.light-panel { background: #ede9e2; }
+
+    .kicker { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mid); margin-bottom: 20px; }
+    .headline { font-size: 44px; font-weight: bold; color: var(--ink); line-height: 1.1; letter-spacing: -0.01em; }
+    .headline .strike { text-decoration: line-through; color: var(--faint); }
+    .headline .dim { color: var(--faint); }
+    .hero-body { font-size: 14px; color: #444; line-height: 1.95; max-width: 300px; margin: 24px 0 28px; }
+    .hero-cta { display: flex; align-items: center; gap: 18px; }
+    .cta-primary {
+      font-family: 'Courier New', monospace; font-size: 11px;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--bg); background: var(--ink); border: none;
+      padding: 12px 28px; cursor: pointer; transition: background 0.15s;
+    }
+    .cta-primary:hover { background: #333; }
+    .cta-primary:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+    .cta-free { font-size: 11px; color: var(--mid); letter-spacing: 0.1em; }
+
+    /* ── DEMO SHARED ── */
+    .demo-wrap { font-family: 'Courier New', Courier, monospace; border-radius: 4px; overflow: hidden; }
+    .demo-titlebar { display: flex; align-items: center; justify-content: space-between; padding: 9px 16px; }
+    .demo-dots { display: flex; gap: 5px; }
+    .demo-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .demo-meta { display: flex; align-items: center; gap: 14px; }
+    .demo-session-lbl { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .demo-timer-wrap { display: flex; align-items: center; gap: 7px; }
+    .demo-ring { width: 20px; height: 20px; }
+    .demo-timer-txt { font-size: 11px; letter-spacing: 0.06em; }
+    .demo-wc-lbl { font-size: 10px; letter-spacing: 0.1em; }
+
+    .demo-progress { display: flex; }
+    .demo-step { flex: 1; padding: 7px 0; text-align: center; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; border-right: 1px solid; transition: color 0.4s; }
+    .demo-step:last-child { border-right: none; }
+
+    .demo-writing { padding: 28px 28px 0; min-height: 180px; position: relative; }
+    .demo-fade-top { height: 40px; position: absolute; top: 0; left: 0; right: 0; pointer-events: none; }
+    .demo-line { font-size: 17px; line-height: 1.9; min-height: 32px; white-space: pre-wrap; word-break: break-word; transition: color 0.7s ease; }
+    .demo-cursor { display: inline-block; width: 9px; height: 17px; vertical-align: middle; margin-left: 2px; animation: dbl 0.9s step-end infinite; }
+    @keyframes dbl { 0%,100%{opacity:1} 50%{opacity:0} }
+    .demo-footer { padding: 10px 28px 16px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid; margin-top: 14px; }
+    .demo-hint-txt { font-size: 10px; letter-spacing: 0.1em; }
+
+    .demo-complete { display: none; flex-direction: column; align-items: center; text-align: center; padding: 36px 28px 32px; }
+    .demo-complete.show { display: flex; }
+    .demo-complete-head { font-size: 20px; font-weight: normal; margin-bottom: 5px; }
+    .demo-complete-sub { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 24px; }
+    .demo-read-btn { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; background: transparent; padding: 8px 22px; cursor: pointer; margin-bottom: 24px; transition: all 0.2s; }
+    .demo-fact { font-size: 11px; font-style: italic; max-width: 380px; line-height: 1.85; opacity: 0; transition: opacity 1.2s ease; }
+    .demo-fact.show { opacity: 1; }
+
+    .demo-draft { display: none; flex-direction: column; }
+    .demo-draft.show { display: flex; }
+    .demo-draft-hdr { padding: 12px 28px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid; }
+    .demo-draft-title { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; }
+    .demo-draft-meta { font-size: 10px; }
+    .demo-draft-body { padding: 24px 28px; font-size: 15px; line-height: 2; white-space: pre-wrap; }
+    .demo-draft-actions { padding: 10px 28px 14px; border-top: 1px solid; display: flex; gap: 8px; justify-content: flex-end; }
+    .demo-act { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; background: transparent; padding: 6px 14px; cursor: pointer; transition: all 0.2s; }
+
+    /* ── DARK DEMO THEME ── */
+    .demo-dark { background: #0a0a0a; }
+    .demo-dark .demo-titlebar { background: #141414; border-bottom: 1px solid #1e1e1e; }
+    .demo-dark .demo-dot.r { background: #2e1a1a; }
+    .demo-dark .demo-dot.y { background: #2a2518; }
+    .demo-dark .demo-dot.g { background: #182818; }
+    .demo-dark .demo-session-lbl { color: #333; }
+    .demo-dark .demo-timer-txt { color: #444; }
+    .demo-dark .demo-wc-lbl { color: #2e2e2e; }
+    .demo-dark .demo-progress { border-bottom: 1px solid #1a1a1a; }
+    .demo-dark .demo-step { border-color: #1a1a1a; color: #1e1e1e; }
+    .demo-dark .demo-step.active { color: #555; }
+    .demo-dark .demo-step.done { color: #2e2e2e; }
+    .demo-dark .demo-fade-top { background: linear-gradient(to bottom, #0a0a0a, transparent); }
+    .demo-dark .demo-line.age3 { color: #181818; }
+    .demo-dark .demo-line.age2 { color: #262626; }
+    .demo-dark .demo-line.age1 { color: #505050; }
+    .demo-dark .demo-line.cur { color: #d8d8d8; }
+    .demo-dark .demo-cursor { background: #d8d8d8; }
+    .demo-dark .demo-footer { border-color: #1a1a1a; }
+    .demo-dark .demo-hint-txt { color: #252525; }
+    .demo-dark .demo-complete-head { color: #999; }
+    .demo-dark .demo-complete-sub { color: #252525; }
+    .demo-dark .demo-read-btn { color: #555; border: 1px solid #2a2a2a; }
+    .demo-dark .demo-read-btn:hover { color: #999; border-color: #555; }
+    .demo-dark .demo-fact { color: #2a2a2a; }
+    .demo-dark .demo-fact.show { color: #383838; }
+    .demo-dark .demo-draft-hdr { border-color: #1e1e1e; }
+    .demo-dark .demo-draft-title { color: #333; }
+    .demo-dark .demo-draft-meta { color: #222; }
+    .demo-dark .demo-draft-body { color: #888; }
+    .demo-dark .demo-draft-actions { border-color: #1a1a1a; }
+    .demo-dark .demo-act.new { color: #2a2a2a; border: 1px solid #1e1e1e; }
+    .demo-dark .demo-act.new:hover { color: #555; border-color: #333; }
+    .demo-dark .demo-act.copy { color: #555; border: 1px solid #2a2a2a; }
+    .demo-dark .demo-act.copy:hover { color: #aaa; border-color: #666; }
+    .demo-dark .ring-bg { stroke: #1e1e1e; }
+    .demo-dark .ring-fg { stroke: #555; }
+
+    /* ── LIGHT DEMO THEME ── */
+    .demo-light { background: #faf8f4; border: 1.5px solid #d8d4cc; }
+    .demo-light .demo-titlebar { background: #f0ece4; border-bottom: 1px solid #ddd9d0; }
+    .demo-light .demo-dot.r { background: #e8c8c8; }
+    .demo-light .demo-dot.y { background: #e8e0c0; }
+    .demo-light .demo-dot.g { background: #c8e0c8; }
+    .demo-light .demo-session-lbl { color: #aaa; }
+    .demo-light .demo-timer-txt { color: #999; }
+    .demo-light .demo-wc-lbl { color: #bbb; }
+    .demo-light .demo-progress { border-bottom: 1px solid #ddd9d0; }
+    .demo-light .demo-step { border-color: #ddd9d0; color: #ccc; }
+    .demo-light .demo-step.active { color: #888; }
+    .demo-light .demo-step.done { color: #bbb; }
+    .demo-light .demo-fade-top { background: linear-gradient(to bottom, #faf8f4, transparent); }
+    .demo-light .demo-line.age3 { color: #ddd9d0; }
+    .demo-light .demo-line.age2 { color: #c8c4bc; }
+    .demo-light .demo-line.age1 { color: #999690; }
+    .demo-light .demo-line.cur { color: #1a1a1a; }
+    .demo-light .demo-cursor { background: #1a1a1a; }
+    .demo-light .demo-footer { border-color: #ddd9d0; }
+    .demo-light .demo-hint-txt { color: #ccc; }
+    .demo-light .demo-complete-head { color: #555; }
+    .demo-light .demo-complete-sub { color: #bbb; }
+    .demo-light .demo-read-btn { color: #888; border: 1px solid #ccc; }
+    .demo-light .demo-read-btn:hover { color: #333; border-color: #888; }
+    .demo-light .demo-fact { color: #bbb; }
+    .demo-light .demo-fact.show { color: #888; }
+    .demo-light .demo-draft-hdr { border-color: #ddd9d0; }
+    .demo-light .demo-draft-title { color: #aaa; }
+    .demo-light .demo-draft-meta { color: #bbb; }
+    .demo-light .demo-draft-body { color: #555; }
+    .demo-light .demo-draft-actions { border-color: #ddd9d0; }
+    .demo-light .demo-act.new { color: #bbb; border: 1px solid #ddd9d0; }
+    .demo-light .demo-act.new:hover { color: #555; border-color: #aaa; }
+    .demo-light .demo-act.copy { color: #888; border: 1px solid #ccc; }
+    .demo-light .demo-act.copy:hover { color: #111; border-color: #888; }
+    .demo-light .ring-bg { stroke: #ddd9d0; }
+    .demo-light .ring-fg { stroke: #aaa; }
+
+    /* ── REST OF PAGE ── */
+    .manifesto { padding: 52px 48px; border-bottom: 2px solid var(--rule); display: grid; grid-template-columns: 140px 1fr; gap: 48px; align-items: start; }
+    .manifesto-label { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mid); padding-top: 5px; }
+    .manifesto-text { font-size: 22px; color: var(--ink); line-height: 1.6; font-weight: normal; }
+    .manifesto-text strong { font-weight: bold; }
+
+    .how { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 2px solid var(--rule); }
+    .how-cell { padding: 36px 32px; border-right: 2px solid var(--rule); }
+    .how-cell:last-child { border-right: none; }
+    .how-num { font-size: 28px; font-weight: bold; color: var(--ghost); margin-bottom: 10px; }
+    .how-head { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); margin-bottom: 8px; }
+    .how-body { font-size: 13px; color: #555; line-height: 1.85; }
+
+    .quote-section { padding: 52px 48px; border-bottom: 2px solid var(--rule); display: grid; grid-template-columns: 140px 1fr; gap: 48px; }
+    .quote-label { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mid); padding-top: 5px; }
+    .quote-text { font-size: 18px; color: var(--ink); font-style: italic; line-height: 1.7; margin-bottom: 12px; }
+    .quote-attr { font-size: 11px; color: #666; letter-spacing: 0.14em; text-transform: uppercase; }
+
+    .pricing { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 2px solid var(--rule); }
+    .plan { padding: 44px 48px; }
+    .plan:first-child { border-right: 2px solid var(--rule); }
+    .plan.dark { background: var(--dark); }
+    .plan-name { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #666; margin-bottom: 12px; }
+    .plan.dark .plan-name { color: #999; }
+    .plan-price { font-size: 40px; font-weight: bold; color: var(--ink); margin-bottom: 4px; }
+    .plan.dark .plan-price { color: #ffffff; }
+    .plan-once { font-size: 12px; color: #666; letter-spacing: 0.1em; margin-bottom: 20px; }
+    .plan.dark .plan-once { color: #888; }
+    .plan-feats { list-style: none; padding: 0; margin-bottom: 24px; }
+    .plan-feats li { font-size: 12px; color: #555; line-height: 2.4; }
+    .plan-feats li::before { content: "→ "; color: var(--mid); }
+    .plan.dark .plan-feats li { color: #ccc; }
+    .plan.dark .plan-feats li::before { color: #666; }
+    .plan-btn { font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; padding: 12px 24px; cursor: pointer; display: inline-block; transition: all 0.15s; font-weight: bold; }
+    .plan-btn.lt { color: var(--ink); background: transparent; border: 2px solid var(--ink); }
+    .plan-btn.lt:hover { background: var(--ink); color: var(--bg); }
+    .plan-btn.lt:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+    .plan-btn.dk { color: #ffffff; background: var(--red); border: 2px solid var(--red); }
+    .plan-btn.dk:hover { background: #a93226; border-color: #a93226; }
+    .plan-btn.dk:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+
+    footer { padding: 20px 48px; display: flex; justify-content: space-between; align-items: center; }
+    .footer-mark { font-size: 12px; font-weight: bold; letter-spacing: 0.18em; }
+    .footer-line { font-size: 11px; color: var(--mid); letter-spacing: 0.12em; text-transform: uppercase; }
+
+    #ab-badge {
+      position: fixed; bottom: 16px; left: 16px; z-index: 999;
+      font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+      background: #111; color: #666; border: 1px solid #333; padding: 4px 10px; border-radius: 2px; opacity: 0.8;
+    }
+
+    .modal-overlay { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.75); align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--bg); border: 2px solid var(--ink); padding: 40px; max-width: 400px; width: 90%; position: relative; }
+    .modal-close { position: absolute; top: 14px; right: 16px; background: transparent; border: none; font-family: 'Courier New', monospace; font-size: 20px; color: var(--mid); cursor: pointer; }
+    .modal-close:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+    .modal-close:hover { color: var(--ink); }
+    .modal-eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--red); margin-bottom: 14px; }
+    .modal-title { font-size: 22px; font-weight: bold; color: var(--ink); line-height: 1.2; margin-bottom: 10px; }
+    .modal-sub { font-size: 13px; color: #555; line-height: 1.8; margin-bottom: 24px; }
+    .modal-input-row { display: flex; }
+    .modal-input { font-family: 'Courier New', monospace; font-size: 12px; color: var(--ink); background: var(--bg); border: 1.5px solid var(--ink); border-right: none; padding: 10px 14px; flex: 1; outline: none; }
+    .modal-input::placeholder { color: var(--faint); }
+    .modal-submit { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--bg); background: var(--ink); border: 1.5px solid var(--ink); padding: 10px 18px; cursor: pointer; white-space: nowrap; transition: background 0.15s; }
+    .modal-submit:hover { background: #333; }
+    .modal-note { font-size: 11px; color: var(--mid); margin-top: 10px; }
+    .modal-thanks { display: none; text-align: center; padding: 16px 0; }
+    .modal-thanks-mark { font-size: 28px; color: var(--faint); margin-bottom: 12px; }
+    .modal-thanks-text { font-size: 14px; color: var(--ink); line-height: 1.7; }
+    .modal-thanks-sub { font-size: 12px; color: #555; margin-top: 8px; }
+
+    @media (max-width: 680px) {
+      nav, footer { padding: 16px 20px; }
+      .hero { grid-template-columns: 1fr; }
+      .hero-right { display: none; }
+      .hero-left { padding: 40px 20px; }
+      .headline { font-size: 34px; }
+      .manifesto, .quote-section { grid-template-columns: 1fr; gap: 12px; padding: 36px 20px; }
+      .how { grid-template-columns: 1fr; }
+      .how-cell { border-right: none; border-bottom: 2px solid var(--rule); }
+      .pricing { grid-template-columns: 1fr; }
+      .plan:first-child { border-right: none; border-bottom: 2px solid var(--rule); }
+      .plan { padding: 36px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="wordmark">writefwd</div>
+  <button class="nav-btn" onclick="goToApp()">Start writing</button>
+</nav>
+
+<section class="hero">
+  <div class="hero-left">
+    <div>
+      <div class="kicker" id="kicker"></div>
+      <h1 class="headline" id="headline"></h1>
+      <p class="hero-body" id="hero-body"></p>
+    </div>
+    <div class="hero-cta">
+      <button class="cta-primary" id="cta-begin" onclick="trackCTA('hero')">Begin a session</button>
+      <span class="cta-free">free — no account</span>
+    </div>
+  </div>
+  <div class="hero-right" id="hero-right">
+    <!-- Demo injected here by JS -->
+  </div>
+</section>
+
+<div class="manifesto">
+  <div class="manifesto-label">The idea</div>
+  <div class="manifesto-text">Most people don't have a <strong>writing problem</strong>. They have an <strong>editing problem</strong>. The internal critic fires the moment the first word appears — and everything stops. writefwd physically removes the critic from the room.</div>
+</div>
+
+<div class="how">
+  <div class="how-cell">
+    <div class="how-num">01</div>
+    <div class="how-head">Set a timer — or don't</div>
+    <div class="how-body">5, 10, 15, 30 minutes. Or write until you're empty. The session ends when you say so.</div>
+  </div>
+  <div class="how-cell">
+    <div class="how-num">02</div>
+    <div class="how-head">Write forward</div>
+    <div class="how-body">Backspace is gone. Words fade behind you as you type. The only direction is forward.</div>
+  </div>
+  <div class="how-cell">
+    <div class="how-num">03</div>
+    <div class="how-head">Read what came out</div>
+    <div class="how-body">When you finish, your draft is waiting. It's always better than you think it is.</div>
+  </div>
+</div>
+
+<div class="quote-section">
+  <div class="quote-label">From a writer</div>
+  <div>
+    <div class="quote-text">"I thought I wanted a backspace. Then I realized — if you add a backspace, it defeats the entire purpose. Don't do it."</div>
+    <div class="quote-attr">— a writer, after their first session</div>
+  </div>
+</div>
+
+<div class="pricing">
+  <div class="plan">
+    <div class="plan-name">Free — always</div>
+    <div class="plan-price">$0</div>
+    <div class="plan-once">forever, no account needed</div>
+    <ul class="plan-feats">
+      <li>Full writing experience</li>
+      <li>All timer modes</li>
+      <li>Typewriter sounds</li>
+      <li>Copy your draft</li>
+      <li>No sign-up required</li>
+    </ul>
+    <button class="plan-btn lt" onclick="trackCTA('pricing')">Start writing</button>
+  </div>
+  <div class="plan dark">
+    <div class="plan-name">Writer's edition</div>
+    <div class="plan-price">$12</div>
+    <div class="plan-once">one time — no subscription</div>
+    <ul class="plan-feats">
+      <li>Everything in Free</li>
+      <li>Session history</li>
+      <li>Ambient sounds</li>
+      <li>Markdown export</li>
+      <li>Streak tracker</li>
+    </ul>
+    <button class="plan-btn dk" onclick="openWaitlist()">Join the waitlist</button>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-mark">writefwd</div>
+  <div class="footer-line">write forward — never back</div>
+</footer>
+
+<div id="ab-badge">variant: —</div>
+
+<div class="modal-overlay" id="modal-overlay" onclick="maybeCloseModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div id="modal-form-view">
+      <div class="modal-eyebrow">// writer's edition</div>
+      <div class="modal-title">Be first in line.</div>
+      <div class="modal-sub">Session history, ambient sounds, markdown export, and a streak tracker. One email when it's ready.</div>
+      <div class="modal-input-row">
+        <input class="modal-input" id="email-input" type="email" placeholder="your@email.com" />
+        <button class="modal-submit" onclick="submitWaitlist()">Notify me</button>
+      </div>
+      <div class="modal-note">No spam. One email when it launches.</div>
+    </div>
+    <div class="modal-thanks" id="modal-thanks-view">
+      <div class="modal-thanks-mark">¶</div>
+      <div class="modal-thanks-text">You're on the list.</div>
+      <div class="modal-thanks-sub">We'll reach out when the Writer's Edition is ready. Go write something.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var CIRC = 56.55;
+  var DEMO_SECS = 20;
+  var FACT = "Toni Morrison wrote Beloved before dawn every morning while working as an editor and raising two children alone.";
+  var DEMO_LINES = [
+    "I have been trying to write this for months.",
+    "Every time I sit down, I delete the first",
+    "sentence before it is even finished. But",
+    "right now there is no delete key. So I",
+    "just keep going. And something is happening.",
+    "The words are coming out wrong and honest",
+    "and mine."
+  ];
+
+  // ─────────────────────────────────────────────────────────────
+  // A/B CONFIG
+  // Variant A: dark demo panel + typographic headline
+  // Variant B: light demo panel + emotional headline
+  // Primary metric: click_begin_session rate per variant
+  // ─────────────────────────────────────────────────────────────
+  var VARIANTS = {
+    A: {
+      kicker: '// no backspace. no regrets.',
+      headline: 'No<br><span class="strike">back</span><br>space.',
+      body: 'A writing tool that removes the one thing stopping you. No editing. No going back. What comes out is more honest than anything you\'d write with a delete key.',
+      cta: 'Begin a session',
+      demoTheme: 'dark',
+      panelClass: 'dark-panel'
+    },
+    B: {
+      kicker: '// write before the critic wakes up',
+      headline: 'You have something<br>to say.<br><span class="dim">Stop editing<br>it away.</span>',
+      body: 'writefwd disables the delete key. Words fade behind you as you type. No second-guessing. No going back. What comes out is more honest than anything you\'d write with a backspace.',
+      cta: 'Write something',
+      demoTheme: 'light',
+      panelClass: 'light-panel'
+    }
+  };
+
+  var variant = sessionStorage.getItem('wf_ab_variant');
+  if (!variant) {
+    variant = Math.random() < 0.5 ? 'A' : 'B';
+    sessionStorage.setItem('wf_ab_variant', variant);
+  }
+
+  var v = VARIANTS[variant];
+  document.getElementById('kicker').textContent = v.kicker;
+  document.getElementById('headline').innerHTML = v.headline;
+  document.getElementById('hero-body').textContent = v.body;
+  document.getElementById('cta-begin').textContent = v.cta;
+  document.getElementById('ab-badge').textContent = 'variant: ' + variant + ' (' + v.demoTheme + ' demo)';
+
+  var heroRight = document.getElementById('hero-right');
+  heroRight.classList.add(v.panelClass);
+  heroRight.innerHTML = buildDemo(v.demoTheme);
+  initDemo(v.demoTheme);
+
+  // ─────────────────────────────────────────────────────────────
+  // DEMO HTML BUILDER
+  // ─────────────────────────────────────────────────────────────
+  function buildDemo(theme) {
+    var t = 'demo-' + theme;
+    return [
+      '<div class="demo-wrap ' + t + '" id="demo-root">',
+        '<div class="demo-titlebar">',
+          '<div class="demo-dots">',
+            '<div class="demo-dot r"></div>',
+            '<div class="demo-dot y"></div>',
+            '<div class="demo-dot g"></div>',
+          '</div>',
+          '<div class="demo-meta">',
+            '<span class="demo-session-lbl">5 min session</span>',
+            '<div class="demo-timer-wrap">',
+              '<svg class="demo-ring" viewBox="0 0 20 20">',
+                '<circle class="ring-bg" cx="10" cy="10" r="8" fill="none" stroke-width="2"/>',
+                '<circle class="ring-fg" id="d-ring" cx="10" cy="10" r="8" fill="none" stroke-width="2" stroke-linecap="butt" stroke-dasharray="50.27" stroke-dashoffset="0" transform="rotate(-90 10 10)"/>',
+              '</svg>',
+              '<span class="demo-timer-txt" id="d-timer">0:20</span>',
+            '</div>',
+          '</div>',
+          '<span class="demo-wc-lbl" id="d-wc">0 words</span>',
+        '</div>',
+        '<div class="demo-progress">',
+          '<div class="demo-step active" id="d-s1">Write</div>',
+          '<div class="demo-step" id="d-s2">Session ends</div>',
+          '<div class="demo-step" id="d-s3">Read draft</div>',
+        '</div>',
+        '<div id="d-write-phase">',
+          '<div class="demo-writing">',
+            '<div class="demo-fade-top"></div>',
+            '<div class="demo-line age3" id="d-l3">&nbsp;</div>',
+            '<div class="demo-line age2" id="d-l2">&nbsp;</div>',
+            '<div class="demo-line age1" id="d-l1">&nbsp;</div>',
+            '<div class="demo-line cur"><span id="d-ct"></span><span class="demo-cursor"></span></div>',
+          '</div>',
+          '<div class="demo-footer">',
+            '<span class="demo-hint-txt">backspace is disabled</span>',
+          '</div>',
+        '</div>',
+        '<div class="demo-complete" id="d-complete-phase">',
+          '<div class="demo-complete-head">Time\'s up.</div>',
+          '<div class="demo-complete-sub">session complete</div>',
+          '<button class="demo-read-btn" id="d-read-btn">Read my draft</button>',
+          '<div class="demo-fact" id="d-fact"></div>',
+        '</div>',
+        '<div class="demo-draft" id="d-draft-phase">',
+          '<div class="demo-draft-hdr">',
+            '<div class="demo-draft-title">your draft</div>',
+            '<div class="demo-draft-meta" id="d-draft-meta"></div>',
+          '</div>',
+          '<div class="demo-draft-body" id="d-draft-body"></div>',
+          '<div class="demo-draft-actions">',
+            '<button class="demo-act new" id="d-new-btn">New session</button>',
+            '<button class="demo-act copy" id="d-copy-btn">Copy text</button>',
+          '</div>',
+        '</div>',
+      '</div>'
+    ].join('');
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // DEMO ENGINE
+  // ─────────────────────────────────────────────────────────────
+  function initDemo(theme) {
+    var built = [], cl = 0, cc = 0, allText = '';
+    var secsLeft = DEMO_SECS;
+    var timerInt = null;
+
+    function wc(s){ return s.trim().split(/\s+/).filter(function(w){return w.length>0;}).length; }
+
+    function fmtTime(s){ return Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60; }
+
+    function setRing(rem, total){
+      var offset = CIRC - (rem / total * CIRC);
+      var ring = document.getElementById('d-ring');
+      if (ring) ring.setAttribute('stroke-dashoffset', offset.toFixed(2));
+      var t = document.getElementById('d-timer');
+      if (t) t.textContent = fmtTime(rem);
+    }
+
+    function setSteps(active){
+      [['d-s1',0],['d-s2',1],['d-s3',2]].forEach(function(pair){
+        var el = document.getElementById(pair[0]);
+        if (!el) return;
+        el.className = 'demo-step';
+        if (pair[1] < active) el.classList.add('done');
+        else if (pair[1] === active) el.classList.add('active');
+      });
+    }
+
+    function showComplete(){
+      var wp = document.getElementById('d-write-phase');
+      if (wp) wp.style.display = 'none';
+      var cp = document.getElementById('d-complete-phase');
+      if (cp) cp.classList.add('show');
+      setSteps(1);
+      var factEl = document.getElementById('d-fact');
+      if (factEl) {
+        factEl.textContent = FACT;
+        setTimeout(function(){ factEl.classList.add('show'); }, 700);
+      }
+    }
+
+    function showDraft(){
+      var cp = document.getElementById('d-complete-phase');
+      if (cp) cp.classList.remove('show');
+      var dp = document.getElementById('d-draft-phase');
+      if (dp) dp.classList.add('show');
+      setSteps(2);
+      var n = wc(allText);
+      var meta = document.getElementById('d-draft-meta');
+      if (meta) meta.textContent = n + ' words — 0:' + DEMO_SECS;
+      var body = document.getElementById('d-draft-body');
+      if (body) body.textContent = allText || '(nothing written)';
+    }
+
+    function reset(){
+      built = []; cl = 0; cc = 0; allText = '';
+      secsLeft = DEMO_SECS;
+      if (timerInt) clearInterval(timerInt);
+      var dp = document.getElementById('d-draft-phase');
+      if (dp) dp.classList.remove('show');
+      var cp = document.getElementById('d-complete-phase');
+      if (cp) cp.classList.remove('show');
+      var factEl = document.getElementById('d-fact');
+      if (factEl) factEl.classList.remove('show');
+      var wp = document.getElementById('d-write-phase');
+      if (wp) wp.style.display = '';
+      var ct = document.getElementById('d-ct');
+      if (ct) ct.textContent = '';
+      var wcEl = document.getElementById('d-wc');
+      if (wcEl) wcEl.textContent = '0 words';
+      ['d-l3','d-l2','d-l1'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) el.textContent = '\u00A0';
+      });
+      setRing(DEMO_SECS, DEMO_SECS);
+      setSteps(0);
+      startTimer();
+      setTimeout(tick, 500);
+    }
+
+    function startTimer(){
+      timerInt = setInterval(function(){
+        secsLeft--;
+        setRing(secsLeft, DEMO_SECS);
+        if (secsLeft <= 0){ clearInterval(timerInt); showComplete(); }
+      }, 1000);
+    }
+
+    function tick(){
+      if (cl >= DEMO_LINES.length) return;
+      var line = DEMO_LINES[cl];
+      var ctEl = document.getElementById('d-ct');
+      if (!ctEl) return;
+      ctEl.textContent = line.slice(0, cc);
+      if (cc === line.length){
+        built.push(line);
+        allText = built.join(' ');
+        cl++; cc = 0;
+        var show = built.slice(-3);
+        ['d-l3','d-l2','d-l1'].forEach(function(id, i){
+          var el = document.getElementById(id);
+          if (!el) return;
+          var idx = i - (3 - show.length);
+          el.textContent = (idx >= 0 && idx < show.length) ? show[idx] : '\u00A0';
+        });
+        ctEl.textContent = '';
+        var w = wc(allText);
+        var wcEl = document.getElementById('d-wc');
+        if (wcEl) wcEl.textContent = w + (w===1?' word':' words');
+        if (cl < DEMO_LINES.length) setTimeout(tick, 200);
+      } else {
+        cc++;
+        var ch = line[cc-1];
+        var spd = 44 + Math.random()*34;
+        if (ch === ' ') spd = 75 + Math.random()*35;
+        if (ch === '.' || ch === ',') spd = 140 + Math.random()*70;
+        setTimeout(tick, spd);
+      }
+    }
+
+    var readBtn = document.getElementById('d-read-btn');
+    if (readBtn) readBtn.addEventListener('click', showDraft);
+
+    var newBtn = document.getElementById('d-new-btn');
+    if (newBtn) newBtn.addEventListener('click', reset);
+
+    var copyBtn = document.getElementById('d-copy-btn');
+    if (copyBtn) copyBtn.addEventListener('click', function(){
+      navigator.clipboard && navigator.clipboard.writeText(allText).catch(function(){});
+      copyBtn.textContent = 'Copied';
+      setTimeout(function(){ copyBtn.textContent = 'Copy text'; }, 1800);
+    });
+
+    setRing(DEMO_SECS, DEMO_SECS);
+    startTimer();
+    setTimeout(tick, 500);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // TRACKING — swap console.log for your analytics:
+  //   Plausible: window.plausible(event, { props: props })
+  //   PostHog:   posthog.capture(event, props)
+  // Primary signal: click_begin_session rate, A vs B
+  // ─────────────────────────────────────────────────────────────
+  function track(event, props){
+    props = props || {};
+    props.variant = variant;
+    props.demo_theme = v.demoTheme;
+    console.log('[writefwd]', event, props);
+    // if (window.plausible) window.plausible(event, { props: props });
+    // if (window.posthog) posthog.capture(event, props);
+  }
+
+  track('page_view');
+
+  var reached = {};
+  window.addEventListener('scroll', function(){
+    var pct = Math.round(window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100);
+    [25,50,75,100].forEach(function(m){
+      if (!reached[m] && pct >= m){ reached[m]=true; track('scroll_depth',{depth:m}); }
+    });
+  }, { passive: true });
+
+  window.trackCTA = function(source){
+    track('click_begin_session', { source: source });
+    window.location.href = '/app';
+  };
+  window.goToApp = function(){
+    track('click_nav_begin');
+    window.location.href = '/app';
+  };
+
+  window.openWaitlist = function(){
+    track('click_waitlist_open');
+    document.getElementById('modal-overlay').classList.add('open');
+    setTimeout(function(){ document.getElementById('email-input').focus(); }, 100);
+  };
+  window.closeModal = function(){
+    document.getElementById('modal-overlay').classList.remove('open');
+  };
+  window.maybeCloseModal = function(e){
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  };
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+  window.submitWaitlist = function(){
+    var email = document.getElementById('email-input').value.trim();
+    if (!email || !email.includes('@')){
+      document.getElementById('email-input').style.borderColor = '#c0392b';
+      setTimeout(function(){ document.getElementById('email-input').style.borderColor = ''; }, 1200);
+      return;
+    }
+    track('waitlist_signup', { email_domain: email.split('@')[1] });
+    // fetch('/api/waitlist', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email:email,variant:variant}) });
+    document.getElementById('modal-form-view').style.display = 'none';
+    document.getElementById('modal-thanks-view').style.display = 'block';
+  };
+
+})();
+</script>
+</body>
+</html>
