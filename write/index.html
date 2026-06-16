@@ -552,6 +552,7 @@
   var emailDraftBtn = document.getElementById('email-draft-btn');
   var newSessionBtn = document.getElementById('new-session-btn');
   var beginBtn  = document.getElementById('begin-btn');
+  var startHead = document.getElementById('start-head');
 
   var copyDraftHTML  = copyDraftBtn.innerHTML;
   var emailDraftHTML = emailDraftBtn.innerHTML;
@@ -566,6 +567,42 @@
   var audioCtx = null;
 
   var CIRC = 65.97;
+
+  // ── Rotating start screen heading ─────────────────────────────
+  var START_PHRASES = [
+    "write forward.",
+    "just write.",
+    "no going back.",
+    "the page is waiting.",
+    "your words, forward only.",
+    "begin.",
+    "don't think. type.",
+    "the draft won't write itself.",
+    "silence the editor. start.",
+    "forward is the only direction.",
+    "what are you waiting for?",
+    "the cursor is ready.",
+    "write like no one's watching.",
+    "get it out of your head.",
+    "this is your time.",
+    "the blank page is on your side.",
+    "one word. then another."
+  ];
+
+  var lastPhraseIdx = -1;
+
+  function getStartPhrase() {
+    var idx;
+    do {
+      idx = Math.floor(Math.random() * START_PHRASES.length);
+    } while (idx === lastPhraseIdx);
+    lastPhraseIdx = idx;
+    return START_PHRASES[idx];
+  }
+
+  function setStartPhrase() {
+    startHead.textContent = getStartPhrase();
+  }
 
   // ── Theme toggle ──────────────────────────────────────────────
   function applyTheme(theme) {
@@ -796,6 +833,7 @@
     draftScr.classList.add('hidden');
     draftScr.style.display = 'none';
     complScr.classList.add('hidden');
+    setStartPhrase();
     startScr.classList.remove('hidden');
     // Reset duration selection
     document.querySelectorAll('#dur-opts .opt').forEach(function(x) { x.classList.remove('sel'); });
@@ -891,6 +929,9 @@
       inp.focus();
     }
   });
+
+  // Set an initial rotating phrase on first load
+  setStartPhrase();
 
 })();
 </script>

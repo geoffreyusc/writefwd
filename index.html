@@ -294,12 +294,6 @@
     .footer-mark { font-size: 12px; font-weight: bold; letter-spacing: 0.18em; }
     .footer-line { font-size: 12px; color: var(--mid); letter-spacing: 0.12em; text-transform: uppercase; }
 
-    #ab-badge {
-      position: fixed; bottom: 16px; left: 16px; z-index: 999;
-      font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
-      background: #111; color: #888; border: 1px solid #333; padding: 4px 10px; border-radius: 2px; opacity: 0.8;
-    }
-
     .modal-overlay { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.75); align-items: center; justify-content: center; }
     .modal-overlay.open { display: flex; }
     .modal { background: var(--bg); border: 2px solid var(--ink); padding: 40px; max-width: 400px; width: 90%; position: relative; }
@@ -423,8 +417,6 @@
   <div class="footer-mark">writefwd</div>
   <div class="footer-line">write forward — never back</div>
 </footer>
-
-<div id="ab-badge">variant: —</div>
 
 <div class="modal-overlay" id="modal-overlay" onclick="maybeCloseModal(event)">
   <div class="modal">
