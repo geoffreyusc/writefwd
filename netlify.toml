@@ -1,0 +1,4 @@
+# Declares where serverless functions live so Netlify deploys them.
+# Publish settings are left untouched (still served from the repo root).
+[functions]
+  directory = "netlify/functions"

@@ -748,17 +748,39 @@
   };
   document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
 
-  window.submitWaitlist = function(){
+  window.submitWaitlist = async function(){
     var email = document.getElementById('email-input').value.trim();
     if (!email || !email.includes('@')){
       document.getElementById('email-input').style.borderColor = '#c0392b';
       setTimeout(function(){ document.getElementById('email-input').style.borderColor = ''; }, 1200);
       return;
     }
-    track('waitlist_signup', { email_domain: email.split('@')[1] });
-    // fetch('/api/waitlist', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email:email,variant:variant}) });
-    document.getElementById('modal-form-view').style.display = 'none';
-    document.getElementById('modal-thanks-view').style.display = 'block';
+
+    var submitBtn = document.querySelector('.modal-submit');
+    submitBtn.textContent = 'Saving...';
+    submitBtn.disabled = true;
+
+    try {
+      // POST to our serverless proxy; the Buttondown token stays server-side.
+      var res = await fetch('/.netlify/functions/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          variant: sessionStorage.getItem('wf_ab_variant') || 'unknown'
+        })
+      });
+      if (!res.ok) throw new Error('Request failed');
+
+      track('waitlist_signup', { email_domain: email.split('@')[1] });
+      document.getElementById('modal-form-view').style.display = 'none';
+      document.getElementById('modal-thanks-view').style.display = 'block';
+    } catch(err) {
+      submitBtn.textContent = 'Notify me';
+      submitBtn.disabled = false;
+      document.getElementById('email-input').style.borderColor = '#c0392b';
+      setTimeout(function(){ document.getElementById('email-input').style.borderColor = ''; }, 1500);
+    }
   };
 
 })();
