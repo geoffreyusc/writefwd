@@ -39,6 +39,7 @@
       --icon-on: #888;
       --scanline: rgba(0,0,0,0.05);
       --vignette: rgba(0,0,0,0.6);
+      --ring-progress: #aaa;
     }
 
     [data-theme="light"] {
@@ -71,6 +72,7 @@
       --icon-on: #4a4640;
       --scanline: rgba(0,0,0,0.03);
       --vignette: rgba(0,0,0,0.2);
+      --ring-progress: #777;
     }
 
     html, body {
@@ -136,7 +138,7 @@
     #ring-svg { width: 26px; height: 26px; }
     #ring-bg { fill: none; stroke: var(--border); stroke-width: 2; }
     #ring-fg {
-      fill: none; stroke: #aaa; stroke-width: 2; stroke-linecap: butt;
+      fill: none; stroke: var(--ring-progress); stroke-width: 2; stroke-linecap: butt;
       stroke-dasharray: 65.97; stroke-dashoffset: 0;
       transform: rotate(-90deg); transform-origin: 12px 12px;
       transition: stroke-dashoffset 1s linear;
