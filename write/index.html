@@ -16,7 +16,8 @@
       --text-bright: #eeeeee;
       --text-dim1: #909090;
       --text-dim2: #505050;
-      --text-dim3: #444444;
+      --text-dim3-fade: #282828;
+      --start-mark-color: #444444;
       --text-muted: #888;
       --hint: #555555;
       --finish-text: #777777;
@@ -49,7 +50,8 @@
       --text-bright: #2c2a27;
       --text-dim1: #888078;
       --text-dim2: #aaa89f;
-      --text-dim3: #c8c4be;
+      --text-dim3-fade: #c8c4be;
+      --start-mark-color: #c8c4be;
       --text-muted: #aaa;
       --hint: #aaa;
       --finish-text: #888;
@@ -175,7 +177,7 @@
     }
     .line.a1 { color: var(--text-dim1); opacity: 0.85; }
     .line.a2 { color: var(--text-dim2); opacity: 0.55; }
-    .line.a3 { color: var(--text-dim3); opacity: 0.25; }
+    .line.a3 { color: var(--text-dim3-fade); opacity: 0.25; }
     #curline {
       font-size: 22px;
       line-height: 1.9;
@@ -252,7 +254,7 @@
 
     /* Start screen */
     #start-screen { gap: 0; }
-    #start-mark { font-size: 34px; color: var(--text-dim3); margin-bottom: 18px; }
+    #start-mark { font-size: 34px; color: var(--start-mark-color); margin-bottom: 18px; }
     #start-head {
       font-size: 25px; font-weight: normal; color: var(--heading);
       letter-spacing: 0.04em; margin-bottom: 8px;
