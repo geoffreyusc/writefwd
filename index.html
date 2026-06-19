@@ -473,16 +473,14 @@
   'use strict';
 
   var CIRC = 56.55;
-  var DEMO_SECS = 20;
+  var DEMO_SECS = 25;
   var FACT = "Toni Morrison wrote Beloved before dawn every morning while working as an editor and raising two children alone.";
   var DEMO_LINES = [
-    "I have been trying to write this for months.",
-    "Every time I sit down, I delete the first",
-    "sentence before it is even finished. But",
-    "right now there is no delete key. So I",
-    "just keep going. And something is happening.",
-    "The words are coming out wrong and honest",
-    "and mine."
+    "I have been meaning to say this.",
+    "Every time I start, I delete it.",
+    "Not this time.",
+    "This time I keep going.",
+    "The words are mine."
   ];
 
   // Full draft shown instantly on reveal — intentionally longer than what was typed
@@ -762,13 +760,13 @@
         var w = wc(allText);
         var wcEl = document.getElementById(p+'d-wc');
         if (wcEl) wcEl.textContent = w + (w===1?' word':' words');
-        if (cl < DEMO_LINES.length) setTimeout(tick, 200);
+        if (cl < DEMO_LINES.length) setTimeout(tick, 800);
       } else {
         cc++;
         var ch = line[cc-1];
-        var spd = 44 + Math.random()*34;
-        if (ch === ' ') spd = 75 + Math.random()*35;
-        if (ch === '.' || ch === ',') spd = 140 + Math.random()*70;
+        var spd = 80 + Math.random()*50;
+        if (ch === ' ') spd = 140 + Math.random()*60;
+        if (ch === '.' || ch === ',') spd = 280 + Math.random()*120;
         setTimeout(tick, spd);
       }
     }
