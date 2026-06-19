@@ -467,21 +467,43 @@
   'use strict';
 
   var CIRC = 56.55;
-  var DEMO_SECS = 25;
-  var DEMO_LINES = [
-    "I need to say this.",
-    "Every time I start, I stop.",
-    "Not this time.",
-    "I keep going.",
-    "The words are mine."
-  ];
+  // Longer session window so the full story finishes typing before the timer would end
+  var DEMO_SECS = 45;
 
-  // Full draft shown instantly on reveal — intentionally longer than what was typed
-  var DRAFT_FULL = [
-    "There is a draft I have been carrying around for two years. Not on paper — in my head. Every time I sit down to write it I start editing before the first word is typed. Not this time.",
-    "Something is different today. The cursor moves and I move with it. The words are wrong and imprecise and true. I can't fix them. So I just keep going.",
-    "This time I write forward. I don't stop."
-  ].join('\n\n');
+  // ─────────────────────────────────────────────────────────────
+  // DEMO STORY A/B — second, independent layer (separate from the
+  // headline A/B in VARIANTS). Each story's `full` is the run-on
+  // stream typed during the demo; `draft` is the cleaned, punctuated
+  // version revealed at the end. Same words — the draft just adds
+  // punctuation. Stored under sessionStorage 'wf_demo_story'.
+  // ─────────────────────────────────────────────────────────────
+  var DEMO_STORIES = {
+    novelist: {
+      full: "I have three chapters of my novel they have been the same three chapters for two years I keep rewriting them I never get to chapter four but right now there is no backspace so I just keep going forward",
+      draft: "I have three chapters of my novel. They have been the same three chapters for two years. I keep rewriting them. I never get to chapter four. But right now there is no backspace. So I just keep going forward."
+    },
+    journaler: {
+      full: "I open a blank page every morning I write one sentence I delete it I close the app I tell myself I will try again tomorrow but today I cannot delete so I just keep writing",
+      draft: "I open a blank page every morning. I write one sentence. I delete it. I close the app. I tell myself I will try again tomorrow. But today I cannot delete. So I just keep writing."
+    },
+    unsaid: {
+      full: "There is something I need to say I have been carrying it around for months every time I start writing it I stop before the second sentence but right now I cannot stop so here it is",
+      draft: "There is something I need to say. I have been carrying it around for months. Every time I start writing it I stop before the second sentence. But right now I cannot stop. So here it is."
+    }
+  };
+
+  // Break a run-on story into short display lines so the existing per-line fade still works
+  function storyToLines(text){
+    var words = text.split(/\s+/), lines = [], cur = '';
+    for (var i = 0; i < words.length; i++){
+      var w = words[i];
+      if (!cur) cur = w;
+      else if ((cur + ' ' + w).length <= 24) cur += ' ' + w;
+      else { lines.push(cur); cur = w; }
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
 
   // Inline SVG icons (feather-style) for the draft action buttons
   var SVG_OPEN = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
@@ -521,6 +543,17 @@
     sessionStorage.setItem('wf_ab_variant', variant);
   }
 
+  // Independent second A/B layer: which demo story this visitor sees
+  var STORIES = ['novelist', 'journaler', 'unsaid'];
+  var demoStory = sessionStorage.getItem('wf_demo_story');
+  if (!demoStory) {
+    demoStory = STORIES[Math.floor(Math.random() * 3)];
+    sessionStorage.setItem('wf_demo_story', demoStory);
+  }
+  if (!DEMO_STORIES[demoStory]) demoStory = STORIES[0];
+  var demoFull = DEMO_STORIES[demoStory].full;
+  var demoDraft = DEMO_STORIES[demoStory].draft;
+
   var v = VARIANTS[variant];
   document.getElementById('kicker').textContent = v.kicker;
   document.getElementById('headline').innerHTML = v.headline;
@@ -530,13 +563,14 @@
   var heroRight = document.getElementById('hero-right');
   heroRight.classList.add(v.panelClass);
   heroRight.innerHTML = buildDemo(v.demoTheme);
-  initDemo(v.demoTheme);
+  initDemo(v.demoTheme, '', demoFull, demoDraft);
 
-  // Mobile-only demo: always dark, separate "mob-" prefixed IDs, own animation instance
+  // Mobile-only demo: always dark, separate "mob-" prefixed IDs, own animation instance.
+  // Same selected story as desktop — same visitor, same page.
   var mobileDemo = document.getElementById('mobile-demo');
   if (mobileDemo) {
     mobileDemo.innerHTML = buildDemo('dark', 'mob-');
-    initDemo('dark', 'mob-');
+    initDemo('dark', 'mob-', demoFull, demoDraft);
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -607,8 +641,9 @@
   // ─────────────────────────────────────────────────────────────
   // DEMO ENGINE
   // ─────────────────────────────────────────────────────────────
-  function initDemo(theme, p) {
+  function initDemo(theme, p, fullText, draft) {
     p = p || '';
+    var lines = storyToLines(fullText);
     var built = [], cl = 0, cc = 0, allText = '';
     var secsLeft = DEMO_SECS;
     var timerInt = null, autoClickT = null, autoClickT2 = null, draftT = null, replayInt = null;
@@ -659,11 +694,11 @@
       if (dp) dp.classList.add('show');
       setSteps(2);
       // Full draft appears all at once — the contrast against the fading text is the point
-      var n = wc(DRAFT_FULL);
+      var n = wc(draft);
       var meta = document.getElementById(p+'d-draft-meta');
       if (meta) meta.textContent = n + ' words — 0:' + DEMO_SECS;
       var body = document.getElementById(p+'d-draft-body');
-      if (body) body.textContent = DRAFT_FULL;
+      if (body) body.textContent = draft;
       scheduleReplay();
     }
 
@@ -725,8 +760,8 @@
     }
 
     function tick(){
-      if (cl >= DEMO_LINES.length) return;
-      var line = DEMO_LINES[cl];
+      if (cl >= lines.length) return;
+      var line = lines[cl];
       var ctEl = document.getElementById(p+'d-ct');
       if (!ctEl) return;
       ctEl.textContent = line.slice(0, cc);
@@ -745,7 +780,7 @@
         var w = wc(allText);
         var wcEl = document.getElementById(p+'d-wc');
         if (wcEl) wcEl.textContent = w + (w===1?' word':' words');
-        if (cl < DEMO_LINES.length) {
+        if (cl < lines.length) {
           setTimeout(tick, 800);
         } else {
           // All lines written — end the session right away (final 800ms beat) instead of waiting for the timer
@@ -772,7 +807,7 @@
     if (copyBtn) {
       var copyOrig = copyBtn.innerHTML;
       copyBtn.addEventListener('click', function(){
-        navigator.clipboard && navigator.clipboard.writeText(DRAFT_FULL).catch(function(){});
+        navigator.clipboard && navigator.clipboard.writeText(draft).catch(function(){});
         copyBtn.innerHTML = ICON_CHECK + '<span>Copied</span>';
         setTimeout(function(){ copyBtn.innerHTML = copyOrig; }, 1800);
       });
@@ -807,6 +842,7 @@
     props = props || {};
     props.variant = variant;
     props.demo_theme = v.demoTheme;
+    props.demo_story = demoStory;
     console.log('[writefwd]', event, props);
     if (window.plausible) window.plausible(event, { props: props });
     // if (window.posthog) posthog.capture(event, props);
