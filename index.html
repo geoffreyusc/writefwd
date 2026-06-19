@@ -160,8 +160,6 @@
     .demo-complete-sub { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 24px; }
     .demo-read-btn { font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; background: transparent; padding: 8px 22px; cursor: pointer; margin-bottom: 24px; transition: all 0.2s; }
     .demo-read-btn.clicking { color: #e0e0e0; border-color: #e0e0e0; transform: scale(0.97); }
-    .demo-fact { font-size: 13px; font-style: italic; max-width: 380px; line-height: 1.85; opacity: 0; transition: opacity 1.2s ease; }
-    .demo-fact.show { opacity: 1; }
 
     .demo-draft { display: none; flex-direction: column; }
     .demo-draft.show { display: flex; }
@@ -199,8 +197,6 @@
     .demo-dark .demo-complete-sub { color: #252525; }
     .demo-dark .demo-read-btn { color: #555; border: 1px solid #2a2a2a; }
     .demo-dark .demo-read-btn:hover { color: #999; border-color: #555; }
-    .demo-dark .demo-fact { color: #2a2a2a; }
-    .demo-dark .demo-fact.show { color: #383838; }
     .demo-dark .demo-draft-hdr { border-color: #1e1e1e; }
     .demo-dark .demo-draft-title { color: #888; }
     .demo-dark .demo-draft-meta { color: #888; }
@@ -240,8 +236,6 @@
     .demo-light .demo-complete-sub { color: #bbb; }
     .demo-light .demo-read-btn { color: #888; border: 1px solid #ccc; }
     .demo-light .demo-read-btn:hover { color: #333; border-color: #888; }
-    .demo-light .demo-fact { color: #bbb; }
-    .demo-light .demo-fact.show { color: #888; }
     .demo-light .demo-draft-hdr { border-color: #ddd9d0; }
     .demo-light .demo-draft-title { color: #aaa; }
     .demo-light .demo-draft-meta { color: #bbb; }
@@ -474,7 +468,6 @@
 
   var CIRC = 56.55;
   var DEMO_SECS = 25;
-  var FACT = "Toni Morrison wrote Beloved before dawn every morning while working as an editor and raising two children alone.";
   var DEMO_LINES = [
     "I have been meaning to say this.",
     "Every time I start, I delete it.",
@@ -593,7 +586,6 @@
           '<div class="demo-complete-head">Time\'s up.</div>',
           '<div class="demo-complete-sub">session complete</div>',
           '<button class="demo-read-btn" id="' + p + 'd-read-btn">Read my draft</button>',
-          '<div class="demo-fact" id="' + p + 'd-fact"></div>',
         '</div>',
         '<div class="demo-draft" id="' + p + 'd-draft-phase">',
           '<div class="demo-draft-hdr">',
@@ -649,12 +641,7 @@
       var cp = document.getElementById(p+'d-complete-phase');
       if (cp) cp.classList.add('show');
       setSteps(1);
-      var factEl = document.getElementById(p+'d-fact');
-      if (factEl) {
-        factEl.textContent = FACT;
-        setTimeout(function(){ factEl.classList.add('show'); }, 700);
-      }
-      // Auto-press "Read my draft" after the fact has had a moment to land
+      // Auto-press "Read my draft" after the completion screen has had a moment to land
       autoClickT = setTimeout(function(){
         var rb = document.getElementById(p+'d-read-btn');
         if (rb) rb.classList.add('clicking');
@@ -713,8 +700,6 @@
       if (dp) dp.classList.remove('show');
       var cp = document.getElementById(p+'d-complete-phase');
       if (cp) cp.classList.remove('show');
-      var factEl = document.getElementById(p+'d-fact');
-      if (factEl) factEl.classList.remove('show');
       var wp = document.getElementById(p+'d-write-phase');
       if (wp) wp.style.display = '';
       var ct = document.getElementById(p+'d-ct');
