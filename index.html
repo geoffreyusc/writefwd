@@ -159,6 +159,7 @@
     .demo-complete-head { font-size: 20px; font-weight: normal; margin-bottom: 5px; }
     .demo-complete-sub { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 24px; }
     .demo-read-btn { font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; background: transparent; padding: 8px 22px; cursor: pointer; margin-bottom: 24px; transition: all 0.2s; }
+    .demo-read-btn.clicking { color: #e0e0e0; border-color: #e0e0e0; transform: scale(0.97); }
     .demo-fact { font-size: 13px; font-style: italic; max-width: 380px; line-height: 1.85; opacity: 0; transition: opacity 1.2s ease; }
     .demo-fact.show { opacity: 1; }
 
@@ -169,7 +170,9 @@
     .demo-draft-meta { font-size: 11px; }
     .demo-draft-body { padding: 24px 28px; font-size: 17px; line-height: 1.9; white-space: pre-wrap; }
     .demo-draft-actions { padding: 10px 28px 14px; border-top: 1px solid; display: flex; gap: 8px; justify-content: flex-end; }
-    .demo-act { font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; background: transparent; padding: 6px 14px; cursor: pointer; transition: all 0.2s; }
+    .demo-act { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; background: transparent; display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 2px; cursor: pointer; transition: all 0.2s; }
+    .demo-act svg { width: 13px; height: 13px; flex-shrink: 0; }
+    .demo-replay { font-size: 10px; color: #333; letter-spacing: 0.1em; text-align: center; padding: 8px; border-top: 1px solid #141414; }
 
     /* ── DARK DEMO THEME ── */
     .demo-dark { background: #080808; border: 1.5px solid #666; border-radius: 4px; margin: 16px; }
@@ -203,10 +206,12 @@
     .demo-dark .demo-draft-meta { color: #888; }
     .demo-dark .demo-draft-body { color: #888; }
     .demo-dark .demo-draft-actions { border-color: #1a1a1a; }
-    .demo-dark .demo-act.new { color: #2a2a2a; border: 1px solid #1e1e1e; }
-    .demo-dark .demo-act.new:hover { color: #555; border-color: #333; }
-    .demo-dark .demo-act.copy { color: #555; border: 1px solid #2a2a2a; }
-    .demo-dark .demo-act.copy:hover { color: #aaa; border-color: #666; }
+    .demo-dark .demo-act.new { color: #333; border: 1px solid #222; }
+    .demo-dark .demo-act.new:hover { color: #666; border-color: #333; }
+    .demo-dark .demo-act.copy { color: #666; border: 1px solid #2e2e2e; }
+    .demo-dark .demo-act.copy:hover { color: #aaa; border-color: #555; }
+    .demo-dark .demo-act.share { color: #aaa; border: 1px solid #3a3a3a; }
+    .demo-dark .demo-act.share:hover { color: #e0e0e0; border-color: #555; }
     .demo-dark .ring-bg { stroke: #1e1e1e; }
     .demo-dark .ring-fg { stroke: #aaa; }
 
@@ -246,6 +251,9 @@
     .demo-light .demo-act.new:hover { color: #555; border-color: #aaa; }
     .demo-light .demo-act.copy { color: #888; border: 1px solid #ccc; }
     .demo-light .demo-act.copy:hover { color: #111; border-color: #888; }
+    .demo-light .demo-act.share { color: #555; border: 1px solid #aaa; }
+    .demo-light .demo-act.share:hover { color: #111; border-color: #666; }
+    .demo-light .demo-replay { color: #bbb; border-top: 1px solid #e5e1d8; }
     .demo-light .ring-bg { stroke: #ddd9d0; }
     .demo-light .ring-fg { stroke: #aaa; }
 
@@ -472,6 +480,20 @@
     "and mine."
   ];
 
+  // Full draft shown instantly on reveal — intentionally longer than what was typed
+  var DRAFT_FULL = [
+    "There is a draft I have been carrying around for two years. Not on paper — in my head. Every time I sit down to write it I start editing before the first word is typed. Not this time.",
+    "Something is different today. The cursor moves and I move with it. The words are wrong and imprecise and true. I can't fix them. So I just keep going.",
+    "This time I write forward. I don't stop."
+  ].join('\n\n');
+
+  // Inline SVG icons (feather-style) for the draft action buttons
+  var SVG_OPEN = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
+  var ICON_REFRESH = SVG_OPEN + '<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>';
+  var ICON_COPY = SVG_OPEN + '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  var ICON_SHARE = SVG_OPEN + '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>';
+  var ICON_CHECK = SVG_OPEN + '<polyline points="20 6 9 17 4 12"/></svg>';
+
   // ─────────────────────────────────────────────────────────────
   // A/B CONFIG
   // Variant A: dark demo panel + typographic headline
@@ -577,10 +599,12 @@
           '</div>',
           '<div class="demo-draft-body" id="' + p + 'd-draft-body"></div>',
           '<div class="demo-draft-actions">',
-            '<button class="demo-act new" id="' + p + 'd-new-btn">New session</button>',
-            '<button class="demo-act copy" id="' + p + 'd-copy-btn">Copy text</button>',
+            '<button class="demo-act new" id="' + p + 'd-new-btn">' + ICON_REFRESH + '<span>New session</span></button>',
+            '<button class="demo-act copy" id="' + p + 'd-copy-btn">' + ICON_COPY + '<span>Copy text</span></button>',
+            '<button class="demo-act share" id="' + p + 'd-share-btn">' + ICON_SHARE + '<span>Share</span></button>',
           '</div>',
         '</div>',
+        '<div class="demo-replay" id="' + p + 'd-replay" style="display:none"></div>',
       '</div>'
     ].join('');
   }
@@ -592,7 +616,7 @@
     p = p || '';
     var built = [], cl = 0, cc = 0, allText = '';
     var secsLeft = DEMO_SECS;
-    var timerInt = null;
+    var timerInt = null, autoClickT = null, autoClickT2 = null, draftT = null, replayInt = null;
 
     function wc(s){ return s.trim().split(/\s+/).filter(function(w){return w.length>0;}).length; }
 
@@ -627,6 +651,15 @@
         factEl.textContent = FACT;
         setTimeout(function(){ factEl.classList.add('show'); }, 700);
       }
+      // Auto-press "Read my draft" after the fact has had a moment to land
+      autoClickT = setTimeout(function(){
+        var rb = document.getElementById(p+'d-read-btn');
+        if (rb) rb.classList.add('clicking');
+        autoClickT2 = setTimeout(function(){
+          if (rb) rb.classList.remove('clicking');
+          showDraft();
+        }, 350);
+      }, 3200);
     }
 
     function showDraft(){
@@ -635,17 +668,44 @@
       var dp = document.getElementById(p+'d-draft-phase');
       if (dp) dp.classList.add('show');
       setSteps(2);
-      var n = wc(allText);
+      // Full draft appears all at once — the contrast against the fading text is the point
+      var n = wc(DRAFT_FULL);
       var meta = document.getElementById(p+'d-draft-meta');
       if (meta) meta.textContent = n + ' words — 0:' + DEMO_SECS;
       var body = document.getElementById(p+'d-draft-body');
-      if (body) body.textContent = allText || '(nothing written)';
+      if (body) body.textContent = DRAFT_FULL;
+      scheduleReplay();
+    }
+
+    function scheduleReplay(){
+      if (draftT) clearTimeout(draftT);
+      if (replayInt) clearInterval(replayInt);
+      draftT = setTimeout(function(){
+        var rep = document.getElementById(p+'d-replay');
+        if (!rep) return;
+        var n = 6;
+        rep.style.display = 'block';
+        rep.textContent = 'replaying in ' + n + 's';
+        replayInt = setInterval(function(){
+          n--;
+          rep.textContent = 'replaying in ' + n + 's';
+          if (n <= 0){ clearInterval(replayInt); reset(); }
+        }, 1000);
+      }, 5000);
     }
 
     function reset(){
       built = []; cl = 0; cc = 0; allText = '';
       secsLeft = DEMO_SECS;
       if (timerInt) clearInterval(timerInt);
+      if (autoClickT) clearTimeout(autoClickT);
+      if (autoClickT2) clearTimeout(autoClickT2);
+      if (draftT) clearTimeout(draftT);
+      if (replayInt) clearInterval(replayInt);
+      var rep = document.getElementById(p+'d-replay');
+      if (rep) { rep.style.display = 'none'; rep.textContent = ''; }
+      var rb = document.getElementById(p+'d-read-btn');
+      if (rb) rb.classList.remove('clicking');
       var dp = document.getElementById(p+'d-draft-phase');
       if (dp) dp.classList.remove('show');
       var cp = document.getElementById(p+'d-complete-phase');
@@ -715,11 +775,28 @@
     if (newBtn) newBtn.addEventListener('click', reset);
 
     var copyBtn = document.getElementById(p+'d-copy-btn');
-    if (copyBtn) copyBtn.addEventListener('click', function(){
-      navigator.clipboard && navigator.clipboard.writeText(allText).catch(function(){});
-      copyBtn.textContent = 'Copied';
-      setTimeout(function(){ copyBtn.textContent = 'Copy text'; }, 1800);
-    });
+    if (copyBtn) {
+      var copyOrig = copyBtn.innerHTML;
+      copyBtn.addEventListener('click', function(){
+        navigator.clipboard && navigator.clipboard.writeText(DRAFT_FULL).catch(function(){});
+        copyBtn.innerHTML = ICON_CHECK + '<span>Copied</span>';
+        setTimeout(function(){ copyBtn.innerHTML = copyOrig; }, 1800);
+      });
+    }
+
+    var shareBtn = document.getElementById(p+'d-share-btn');
+    if (shareBtn) {
+      var shareOrig = shareBtn.innerHTML;
+      shareBtn.addEventListener('click', function(){
+        if (navigator.share) {
+          navigator.share({ title: 'writefwd', text: 'Write forward. Never back.', url: 'https://writefwd.com' }).catch(function(){});
+        } else {
+          navigator.clipboard && navigator.clipboard.writeText('https://writefwd.com').catch(function(){});
+          shareBtn.innerHTML = ICON_CHECK + '<span>Link copied</span>';
+          setTimeout(function(){ shareBtn.innerHTML = shareOrig; }, 1800);
+        }
+      });
+    }
 
     setRing(DEMO_SECS, DEMO_SECS);
     startTimer();
