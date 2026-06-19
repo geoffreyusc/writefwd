@@ -147,7 +147,7 @@
     .demo-step:last-child { border-right: none; }
 
     .demo-writing { padding: 28px 28px 0; min-height: 180px; height: 180px; overflow: hidden; position: relative; }
-    .demo-fade-top { height: 40px; position: absolute; top: 0; left: 0; right: 0; pointer-events: none; }
+    .demo-fade-top { position: absolute; top: 0; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, #0a0a0a 0%, transparent 100%); pointer-events: none; z-index: 2; }
     .demo-line { font-size: 18px; line-height: 1.9; min-height: 34px; white-space: pre-wrap; word-break: break-word; transition: color 0.25s cubic-bezier(0.25,0,0.5,1), opacity 0.25s cubic-bezier(0.25,0,0.5,1); }
     .demo-cursor { display: inline-block; width: 9px; height: 18px; vertical-align: middle; margin-left: 2px; animation: dbl 0.9s step-end infinite; }
     @keyframes dbl { 0%,100%{opacity:1} 50%{opacity:0} }
@@ -187,7 +187,7 @@
     .demo-dark .demo-step { border-color: #1a1a1a; color: #666; }
     .demo-dark .demo-step.active { color: #bbb; }
     .demo-dark .demo-step.done { color: #888; }
-    .demo-dark .demo-fade-top { background: linear-gradient(to bottom, #0a0a0a, transparent); }
+    .demo-dark .demo-fade-top { background: linear-gradient(to bottom, #0a0a0a 0%, transparent 100%); }
     .demo-dark .demo-line.age3 { color: #181818; opacity: 0.12; }
     .demo-dark .demo-line.age2 { color: #383838; opacity: 0.4; }
     .demo-dark .demo-line.age1 { color: #b0b0b0; opacity: 0.9; }
@@ -342,6 +342,8 @@
       .demo-writing { height: 220px; }
       .demo-complete { min-height: 220px; }
       .demo-draft-body { max-height: 220px; }
+      #mobile-demo .demo-line,
+      #mobile-demo .demo-line.cur { font-size: 14px; line-height: 1.8; }
     }
   </style>
 <!-- Privacy-friendly analytics by Plausible -->
