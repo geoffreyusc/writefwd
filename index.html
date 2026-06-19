@@ -314,10 +314,15 @@
     .modal-thanks-text { font-size: 16px; color: var(--ink); line-height: 1.7; }
     .modal-thanks-sub { font-size: 13px; color: #444; line-height: 1.7; margin-top: 8px; }
 
+    /* ── MOBILE-ONLY DEMO ── */
+    #mobile-demo { display: none; }
+    #mobile-demo .demo-dark { margin: 0; border-left: none; border-right: none; border-radius: 0; }
+
     @media (max-width: 680px) {
       nav, footer { padding: 16px 20px; }
       .hero { grid-template-columns: 1fr; }
       .hero-right { display: none; }
+      #mobile-demo { display: block; border-top: 2px solid #111; border-bottom: 2px solid #111; }
       .hero-left { padding: 40px 20px; }
       .headline { font-size: 34px; }
       .manifesto, .quote-section { grid-template-columns: 1fr; gap: 12px; padding: 36px 20px; }
@@ -358,6 +363,11 @@
     <!-- Demo injected here by JS -->
   </div>
 </section>
+
+<!-- Mobile-only demo: full-width dark panel stacked below the hero on small screens -->
+<div id="mobile-demo">
+  <!-- Demo injected here by JS (mob- prefixed IDs) -->
+</div>
 
 <div class="manifesto">
   <div class="manifesto-label">The idea</div>
@@ -504,13 +514,21 @@
   heroRight.innerHTML = buildDemo(v.demoTheme);
   initDemo(v.demoTheme);
 
+  // Mobile-only demo: always dark, separate "mob-" prefixed IDs, own animation instance
+  var mobileDemo = document.getElementById('mobile-demo');
+  if (mobileDemo) {
+    mobileDemo.innerHTML = buildDemo('dark', 'mob-');
+    initDemo('dark', 'mob-');
+  }
+
   // ─────────────────────────────────────────────────────────────
   // DEMO HTML BUILDER
   // ─────────────────────────────────────────────────────────────
-  function buildDemo(theme) {
+  function buildDemo(theme, p) {
+    p = p || '';
     var t = 'demo-' + theme;
     return [
-      '<div class="demo-wrap ' + t + '" id="demo-root">',
+      '<div class="demo-wrap ' + t + '" id="' + p + 'demo-root">',
         '<div class="demo-titlebar">',
           '<div class="demo-dots">',
             '<div class="demo-dot r"></div>',
@@ -522,45 +540,45 @@
             '<div class="demo-timer-wrap">',
               '<svg class="demo-ring" viewBox="0 0 20 20">',
                 '<circle class="ring-bg" cx="10" cy="10" r="8" fill="none" stroke-width="2"/>',
-                '<circle class="ring-fg" id="d-ring" cx="10" cy="10" r="8" fill="none" stroke-width="2" stroke-linecap="butt" stroke-dasharray="50.27" stroke-dashoffset="0" transform="rotate(-90 10 10)"/>',
+                '<circle class="ring-fg" id="' + p + 'd-ring" cx="10" cy="10" r="8" fill="none" stroke-width="2" stroke-linecap="butt" stroke-dasharray="50.27" stroke-dashoffset="0" transform="rotate(-90 10 10)"/>',
               '</svg>',
-              '<span class="demo-timer-txt" id="d-timer">0:20</span>',
+              '<span class="demo-timer-txt" id="' + p + 'd-timer">0:20</span>',
             '</div>',
           '</div>',
-          '<span class="demo-wc-lbl" id="d-wc">0 words</span>',
+          '<span class="demo-wc-lbl" id="' + p + 'd-wc">0 words</span>',
         '</div>',
         '<div class="demo-progress">',
-          '<div class="demo-step active" id="d-s1">Write</div>',
-          '<div class="demo-step" id="d-s2">Session ends</div>',
-          '<div class="demo-step" id="d-s3">Read draft</div>',
+          '<div class="demo-step active" id="' + p + 'd-s1">Write</div>',
+          '<div class="demo-step" id="' + p + 'd-s2">Session ends</div>',
+          '<div class="demo-step" id="' + p + 'd-s3">Read draft</div>',
         '</div>',
-        '<div id="d-write-phase">',
+        '<div id="' + p + 'd-write-phase">',
           '<div class="demo-writing">',
             '<div class="demo-fade-top"></div>',
-            '<div class="demo-line age3" id="d-l3">&nbsp;</div>',
-            '<div class="demo-line age2" id="d-l2">&nbsp;</div>',
-            '<div class="demo-line age1" id="d-l1">&nbsp;</div>',
-            '<div class="demo-line cur"><span id="d-ct"></span><span class="demo-cursor"></span></div>',
+            '<div class="demo-line age3" id="' + p + 'd-l3">&nbsp;</div>',
+            '<div class="demo-line age2" id="' + p + 'd-l2">&nbsp;</div>',
+            '<div class="demo-line age1" id="' + p + 'd-l1">&nbsp;</div>',
+            '<div class="demo-line cur"><span id="' + p + 'd-ct"></span><span class="demo-cursor"></span></div>',
           '</div>',
           '<div class="demo-footer">',
             '<span class="demo-hint-txt">backspace is disabled</span>',
           '</div>',
         '</div>',
-        '<div class="demo-complete" id="d-complete-phase">',
+        '<div class="demo-complete" id="' + p + 'd-complete-phase">',
           '<div class="demo-complete-head">Time\'s up.</div>',
           '<div class="demo-complete-sub">session complete</div>',
-          '<button class="demo-read-btn" id="d-read-btn">Read my draft</button>',
-          '<div class="demo-fact" id="d-fact"></div>',
+          '<button class="demo-read-btn" id="' + p + 'd-read-btn">Read my draft</button>',
+          '<div class="demo-fact" id="' + p + 'd-fact"></div>',
         '</div>',
-        '<div class="demo-draft" id="d-draft-phase">',
+        '<div class="demo-draft" id="' + p + 'd-draft-phase">',
           '<div class="demo-draft-hdr">',
             '<div class="demo-draft-title">your draft</div>',
-            '<div class="demo-draft-meta" id="d-draft-meta"></div>',
+            '<div class="demo-draft-meta" id="' + p + 'd-draft-meta"></div>',
           '</div>',
-          '<div class="demo-draft-body" id="d-draft-body"></div>',
+          '<div class="demo-draft-body" id="' + p + 'd-draft-body"></div>',
           '<div class="demo-draft-actions">',
-            '<button class="demo-act new" id="d-new-btn">New session</button>',
-            '<button class="demo-act copy" id="d-copy-btn">Copy text</button>',
+            '<button class="demo-act new" id="' + p + 'd-new-btn">New session</button>',
+            '<button class="demo-act copy" id="' + p + 'd-copy-btn">Copy text</button>',
           '</div>',
         '</div>',
       '</div>'
@@ -570,7 +588,8 @@
   // ─────────────────────────────────────────────────────────────
   // DEMO ENGINE
   // ─────────────────────────────────────────────────────────────
-  function initDemo(theme) {
+  function initDemo(theme, p) {
+    p = p || '';
     var built = [], cl = 0, cc = 0, allText = '';
     var secsLeft = DEMO_SECS;
     var timerInt = null;
@@ -581,14 +600,14 @@
 
     function setRing(rem, total){
       var offset = CIRC - (rem / total * CIRC);
-      var ring = document.getElementById('d-ring');
+      var ring = document.getElementById(p+'d-ring');
       if (ring) ring.setAttribute('stroke-dashoffset', offset.toFixed(2));
-      var t = document.getElementById('d-timer');
+      var t = document.getElementById(p+'d-timer');
       if (t) t.textContent = fmtTime(rem);
     }
 
     function setSteps(active){
-      [['d-s1',0],['d-s2',1],['d-s3',2]].forEach(function(pair){
+      [[p+'d-s1',0],[p+'d-s2',1],[p+'d-s3',2]].forEach(function(pair){
         var el = document.getElementById(pair[0]);
         if (!el) return;
         el.className = 'demo-step';
@@ -598,12 +617,12 @@
     }
 
     function showComplete(){
-      var wp = document.getElementById('d-write-phase');
+      var wp = document.getElementById(p+'d-write-phase');
       if (wp) wp.style.display = 'none';
-      var cp = document.getElementById('d-complete-phase');
+      var cp = document.getElementById(p+'d-complete-phase');
       if (cp) cp.classList.add('show');
       setSteps(1);
-      var factEl = document.getElementById('d-fact');
+      var factEl = document.getElementById(p+'d-fact');
       if (factEl) {
         factEl.textContent = FACT;
         setTimeout(function(){ factEl.classList.add('show'); }, 700);
@@ -611,15 +630,15 @@
     }
 
     function showDraft(){
-      var cp = document.getElementById('d-complete-phase');
+      var cp = document.getElementById(p+'d-complete-phase');
       if (cp) cp.classList.remove('show');
-      var dp = document.getElementById('d-draft-phase');
+      var dp = document.getElementById(p+'d-draft-phase');
       if (dp) dp.classList.add('show');
       setSteps(2);
       var n = wc(allText);
-      var meta = document.getElementById('d-draft-meta');
+      var meta = document.getElementById(p+'d-draft-meta');
       if (meta) meta.textContent = n + ' words — 0:' + DEMO_SECS;
-      var body = document.getElementById('d-draft-body');
+      var body = document.getElementById(p+'d-draft-body');
       if (body) body.textContent = allText || '(nothing written)';
     }
 
@@ -627,19 +646,19 @@
       built = []; cl = 0; cc = 0; allText = '';
       secsLeft = DEMO_SECS;
       if (timerInt) clearInterval(timerInt);
-      var dp = document.getElementById('d-draft-phase');
+      var dp = document.getElementById(p+'d-draft-phase');
       if (dp) dp.classList.remove('show');
-      var cp = document.getElementById('d-complete-phase');
+      var cp = document.getElementById(p+'d-complete-phase');
       if (cp) cp.classList.remove('show');
-      var factEl = document.getElementById('d-fact');
+      var factEl = document.getElementById(p+'d-fact');
       if (factEl) factEl.classList.remove('show');
-      var wp = document.getElementById('d-write-phase');
+      var wp = document.getElementById(p+'d-write-phase');
       if (wp) wp.style.display = '';
-      var ct = document.getElementById('d-ct');
+      var ct = document.getElementById(p+'d-ct');
       if (ct) ct.textContent = '';
-      var wcEl = document.getElementById('d-wc');
+      var wcEl = document.getElementById(p+'d-wc');
       if (wcEl) wcEl.textContent = '0 words';
-      ['d-l3','d-l2','d-l1'].forEach(function(id){
+      [p+'d-l3',p+'d-l2',p+'d-l1'].forEach(function(id){
         var el = document.getElementById(id);
         if (el) el.textContent = '\u00A0';
       });
@@ -660,7 +679,7 @@
     function tick(){
       if (cl >= DEMO_LINES.length) return;
       var line = DEMO_LINES[cl];
-      var ctEl = document.getElementById('d-ct');
+      var ctEl = document.getElementById(p+'d-ct');
       if (!ctEl) return;
       ctEl.textContent = line.slice(0, cc);
       if (cc === line.length){
@@ -668,7 +687,7 @@
         allText = built.join(' ');
         cl++; cc = 0;
         var show = built.slice(-3);
-        ['d-l3','d-l2','d-l1'].forEach(function(id, i){
+        [p+'d-l3',p+'d-l2',p+'d-l1'].forEach(function(id, i){
           var el = document.getElementById(id);
           if (!el) return;
           var idx = i - (3 - show.length);
@@ -676,7 +695,7 @@
         });
         ctEl.textContent = '';
         var w = wc(allText);
-        var wcEl = document.getElementById('d-wc');
+        var wcEl = document.getElementById(p+'d-wc');
         if (wcEl) wcEl.textContent = w + (w===1?' word':' words');
         if (cl < DEMO_LINES.length) setTimeout(tick, 200);
       } else {
@@ -689,13 +708,13 @@
       }
     }
 
-    var readBtn = document.getElementById('d-read-btn');
+    var readBtn = document.getElementById(p+'d-read-btn');
     if (readBtn) readBtn.addEventListener('click', showDraft);
 
-    var newBtn = document.getElementById('d-new-btn');
+    var newBtn = document.getElementById(p+'d-new-btn');
     if (newBtn) newBtn.addEventListener('click', reset);
 
-    var copyBtn = document.getElementById('d-copy-btn');
+    var copyBtn = document.getElementById(p+'d-copy-btn');
     if (copyBtn) copyBtn.addEventListener('click', function(){
       navigator.clipboard && navigator.clipboard.writeText(allText).catch(function(){});
       copyBtn.textContent = 'Copied';
