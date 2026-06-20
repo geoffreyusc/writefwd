@@ -44,6 +44,45 @@
       --icon-on: #888;
     }
 
+    /* Smooth theme cross-fade — scoped to structural elements only.
+       Deliberately excludes .line, #curline, #cursor so the writing
+       fade mechanic and cursor blink are unaffected. */
+    html,
+    body,
+    #app,
+    #header,
+    #footer,
+    #start-screen,
+    #complete-screen,
+    #draft-screen,
+    #wordmark,
+    #stats,
+    #hint,
+    #finish-btn,
+    #wc-display,
+    #timer-label,
+    .icon-btn,
+    .opt,
+    #begin-btn,
+    #read-btn,
+    #copy-draft-btn,
+    #email-draft-btn,
+    #new-session-btn,
+    #draft-body,
+    #draft-header,
+    #how-it-works,
+    .how-line,
+    #back-link,
+    #ring-bg,
+    #ring-fg,
+    #scanlines,
+    #vignette {
+      transition:
+        background-color 0.4s ease,
+        color 0.4s ease,
+        border-color 0.4s ease;
+    }
+
     [data-theme="light"] {
       /* ── Light theme (warm Rhode gray) ── */
       --bg: #f0ede8;
