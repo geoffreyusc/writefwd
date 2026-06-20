@@ -10,37 +10,38 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      /* ── Dark theme (default) — colors drawn from the landing-page dark demo panel ── */
-      --bg: #080808;
-      --border: #1a1a1a;
-      --text-bright: #d8d8d8;
-      --text-dim1: #b0b0b0;
-      --text-dim2: #383838;
-      --text-dim3-fade: #181818;
-      --start-mark-color: #383838;
-      --text-muted: #888;
-      --hint: #888;
-      --finish-text: #888;
-      --finish-border: #666;
-      --text-faint: #181818;
-      --accent: #c0392b;
-      --wordmark: #888;
-      --stats: #aaa;
-      --heading: #d8d8d8;
-      --subhead: #888;
-      --read: #b0b0b0;
-      --btn-bg: #111;
-      --btn-border: #2e2e2e;
-      --btn-text: #666666;
-      --btn-hover-border: #666;
-      --btn-hover-text: #aaa;
-      --opt-sel-bg: rgba(232,232,232,0.08);
+      /* ── Dark theme (default) — the lighter dark from write/index.html ── */
+      --bg: #1a1a1a;
+      --border: #333333;
+      --text-bright: #eeeeee;
+      --text-dim1: #909090;
+      --text-dim2: #505050;
+      --text-dim3: #282828;
+      --text-muted: #555555;
+      --text-faint: #333;
+      --wordmark: #777777;
+      --stats: #777777;
+      --hint: #555555;
+      --finish-text: #777777;
+      --finish-border: #444444;
       --icon: #555555;
-      --icon-hover: #888;
-      --icon-on: #888;
+      --btn-bg: #252525;
+      --btn-text: #666666;
+      --btn-border: #333333;
+      --btn-hover-text: #bbb;
+      --btn-hover-border: #666;
+      --start-mark-color: #444444;
+      --ring-progress: #aaa;
       --scanline: rgba(0,0,0,0.05);
       --vignette: rgba(0,0,0,0.6);
-      --ring-progress: #aaa;
+      /* additional vars referenced elsewhere in the CSS — kept so Dark doesn't regress */
+      --text-dim3-fade: #282828;
+      --heading: #e0e0e0;
+      --subhead: #9a9a9a;
+      --read: #cfcfcf;
+      --opt-sel-bg: rgba(232,232,232,0.08);
+      --icon-hover: #888;
+      --icon-on: #888;
     }
 
     [data-theme="light"] {
@@ -75,6 +76,41 @@
       --scanline: rgba(0,0,0,0.03);
       --vignette: rgba(0,0,0,0.2);
       --ring-progress: #777;
+    }
+
+    [data-theme="midnight"] {
+      /* ── Midnight theme — the original write-b near-black palette ── */
+      --bg: #080808;
+      --border: #1a1a1a;
+      --text-bright: #d8d8d8;
+      --text-dim1: #b0b0b0;
+      --text-dim2: #383838;
+      --text-dim3: #181818;
+      --text-muted: #888;
+      --text-faint: #1e1e1e;
+      --wordmark: #555;
+      --stats: #555;
+      --hint: #333;
+      --finish-text: #666;
+      --finish-border: #2a2a2a;
+      --icon: #444;
+      --btn-bg: #111;
+      --btn-text: #555;
+      --btn-border: #222;
+      --btn-hover-text: #aaa;
+      --btn-hover-border: #444;
+      --start-mark-color: #333;
+      --ring-progress: #666;
+      --scanline: rgba(0,0,0,0.12);
+      --vignette: rgba(0,0,0,0.7);
+      /* additional vars referenced elsewhere in the CSS — kept so Midnight doesn't regress */
+      --text-dim3-fade: #181818;
+      --heading: #d8d8d8;
+      --subhead: #888;
+      --read: #b0b0b0;
+      --opt-sel-bg: rgba(232,232,232,0.08);
+      --icon-hover: #888;
+      --icon-on: #888;
     }
 
     html, body {
@@ -470,11 +506,13 @@
   </style>
   <script>
     // Apply saved theme before paint to avoid a flash.
-    (function () {
+    (function() {
       try {
         var t = localStorage.getItem('draft-theme');
-        document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
-      } catch (e) {
+        var valid = ['dark', 'midnight', 'light'];
+        var theme = valid.indexOf(t) !== -1 ? t : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch(e) {
         document.documentElement.setAttribute('data-theme', 'dark');
       }
     })();
@@ -522,12 +560,30 @@
   <div id="footer">
     <div id="hint">// backspace crosses out the last word</div>
     <div id="footer-right">
-      <!-- Theme toggle -->
-      <button class="icon-btn" id="theme-btn" data-theme-toggle title="Toggle light/dark mode">
-        <svg class="theme-moon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      <!-- Theme toggle (three-state: Dark → Midnight → Light) -->
+      <button class="icon-btn" id="theme-btn" data-theme-toggle title="Switch to Midnight">
+
+        <!-- Dark mode icon: outline crescent -->
+        <svg id="theme-icon-moon" width="16" height="16"
+          viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
         </svg>
-        <svg class="theme-sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+
+        <!-- Midnight mode icon: filled crescent -->
+        <svg id="theme-icon-fullmoon" width="16" height="16"
+          viewBox="0 0 24 24" fill="currentColor"
+          stroke="none" style="display:none">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+
+        <!-- Light mode icon: sun -->
+        <svg id="theme-icon-sun" width="16" height="16"
+          viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round"
+          style="display:none">
           <circle cx="12" cy="12" r="5"></circle>
           <line x1="12" y1="1" x2="12" y2="3"></line>
           <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -563,12 +619,30 @@
 
   <!-- Start screen -->
   <div class="screen" id="start-screen">
-    <!-- Theme toggle (start screen) -->
-    <button class="icon-btn" id="start-theme-btn" data-theme-toggle title="Toggle light/dark mode">
-      <svg class="theme-moon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    <!-- Theme toggle (start screen, three-state: Dark → Midnight → Light) -->
+    <button class="icon-btn" id="start-theme-btn" data-theme-toggle title="Switch to Midnight">
+
+      <!-- Dark mode icon: outline crescent -->
+      <svg id="start-theme-icon-moon" width="16" height="16"
+        viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
       </svg>
-      <svg class="theme-sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+
+      <!-- Midnight mode icon: filled crescent -->
+      <svg id="start-theme-icon-fullmoon" width="16" height="16"
+        viewBox="0 0 24 24" fill="currentColor"
+        stroke="none" style="display:none">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+
+      <!-- Light mode icon: sun -->
+      <svg id="start-theme-icon-sun" width="16" height="16"
+        viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round"
+        style="display:none">
         <circle cx="12" cy="12" r="5"></circle>
         <line x1="12" y1="1" x2="12" y2="3"></line>
         <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -824,27 +898,64 @@
     });
   }
 
-  // ── Theme toggle ──────────────────────────────────────────────
+  // ── Theme toggle (three-state: Dark → Midnight → Light) ───────
+  var THEMES = ['dark', 'midnight', 'light'];
+
+  function getCurrentTheme() {
+    return document.documentElement
+      .getAttribute('data-theme') || 'dark';
+  }
+
   function applyTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    document.querySelectorAll('.theme-moon').forEach(function (el) {
-      el.style.display = (theme === 'dark') ? 'block' : 'none';
-    });
-    document.querySelectorAll('.theme-sun').forEach(function (el) {
-      el.style.display = (theme === 'light') ? 'block' : 'none';
-    });
+    document.documentElement
+      .setAttribute('data-theme', theme);
+
+    // Footer icons
+    document.getElementById('theme-icon-moon')
+      .style.display = theme === 'dark' ? 'block' : 'none';
+    document.getElementById('theme-icon-fullmoon')
+      .style.display = theme === 'midnight' ? 'block' : 'none';
+    document.getElementById('theme-icon-sun')
+      .style.display = theme === 'light' ? 'block' : 'none';
+
+    // Start screen icons
+    document.getElementById('start-theme-icon-moon')
+      .style.display = theme === 'dark' ? 'block' : 'none';
+    document.getElementById('start-theme-icon-fullmoon')
+      .style.display = theme === 'midnight' ? 'block' : 'none';
+    document.getElementById('start-theme-icon-sun')
+      .style.display = theme === 'light' ? 'block' : 'none';
+
+    // Tooltip shows what's next
+    var titles = {
+      dark:     'Switch to Midnight',
+      midnight: 'Switch to Light',
+      light:    'Switch to Dark'
+    };
+    var btn = document.getElementById('theme-btn');
+    if (btn) btn.title = titles[theme];
+    var startBtn = document.getElementById('start-theme-btn');
+    if (startBtn) startBtn.title = titles[theme];
   }
 
-  function toggleTheme() {
-    var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  function cycleTheme() {
+    var current = getCurrentTheme();
+    var idx = THEMES.indexOf(current);
+    var next = THEMES[(idx + 1) % THEMES.length];
     applyTheme(next);
-    try { localStorage.setItem('draft-theme', next); } catch (e) {}
+    try {
+      localStorage.setItem('draft-theme', next);
+    } catch(e) {}
   }
 
-  applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
-  document.querySelectorAll('[data-theme-toggle]').forEach(function (b) {
-    b.addEventListener('click', toggleTheme);
-  });
+  // Initialize from saved theme
+  applyTheme(getCurrentTheme());
+
+  // Wire up all toggle buttons
+  document.querySelectorAll('[data-theme-toggle]')
+    .forEach(function(btn) {
+      btn.addEventListener('click', cycleTheme);
+    });
 
   // ── Audio ─────────────────────────────────────────────────────
   function getAudioCtx() {
