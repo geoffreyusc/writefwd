@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>writefwd — write (b)</title>
+  <meta name="description" content="A distraction-free writing tool. No editing. No going back. Just write.">
+  <meta name="robots" content="noindex">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* ── Dark theme (default) — colors drawn from the landing-page dark demo panel ── */
+      --bg: #080808;
+      --border: #1a1a1a;
+      --text-bright: #d8d8d8;
+      --text-dim1: #b0b0b0;
+      --text-dim2: #383838;
+      --text-dim3-fade: #181818;
+      --start-mark-color: #383838;
+      --text-muted: #888;
+      --hint: #888;
+      --finish-text: #888;
+      --finish-border: #666;
+      --text-faint: #181818;
+      --accent: #c0392b;
+      --wordmark: #888;
+      --stats: #aaa;
+      --heading: #d8d8d8;
+      --subhead: #888;
+      --read: #b0b0b0;
+      --btn-bg: #111;
+      --btn-border: #2e2e2e;
+      --btn-text: #666666;
+      --btn-hover-border: #666;
+      --btn-hover-text: #aaa;
+      --opt-sel-bg: rgba(232,232,232,0.08);
+      --icon: #555555;
+      --icon-hover: #888;
+      --icon-on: #888;
+      --scanline: rgba(0,0,0,0.05);
+      --vignette: rgba(0,0,0,0.6);
+      --ring-progress: #aaa;
+    }
+
+    [data-theme="light"] {
+      /* ── Light theme (warm Rhode gray) ── */
+      --bg: #f0ede8;
+      --border: #d0ccc6;
+      --text-bright: #2c2a27;
+      --text-dim1: #888078;
+      --text-dim2: #aaa89f;
+      --text-dim3-fade: #c8c4be;
+      --start-mark-color: #c8c4be;
+      --text-muted: #aaa;
+      --hint: #aaa;
+      --finish-text: #888;
+      --finish-border: #ccc;
+      --text-faint: #c8c4be;
+      --accent: #c0392b;
+      --wordmark: #888;
+      --stats: #999;
+      --heading: #4a4640;
+      --subhead: #aaa;
+      --read: #4a4640;
+      --btn-bg: #e4e0da;
+      --btn-border: #ccc;
+      --btn-text: #888;
+      --btn-hover-border: #888;
+      --btn-hover-text: #4a4640;
+      --opt-sel-bg: rgba(44,42,39,0.08);
+      --icon: #999;
+      --icon-hover: #4a4640;
+      --icon-on: #4a4640;
+      --scanline: rgba(0,0,0,0.03);
+      --vignette: rgba(0,0,0,0.2);
+      --ring-progress: #777;
+    }
+
+    html, body {
+      height: 100vh;
+      height: 100dvh;
+      background: var(--bg);
+      color: var(--text-bright);
+      font-family: 'Courier New', Courier, monospace;
+      overflow: hidden;
+    }
+
+    /* ── Layout ── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;          /* fallback */
+      height: 100dvh;         /* modern browsers — shrinks with keyboard */
+      max-width: 780px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* ── Header ── */
+    #header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 32px 14px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    #header-left {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    #back-link {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      color: var(--wordmark);
+      text-decoration: none;
+      text-transform: lowercase;
+      opacity: 0.7;
+      transition: opacity 0.15s, color 0.15s;
+    }
+    #back-link:hover { opacity: 1; color: var(--text-muted); }
+    #wordmark {
+      font-size: 14px;
+      letter-spacing: 0.2em;
+      color: var(--wordmark);
+      text-transform: uppercase;
+    }
+    #stats {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-size: 13px;
+      color: var(--stats);
+    }
+    #ring-wrap { display: none; align-items: center; gap: 8px; }
+    #ring-wrap.active { display: flex; }
+    #ring-svg { width: 26px; height: 26px; }
+    #ring-bg { fill: none; stroke: var(--border); stroke-width: 2; }
+    #ring-fg {
+      fill: none; stroke: var(--ring-progress); stroke-width: 2; stroke-linecap: butt;
+      stroke-dasharray: 65.97; stroke-dashoffset: 0;
+      transform: rotate(-90deg); transform-origin: 12px 12px;
+      transition: stroke-dashoffset 1s linear;
+    }
+    #timer-label { font-size: 14px; color: var(--stats); }
+
+    /* ── Writing area ── */
+    #writing-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 32px 32px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    #fade-top {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 140px;
+      background: linear-gradient(to bottom, var(--bg) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 2;
+    }
+    #lines { display: flex; flex-direction: column; }
+    .line {
+      font-size: 22px;
+      line-height: 1.9;
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-height: 42px;
+      transition: color 0.6s cubic-bezier(0.25, 0, 0.5, 1),
+                  opacity 0.6s cubic-bezier(0.25, 0, 0.5, 1);
+    }
+    .line.a1 { color: var(--text-dim1); opacity: 0.85; }
+    .line.a2 { color: var(--text-dim2); opacity: 0.55; }
+    .line.a3 { color: var(--text-dim3-fade); opacity: 0.25; }
+    .struck {
+      text-decoration: line-through;
+      text-decoration-color: var(--text-dim1);
+      text-decoration-thickness: 1px;
+      color: var(--text-dim1);
+    }
+    #curline {
+      font-size: 22px;
+      line-height: 1.9;
+      color: var(--text-bright);
+      min-height: 42px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      position: relative;
+      z-index: 1;
+    }
+    #cursor {
+      display: inline-block;
+      width: 12px; height: 22px;
+      background: var(--text-bright);
+      vertical-align: middle;
+      margin-left: 1px;
+      animation: blink 0.9s step-end infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* ── Input zone ── */
+    #input-zone { position: relative; padding: 4px 32px 12px; }
+    #clickzone { position: absolute; inset: 0; cursor: text; z-index: 1; }
+    #hidden-input {
+      position: absolute; opacity: 0; pointer-events: none;
+      width: 1px; height: 1px; top: 0; left: 0;
+    }
+
+    /* ── Footer ── */
+    #footer {
+      flex-shrink: 0;
+      padding: 12px 32px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 52px;
+    }
+    #hint { font-size: 11px; color: var(--hint); letter-spacing: 0.1em; }
+    #footer-right { display: flex; align-items: center; gap: 10px; }
+
+    /* Icon toggles (theme + sound) */
+    .icon-btn {
+      background: transparent; border: none; cursor: pointer;
+      padding: 4px; color: var(--icon); transition: color 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .icon-btn:hover { color: var(--icon-hover); }
+    .icon-btn.on { color: var(--icon-on); }
+    #start-theme-btn { position: absolute; top: 16px; right: 18px; }
+
+    /* Finish button */
+    #finish-btn {
+      display: none;
+      font-family: 'Courier New', monospace;
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--finish-text); background: transparent;
+      border: 1px solid var(--finish-border); border-radius: 2px;
+      padding: 6px 18px; cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    #finish-btn.visible { display: block; }
+    #finish-btn:hover { border-color: var(--btn-hover-border); color: var(--btn-hover-text); }
+
+    /* ── Overlay screens ── */
+    .screen {
+      position: absolute; inset: 0; z-index: 10;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 40px 32px; text-align: center;
+    }
+    .screen.hidden { display: none; }
+
+    /* Start screen */
+    #start-screen { gap: 0; }
+    #start-mark { font-size: 34px; color: var(--start-mark-color); margin-bottom: 18px; }
+    #start-head {
+      font-size: 25px; font-weight: normal; color: var(--heading);
+      letter-spacing: 0.04em; margin-bottom: 8px;
+    }
+    #start-sub {
+      font-size: 11px; color: var(--subhead);
+      letter-spacing: 0.18em; text-transform: uppercase;
+      margin-bottom: 36px;
+    }
+    .q { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 24px; }
+    .q-label { font-size: 11px; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; }
+    .opts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+    .opt {
+      font-family: 'Courier New', monospace;
+      font-size: 12px; letter-spacing: 0.08em;
+      padding: 7px 16px; border-radius: 2px; cursor: pointer;
+      background: transparent; border: 1px solid var(--btn-border); color: var(--btn-text);
+      transition: all 0.15s;
+    }
+    .opt:hover { color: var(--btn-hover-text); border-color: var(--btn-hover-border); }
+    .opt.sel {
+      color: var(--text-bright) !important;
+      border-color: var(--text-bright) !important;
+      background: var(--opt-sel-bg) !important;
+    }
+    #begin-btn {
+      font-family: 'Courier New', monospace;
+      font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--btn-text); background: transparent;
+      border: 1px solid var(--btn-border); border-radius: 2px;
+      padding: 10px 40px; cursor: pointer;
+      transition: all 0.2s; margin-top: 8px;
+    }
+    #begin-btn:hover { border-color: var(--btn-hover-border); color: var(--btn-hover-text); }
+
+    /* Complete screen */
+    #complete-screen { gap: 0; }
+    #cpl-head { font-size: 28px; font-weight: normal; color: var(--heading); letter-spacing: 0.06em; margin-bottom: 6px; }
+    #cpl-sub { font-size: 11px; color: var(--subhead); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 28px; }
+    #read-btn {
+      font-family: 'Courier New', monospace;
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--btn-text); background: transparent;
+      border: 1px solid var(--btn-border); border-radius: 2px;
+      padding: 9px 26px; cursor: pointer;
+      transition: all 0.2s; margin-bottom: 28px;
+    }
+    #read-btn:hover { color: var(--btn-hover-text); border-color: var(--btn-hover-border); }
+
+    /* Draft screen */
+    #draft-screen { display: none; flex-direction: column; padding: 0; }
+    #draft-screen.visible { display: flex; }
+    #draft-header {
+      padding: 14px 32px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    #draft-title { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--wordmark); }
+    #draft-meta { font-size: 12px; color: var(--stats); }
+    #draft-body {
+      flex: 1; overflow-y: auto;
+      padding: 28px 32px 32px;
+      font-size: 18px; line-height: 1.95; color: var(--read);
+      white-space: pre-wrap; word-break: break-word;
+    }
+    #draft-body::-webkit-scrollbar { width: 2px; }
+    #draft-body::-webkit-scrollbar-thumb { background: var(--border); }
+    #draft-actions {
+      padding: 16px 24px 8px;
+      border-top: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 4px;
+      flex-shrink: 0;
+    }
+    .draft-actions-row { display: flex; gap: 10px; }
+    #copy-draft-btn, #email-draft-btn {
+      flex: 1; min-height: 44px; padding: 0 16px;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      white-space: nowrap;
+      font-family: 'Courier New', monospace;
+      font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+      border-radius: 2px; cursor: pointer;
+      background: var(--btn-bg); border: 1px solid var(--btn-border); color: var(--btn-text);
+      transition: all 0.2s;
+    }
+    #copy-draft-btn:hover, #email-draft-btn:hover { border-color: var(--btn-hover-border); color: var(--btn-hover-text); }
+    #copy-draft-btn svg, #email-draft-btn svg { flex-shrink: 0; }
+    #new-session-btn {
+      align-self: center;
+      background: transparent; border: none;
+      font-family: 'Courier New', monospace;
+      font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-dim1);
+      padding: 8px 16px 12px; cursor: pointer; margin-top: 4px;
+      transition: color 0.2s;
+    }
+    #new-session-btn:hover { color: var(--text-muted); }
+
+    /* Scanlines + vignette */
+    #scanlines {
+      position: fixed; inset: 0; pointer-events: none; z-index: 100;
+      background: repeating-linear-gradient(0deg, transparent, transparent 3px, var(--scanline) 3px, var(--scanline) 4px);
+    }
+    #vignette {
+      position: fixed; inset: 0; pointer-events: none; z-index: 99;
+      box-shadow: inset 0 0 100px var(--vignette);
+    }
+
+    /* ── Opening-moment permission overlay ── */
+    #permission-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      background: rgba(0,0,0,0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+      pointer-events: none;
+    }
+    #permission-overlay.visible {
+      opacity: 1;
+    }
+    #permission-text {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 16px;
+      color: #888;
+      font-style: italic;
+      letter-spacing: 0.04em;
+      text-align: center;
+      max-width: 320px;
+      line-height: 1.6;
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      #writing-area {
+        flex: 1;
+        min-height: 0;
+        padding: 24px 20px 0;
+      }
+      #input-zone { padding: 4px 20px 12px; }
+      #footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 50;
+        background: var(--bg);
+        padding: 12px 20px 16px;
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+      }
+      /* Add bottom padding to the app so content
+         doesn't hide behind the fixed footer */
+      #app { padding-bottom: 60px; }
+      #header { padding: 16px 20px 12px; }
+      .line, #curline { font-size: 20px; }
+    }
+  </style>
+  <script>
+    // Apply saved theme before paint to avoid a flash.
+    (function () {
+      try {
+        var t = localStorage.getItem('draft-theme');
+        document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+</head>
+<body>
+
+<div id="scanlines"></div>
+<div id="vignette"></div>
+
+<div id="app">
+
+  <!-- Header -->
+  <div id="header">
+    <div id="header-left">
+      <a id="back-link" href="/">← writefwd</a>
+      <div id="wordmark">draft</div>
+    </div>
+    <div id="stats">
+      <div id="ring-wrap">
+        <svg id="ring-svg" viewBox="0 0 24 24">
+          <circle id="ring-bg" cx="12" cy="12" r="10.5"/>
+          <circle id="ring-fg" cx="12" cy="12" r="10.5"/>
+        </svg>
+        <span id="timer-label">5:00</span>
+      </div>
+      <span id="wc-display">0 words</span>
+    </div>
+  </div>
+
+  <!-- Writing area -->
+  <div id="writing-area">
+    <div id="fade-top"></div>
+    <div id="lines"></div>
+    <div id="curline"><span id="curtext"></span><span id="cursor"></span></div>
+  </div>
+
+  <!-- Hidden input -->
+  <div id="input-zone">
+    <div id="clickzone"></div>
+    <textarea id="hidden-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+  </div>
+
+  <!-- Footer -->
+  <div id="footer">
+    <div id="hint">// backspace crosses out the last word</div>
+    <div id="footer-right">
+      <!-- Theme toggle -->
+      <button class="icon-btn" id="theme-btn" data-theme-toggle title="Toggle light/dark mode">
+        <svg class="theme-moon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <svg class="theme-sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+      </button>
+      <!-- Sound toggle -->
+      <button class="icon-btn" id="sound-btn" title="Toggle typewriter sound">
+        <svg id="snd-on" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+        </svg>
+        <svg id="snd-off" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <line x1="23" y1="9" x2="17" y2="15"></line>
+          <line x1="17" y1="9" x2="23" y2="15"></line>
+        </svg>
+      </button>
+      <button id="finish-btn">Finish</button>
+    </div>
+  </div>
+
+  <!-- Opening-moment permission overlay -->
+  <div id="permission-overlay">
+    <div id="permission-text"></div>
+  </div>
+
+  <!-- Start screen -->
+  <div class="screen" id="start-screen">
+    <!-- Theme toggle (start screen) -->
+    <button class="icon-btn" id="start-theme-btn" data-theme-toggle title="Toggle light/dark mode">
+      <svg class="theme-moon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+      <svg class="theme-sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+        <circle cx="12" cy="12" r="5"></circle>
+        <line x1="12" y1="1" x2="12" y2="3"></line>
+        <line x1="12" y1="21" x2="12" y2="23"></line>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+        <line x1="1" y1="12" x2="3" y2="12"></line>
+        <line x1="21" y1="12" x2="23" y2="12"></line>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+      </svg>
+    </button>
+    <div id="start-mark">¶</div>
+    <div id="start-head">carriage return.</div>
+    <div id="start-sub">write forward — never back</div>
+
+    <div class="q">
+      <div class="q-label">How long?</div>
+      <div class="opts" id="dur-opts">
+        <button class="opt sel" data-min="0">No limit</button>
+        <button class="opt" data-min="0.5">30 sec</button>
+        <button class="opt" data-min="1">1 min</button>
+        <button class="opt" data-min="5">5 min</button>
+        <button class="opt" data-min="10">10 min</button>
+      </div>
+    </div>
+
+    <button id="begin-btn">Begin</button>
+  </div>
+
+  <!-- Complete screen -->
+  <div class="screen hidden" id="complete-screen">
+    <div id="cpl-head">Time's up.</div>
+    <div id="cpl-sub"></div>
+    <button id="read-btn">Read my draft</button>
+  </div>
+
+  <!-- Draft screen -->
+  <div class="screen hidden" id="draft-screen">
+    <div id="draft-header">
+      <div id="draft-title">your draft</div>
+      <div id="draft-meta"></div>
+    </div>
+    <div id="draft-body"></div>
+    <div id="draft-actions">
+      <div class="draft-actions-row">
+        <button id="copy-draft-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+          </svg>
+          Copy draft
+        </button>
+        <button id="email-draft-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22 6 12 13 2 6"></polyline>
+          </svg>
+          Email draft
+        </button>
+      </div>
+      <button id="new-session-btn">← New session</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // Elements
+  var inp       = document.getElementById('hidden-input');
+  var curtext   = document.getElementById('curtext');
+  var linesEl   = document.getElementById('lines');
+  var wcEl      = document.getElementById('wc-display');
+  var finishBtn = document.getElementById('finish-btn');
+  var clickzone = document.getElementById('clickzone');
+  var wordmark  = document.getElementById('wordmark');
+  var ringWrap  = document.getElementById('ring-wrap');
+  var ringFg    = document.getElementById('ring-fg');
+  var timerLbl  = document.getElementById('timer-label');
+  var soundBtn  = document.getElementById('sound-btn');
+  var sndOn     = document.getElementById('snd-on');
+  var sndOff    = document.getElementById('snd-off');
+  var startScr  = document.getElementById('start-screen');
+  var complScr  = document.getElementById('complete-screen');
+  var draftScr  = document.getElementById('draft-screen');
+  var cplHead   = document.getElementById('cpl-head');
+  var cplSub    = document.getElementById('cpl-sub');
+  var readBtn   = document.getElementById('read-btn');
+  var draftBody = document.getElementById('draft-body');
+  var draftMeta = document.getElementById('draft-meta');
+  var copyDraftBtn  = document.getElementById('copy-draft-btn');
+  var emailDraftBtn = document.getElementById('email-draft-btn');
+  var newSessionBtn = document.getElementById('new-session-btn');
+  var beginBtn  = document.getElementById('begin-btn');
+  var startHead = document.getElementById('start-head');
+
+  var copyDraftHTML  = copyDraftBtn.innerHTML;
+  var emailDraftHTML = emailDraftBtn.innerHTML;
+
+  // State
+  var allText = '', lastLen = 0, lastWc = 0;
+  var lineEls = {};   // result index -> rendered <div>, reused across renders so the fade transitions in place
+  var lastActionWasStrike = false;
+  var strikes = []; // array of struck word objects
+  var durationMins = 0;
+  var started = false;
+  var secsElapsed = 0, timerTotal = 0, timerRemaining = 0;
+  var countInt = null, timerInt = null;
+  var soundOn = false;
+  var audioCtx = null;
+
+  var CIRC = 65.97;
+
+  // ── Rotating start screen heading ─────────────────────────────
+  var START_PHRASES = [
+    "write forward.",
+    "just write.",
+    "no going back.",
+    "the page is waiting.",
+    "your words, forward only.",
+    "begin.",
+    "don't think. type.",
+    "the draft won't write itself.",
+    "silence the editor. start.",
+    "forward is the only direction.",
+    "what are you waiting for?",
+    "the cursor is ready.",
+    "write like no one's watching.",
+    "get it out of your head.",
+    "this is your time.",
+    "the blank page is on your side.",
+    "one word. then another."
+  ];
+
+  var lastPhraseIdx = -1;
+
+  function getStartPhrase() {
+    var idx;
+    do {
+      idx = Math.floor(Math.random() * START_PHRASES.length);
+    } while (idx === lastPhraseIdx);
+    lastPhraseIdx = idx;
+    return START_PHRASES[idx];
+  }
+
+  function setStartPhrase() {
+    startHead.textContent = getStartPhrase();
+  }
+
+  // ── Opening-moment permission phrases ─────────────────────────
+  var PERMISSION_PHRASES = [
+    "This draft doesn't have to be good.",
+    "Nobody will see this but you.",
+    "Typos are part of it. Keep going.",
+    "Bad writing is just good writing, unedited.",
+    "Get it out. Fix it later.",
+    "The first draft is just you talking to yourself.",
+    "It's always better than you think it is.",
+    "The mess is the point.",
+    "Write like no one's editing.",
+    "The page isn't judging you.",
+    "Every great draft started as a bad one.",
+    "Imperfect words beat a blank page."
+  ];
+
+  var lastPermissionIdx = -1;
+
+  function getPermissionPhrase() {
+    var idx;
+    do {
+      idx = Math.floor(Math.random() * PERMISSION_PHRASES.length);
+    } while (idx === lastPermissionIdx);
+    lastPermissionIdx = idx;
+    return PERMISSION_PHRASES[idx];
+  }
+
+  // ── Theme toggle ──────────────────────────────────────────────
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.querySelectorAll('.theme-moon').forEach(function (el) {
+      el.style.display = (theme === 'dark') ? 'block' : 'none';
+    });
+    document.querySelectorAll('.theme-sun').forEach(function (el) {
+      el.style.display = (theme === 'light') ? 'block' : 'none';
+    });
+  }
+
+  function toggleTheme() {
+    var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    applyTheme(next);
+    try { localStorage.setItem('draft-theme', next); } catch (e) {}
+  }
+
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+  document.querySelectorAll('[data-theme-toggle]').forEach(function (b) {
+    b.addEventListener('click', toggleTheme);
+  });
+
+  // ── Audio ─────────────────────────────────────────────────────
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function playClick() {
+    if (!soundOn) return;
+    try {
+      var c = getAudioCtx();
+      var buf = c.createBuffer(1, Math.floor(c.sampleRate * 0.055), c.sampleRate);
+      var d = buf.getChannelData(0);
+      for (var i = 0; i < d.length; i++) {
+        var t = i / c.sampleRate, e = Math.exp(-t * 85);
+        d[i] = (Math.random() * 2 - 1) * e * 0.28 + Math.sin(6.28 * 200 * t) * e * 0.1;
+      }
+      var src = c.createBufferSource(), g = c.createGain();
+      src.buffer = buf;
+      g.gain.setValueAtTime(0.75, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.055);
+      src.connect(g); g.connect(c.destination); src.start();
+    } catch(e) {}
+  }
+
+  function playSpace() {
+    if (!soundOn) return;
+    try {
+      var c = getAudioCtx();
+      var buf = c.createBuffer(1, Math.floor(c.sampleRate * 0.09), c.sampleRate);
+      var d = buf.getChannelData(0);
+      for (var i = 0; i < d.length; i++) {
+        var t = i / c.sampleRate, e = Math.exp(-t * 45);
+        d[i] = (Math.random() * 2 - 1) * e * 0.16 + Math.sin(6.28 * 90 * t) * e * 0.26;
+      }
+      var src = c.createBufferSource(), g = c.createGain();
+      src.buffer = buf;
+      g.gain.setValueAtTime(0.6, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.09);
+      src.connect(g); g.connect(c.destination); src.start();
+    } catch(e) {}
+  }
+
+  function playReturn() {
+    if (!soundOn) return;
+    try {
+      var c = getAudioCtx();
+      var osc = c.createOscillator();
+      var gain = c.createGain();
+      osc.connect(gain);
+      gain.connect(c.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1400, c.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1100, c.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.0001, c.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.4, c.currentTime + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.18);
+      osc.start(c.currentTime);
+      osc.stop(c.currentTime + 0.18);
+    } catch(e) {}
+  }
+
+  soundBtn.addEventListener('click', function() {
+    soundOn = !soundOn;
+    sndOn.style.display  = soundOn ? 'block' : 'none';
+    sndOff.style.display = soundOn ? 'none'  : 'block';
+    soundBtn.classList.toggle('on', soundOn);
+    if (soundOn) playClick();
+  });
+
+  // ── Duration selection ────────────────────────────────────────
+  document.querySelectorAll('#dur-opts .opt').forEach(function(b) {
+    b.addEventListener('click', function() {
+      document.querySelectorAll('#dur-opts .opt').forEach(function(x) { x.classList.remove('sel'); });
+      b.classList.add('sel');
+      durationMins = parseFloat(b.dataset.min);
+    });
+  });
+
+  // ── Begin session ─────────────────────────────────────────────
+  beginBtn.addEventListener('click', function() {
+    startScr.classList.add('hidden');
+    started = true;
+    secsElapsed = 0;
+    wordmark.textContent = 'drafting...';
+
+    countInt = setInterval(function() { secsElapsed++; }, 1000);
+
+    if (durationMins > 0) {
+      timerTotal = durationMins * 60;
+      timerRemaining = timerTotal;
+      ringWrap.classList.add('active');
+      updateRing(timerRemaining, timerTotal);
+      fmtTimer(timerRemaining);
+      timerInt = setInterval(function() {
+        timerRemaining--;
+        updateRing(timerRemaining, timerTotal);
+        fmtTimer(timerRemaining);
+        if (timerRemaining <= 0) {
+          clearInterval(timerInt);
+          clearInterval(countInt);
+          started = false;
+          showComplete(false);
+        }
+      }, 1000);
+    } else {
+      finishBtn.classList.add('visible');
+    }
+
+    inp.focus();
+
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+    }
+
+    // Opening-moment permission phrase: fade in 0.8s, hold 2.5s, fade out 0.8s, then remove.
+    var overlay = document.getElementById('permission-overlay');
+    var permText = document.getElementById('permission-text');
+    permText.textContent = '"' + getPermissionPhrase() + '"';
+    overlay.classList.add('visible');
+    setTimeout(function() {
+      overlay.classList.remove('visible');
+      setTimeout(function() {
+        overlay.style.display = 'none';
+      }, 800);
+    }, 3300);
+  });
+
+  function updateRing(rem, total) {
+    ringFg.style.strokeDashoffset = CIRC - (rem / total * CIRC);
+  }
+  function fmtTimer(s) {
+    timerLbl.textContent = Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60);
+  }
+
+  // ── Finish (no-limit mode) ────────────────────────────────────
+  finishBtn.addEventListener('click', function() {
+    started = false;
+    if (countInt) clearInterval(countInt);
+    showComplete(true);
+  });
+
+  // ── Complete screen ───────────────────────────────────────────
+  function showComplete(manualFinish) {
+    cplHead.textContent = manualFinish ? 'Finished.' : 'Time\'s up.';
+    var n = wc(allText);
+    var m = Math.floor(secsElapsed / 60);
+    var s = secsElapsed % 60;
+    cplSub.textContent = n + (n === 1 ? ' word' : ' words') + ' — ' + m + ':' + (s < 10 ? '0' : '') + s;
+    complScr.classList.remove('hidden');
+  }
+
+  readBtn.addEventListener('click', function() {
+    complScr.classList.add('hidden');
+    showDraft();
+  });
+
+  // ── Draft screen ──────────────────────────────────────────────
+  function showDraft() {
+    var n = wc(allText);
+    var m = Math.floor(secsElapsed / 60);
+    var s = secsElapsed % 60;
+    draftMeta.textContent = n + ' words — ' + m + ':' + (s < 10 ? '0' : '') + s;
+    if (allText) { setLineContent(draftBody, allText); }
+    else { draftBody.textContent = '(nothing written)'; }
+    draftScr.classList.remove('hidden');
+    draftScr.style.display = 'flex';
+  }
+
+  function copyText(text) {
+    navigator.clipboard.writeText(text).catch(function() {
+      var t = document.createElement('textarea');
+      t.value = text; document.body.appendChild(t); t.select();
+      document.execCommand('copy'); document.body.removeChild(t);
+    });
+  }
+
+  function showCopied(btn, label, duration) {
+    var light = document.documentElement.getAttribute('data-theme') === 'light';
+    btn.textContent = label;
+    btn.style.background  = light ? '#ddeedd' : '#1e2a1e';
+    btn.style.borderColor = light ? '#8aba8a' : '#3a5a3a';
+    btn.style.color       = light ? '#3a6a3a' : '#5a9a5a';
+    setTimeout(function() {
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+      btn.innerHTML = (btn === copyDraftBtn) ? copyDraftHTML : emailDraftHTML;
+    }, duration);
+  }
+
+  // Clean copy: drop struck words and their markers entirely.
+  function cleanDraft() {
+    return allText.replace(/\x00[^\x00]*\x00/g, '').replace(/  +/g, ' ').trim();
+  }
+
+  copyDraftBtn.addEventListener('click', function() {
+    copyText(cleanDraft());
+    showCopied(copyDraftBtn, '✓ Copied!', 2000);
+  });
+
+  emailDraftBtn.addEventListener('click', function() {
+    var cleanText = cleanDraft();
+    if (cleanText.length <= 1800) {
+      window.location.href = 'mailto:?subject=My%20Draft&body=' + encodeURIComponent(cleanText);
+    } else {
+      copyText(cleanText);
+      showCopied(emailDraftBtn, '✓ Copied — paste into email', 2500);
+    }
+  });
+
+  newSessionBtn.addEventListener('click', function() {
+    // Reset everything
+    allText = ''; lastLen = 0; lastWc = 0; secsElapsed = 0;
+    durationMins = 0; started = false;
+    lastActionWasStrike = false; strikes = [];
+    if (timerInt) clearInterval(timerInt);
+    if (countInt) clearInterval(countInt);
+    timerInt = null; countInt = null;
+    inp.value = '';
+    curtext.textContent = '';
+    linesEl.innerHTML = '';
+    lineEls = {};
+    wcEl.textContent = '0 words';
+    wordmark.textContent = 'draft';
+    finishBtn.classList.remove('visible');
+    ringWrap.classList.remove('active');
+    ringFg.style.strokeDashoffset = 0;
+    timerLbl.textContent = '5:00';
+    draftScr.classList.add('hidden');
+    draftScr.style.display = 'none';
+    complScr.classList.add('hidden');
+    // Restore the opening-moment overlay for the next session
+    var overlay = document.getElementById('permission-overlay');
+    overlay.style.display = '';
+    overlay.classList.remove('visible');
+    setStartPhrase();
+    startScr.classList.remove('hidden');
+    // Reset duration selection
+    document.querySelectorAll('#dur-opts .opt').forEach(function(x) { x.classList.remove('sel'); });
+    document.querySelector('#dur-opts [data-min="0"]').classList.add('sel');
+  });
+
+  // ── Text rendering ────────────────────────────────────────────
+  function wc(t) {
+    return t.trim().split(/\s+/).filter(function(w) { return w.length > 0; }).length;
+  }
+
+  function wrap(text) {
+    var WIDTH = 54;
+    var words = text.split(' ');
+    var result = [];
+    var cur = '';
+    for (var i = 0; i < words.length; i++) {
+      var word = words[i];
+      if (word.indexOf('\n') >= 0) {
+        var parts = word.split('\n');
+        for (var j = 0; j < parts.length; j++) {
+          var p = parts[j];
+          var test = cur ? (cur + (cur && p ? ' ' : '') + p) : p;
+          if (test.length > WIDTH && cur) { result.push(cur); cur = p; }
+          else { cur = test; }
+          if (j < parts.length - 1) { result.push(cur); cur = ''; }
+        }
+      } else {
+        var test2 = cur ? cur + ' ' + word : word;
+        if (test2.length > WIDTH && cur) { result.push(cur); cur = word; }
+        else { cur = test2; }
+      }
+    }
+    return { result: result, cur: cur };
+  }
+
+  // Set an element's content, rendering \x00word\x00 markers as struck spans.
+  // Plain text uses a fast textContent path; only marker-bearing text builds nodes.
+  function setLineContent(el, text) {
+    if (text.indexOf('\x00') === -1) {
+      el.textContent = text;
+      return;
+    }
+    el.textContent = '';
+    var parts = text.split('\x00');
+    for (var k = 0; k < parts.length; k++) {
+      if (parts[k] === '') continue;
+      if (k % 2 === 1) {
+        // Odd segments sit between a marker pair — a struck word.
+        var span = document.createElement('span');
+        span.className = 'struck';
+        span.textContent = parts[k];
+        el.appendChild(span);
+      } else {
+        el.appendChild(document.createTextNode(parts[k]));
+      }
+    }
+  }
+
+  function render() {
+    var val = inp.value;
+    if (val.length < lastLen) { inp.value = allText; return; }
+    allText += val.slice(lastLen);
+    lastLen = allText.length;
+    inp.value = allText;
+
+    var w = wrap(allText);
+    setLineContent(curtext, w.cur);
+
+    var SHOW = 4;
+    var start = Math.max(0, w.result.length - SHOW);
+    // Drop line elements that have scrolled out of the visible window
+    for (var key in lineEls) {
+      var ki = +key;
+      if (ki < start || ki >= w.result.length) {
+        linesEl.removeChild(lineEls[key]);
+        delete lineEls[key];
+      }
+    }
+
+    // Reconcile visible lines in place: reuse existing nodes and only update
+    // their age class, so the CSS color/opacity transition fires on the same
+    // element as a line recedes - no innerHTML rebuild, no DOM jump.
+    for (var i = start; i < w.result.length; i++) {
+      var age = w.result.length - i;
+      var cls = 'line a' + Math.min(age, 3);
+      var text = w.result[i] || ' ';
+      var el = lineEls[i];
+      if (!el) {
+        el = document.createElement('div');
+        setLineContent(el, text);
+        el.dataset.raw = text;
+        lineEls[i] = el;
+        linesEl.appendChild(el);
+      } else if (el.dataset.raw !== text) {
+        // dataset.raw holds the marker-bearing source so struck spans aren't rebuilt every keystroke.
+        setLineContent(el, text);
+        el.dataset.raw = text;
+      }
+      if (el.className !== cls) el.className = cls;
+    }
+
+    var n = wc(allText);
+    wcEl.textContent = n + (n === 1 ? ' word' : ' words');
+    lastWc = n;
+  }
+
+  // ── Input handling ────────────────────────────────────────────
+  inp.addEventListener('input', render);
+
+  inp.addEventListener('keydown', function(e) {
+    if (!started) return;
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      e.preventDefault();
+      // Prevent double-striking — one strike per backspace press.
+      if (lastActionWasStrike) return;
+      // Nothing to strike if empty or only whitespace.
+      if (allText.length === 0 || allText.trim() === '') return;
+      var idx = allText.lastIndexOf(' ');
+      var word = idx === -1 ? allText : allText.slice(idx + 1);
+      if (!word || !word.trim()) return; // trailing whitespace — no word to strike
+      var prefix = idx === -1 ? '' : allText.slice(0, idx + 1);
+      // Don't remove the word — wrap it in \x00 markers so it renders struck-through.
+      allText = prefix + '\x00' + word + '\x00';
+      strikes.push(word);
+      lastActionWasStrike = true;
+      // Keep the textarea + diff cursor in sync so render() appends nothing.
+      inp.value = allText;
+      lastLen = allText.length;
+      render();
+      return;
+    }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'Home') {
+      setTimeout(function() { inp.setSelectionRange(allText.length, allText.length); }, 0);
+    }
+    if (e.key === 'Enter') playReturn();
+    else if (e.key === ' ') { lastActionWasStrike = false; playSpace(); }
+    else if (e.key.length === 1) { lastActionWasStrike = false; playClick(); }
+  });
+
+  inp.addEventListener('select', function() {
+    setTimeout(function() { inp.setSelectionRange(allText.length, allText.length); }, 0);
+  });
+  inp.addEventListener('cut', function(e) { e.preventDefault(); });
+  inp.addEventListener('paste', function(e) {
+    e.preventDefault();
+    var p = (e.clipboardData || window.clipboardData).getData('text');
+    inp.value = allText + p;
+    render();
+  });
+
+  clickzone.addEventListener('click', function() { if (started) inp.focus(); });
+  document.addEventListener('click', function() { if (started) inp.focus(); });
+  document.addEventListener('keydown', function(e) {
+    if (!started) return;
+    if (document.activeElement !== inp && ['Meta','Control','Alt','Shift'].indexOf(e.key) === -1) {
+      inp.focus();
+    }
+  });
+
+  // Set an initial rotating phrase on first load
+  setStartPhrase();
+
+})();
+</script>
+
+</body>
+</html>
