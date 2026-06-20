@@ -671,6 +671,10 @@
         <span class="how-dot">·</span>
         <span>text fades behind you — <span class="how-em">keep your eyes ahead</span></span>
       </div>
+      <div class="how-line">
+        <span class="how-dot">·</span>
+        <span>when you finish — <span class="how-em">copy, share, or email your draft</span></span>
+      </div>
     </div>
 
     <div class="q">
@@ -1278,19 +1282,43 @@
       e.preventDefault();
       // Prevent double-striking — one strike per backspace press.
       if (lastActionWasStrike) return;
-      // Nothing to strike if empty or only whitespace.
-      if (allText.length === 0 || allText.trim() === '') return;
-      var idx = allText.lastIndexOf(' ');
-      var word = idx === -1 ? allText : allText.slice(idx + 1);
-      if (!word || !word.trim()) return; // trailing whitespace — no word to strike
-      var prefix = idx === -1 ? '' : allText.slice(0, idx + 1);
-      // Don't remove the word — wrap it in \x00 markers so it renders struck-through.
-      allText = prefix + '\x00' + word + '\x00';
-      strikes.push(word);
-      lastActionWasStrike = true;
-      // Keep the textarea + diff cursor in sync so render() appends nothing.
-      inp.value = allText;
+
+      // Strip trailing spaces to find last real word
+      var trimmed = allText.replace(/\s+$/, '');
+      if (trimmed.length === 0) {
+        e.preventDefault(); return;
+      }
+
+      // Find the last word in trimmed text
+      var lastSpaceIdx = trimmed.lastIndexOf(' ');
+      var lastNewlineIdx = trimmed.lastIndexOf('\n');
+      var splitIdx = Math.max(lastSpaceIdx, lastNewlineIdx);
+
+      var beforeWord, lastWord, afterWord;
+      if (splitIdx === -1) {
+        // Only one word in entire text
+        beforeWord = '';
+        lastWord = trimmed;
+      } else {
+        beforeWord = trimmed.slice(0, splitIdx + 1);
+        lastWord = trimmed.slice(splitIdx + 1);
+      }
+
+      // Preserve trailing whitespace that was after the word
+      var trailingSpace = allText.slice(trimmed.length);
+
+      // Don't strike if lastWord is empty or already struck
+      if (!lastWord || lastWord === '') {
+        e.preventDefault(); return;
+      }
+
+      // Build new allText with strike markers
+      allText = beforeWord + '\x00' + lastWord + '\x00'
+                + trailingSpace;
       lastLen = allText.length;
+      inp.value = allText;
+      lastActionWasStrike = true;
+      e.preventDefault();
       render();
       return;
     }
