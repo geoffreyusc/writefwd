@@ -792,6 +792,32 @@
       showBeat(getPermissionPhrase(), 'beat-permission', 1900, function() {
         showBeat('go.', 'beat-go', 900, function() {
           overlay.style.display = 'none';
+
+          // Start elapsed counter
+          countInt = setInterval(function() { secsElapsed++; }, 1000);
+
+          // Start countdown timer if timed session
+          if (durationMins > 0) {
+            timerTotal = durationMins * 60;
+            var rem = timerTotal;
+            ringWrap.classList.add('active');
+            updateRing(rem, timerTotal);
+            fmtTimer(rem);
+            timerInt = setInterval(function() {
+              rem--;
+              updateRing(rem, timerTotal);
+              fmtTimer(rem);
+              if (rem <= 0) {
+                clearInterval(timerInt);
+                clearInterval(countInt);
+                started = false;
+                showComplete();
+              }
+            }, 1000);
+          } else {
+            finishBtn.classList.add('visible');
+          }
+
           inp.focus();
         });
       });
@@ -906,35 +932,13 @@
     secsElapsed = 0;
     wordmark.textContent = 'drafting...';
 
-    countInt = setInterval(function() { secsElapsed++; }, 1000);
-
-    if (durationMins > 0) {
-      timerTotal = durationMins * 60;
-      timerRemaining = timerTotal;
-      ringWrap.classList.add('active');
-      updateRing(timerRemaining, timerTotal);
-      fmtTimer(timerRemaining);
-      timerInt = setInterval(function() {
-        timerRemaining--;
-        updateRing(timerRemaining, timerTotal);
-        fmtTimer(timerRemaining);
-        if (timerRemaining <= 0) {
-          clearInterval(timerInt);
-          clearInterval(countInt);
-          started = false;
-          showComplete(false);
-        }
-      }, 1000);
-    } else {
-      finishBtn.classList.add('visible');
-    }
-
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       document.body.scrollTop = 0;
       document.documentElement.scrollTop = 0;
     }
 
-    // Three-beat countdown; inp.focus() fires from its final beat.
+    // Three-beat countdown; the timer and inp.focus() only start from its final beat,
+    // so timed sessions don't lose writing time during the countdown.
     runCountdown(durationMins);
   });
 
