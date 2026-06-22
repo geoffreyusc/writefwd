@@ -247,6 +247,20 @@
     #writing-col {
       width: 100%;
       max-width: 760px;
+      font-size: clamp(21px, 3vw, 30px);
+      line-height: 1.85;
+      letter-spacing: 0.02em;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    #write-hint {
+      color: var(--text-dim3-fade);
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+      opacity: 1;
+    }
+    #write-hint.hidden {
+      opacity: 0;
     }
     #fade-top {
       position: absolute;
@@ -307,10 +321,10 @@
 
     /* Word-landing glow — the most recently committed word pulses once. */
     @keyframes wf-land {
-      from { text-shadow: 0 0 16px currentColor, 0 0 4px currentColor; }
+      from { text-shadow: 0 0 7px currentColor; }
       to   { text-shadow: none; }
     }
-    .wf-land { animation: wf-land 0.55s ease-out; }
+    .wf-land { animation: wf-land 0.9s ease-out; }
 
     /* Atmosphere picker (start screen) */
     #atmo-swatches { gap: 8px; }
@@ -650,6 +664,7 @@
     <div id="fade-top"></div>
     <div id="writing-scroll">
       <div id="writing-col">
+        <span id="write-hint">just write. forward is the only direction.</span>
         <div id="lines"></div>
         <div id="curline"><span id="curtext"></span><span id="cursor"></span></div>
       </div>
@@ -794,8 +809,8 @@
       </div>
     </div>
 
-    <div class="q">
-      <div class="q-label">Atmosphere</div>
+    <div class="q" id="atmo-q">
+      <div class="q-label">Midnight Themes</div>
       <div class="opts" id="atmo-swatches"></div>
       <div id="atmo-caption"></div>
       <div id="atmo-hint">shapes the writing glow in midnight</div>
@@ -892,6 +907,7 @@
 
   // ── Atmosphere + haptics (midnight only) ──────────────────────
   var ATMOSPHERES = [
+    { key:'original',   name:'ORIGINAL',    rgb:null,           tagline:'pure midnight' },
     { key:'candlewick', name:'CANDLEWICK',  rgb:[245,226,184], tagline:'writing by hand at night' },
     { key:'untitled',   name:'UNTITLED',    rgb:[224,224,224], tagline:'the honest default' },
     { key:'dispatch',   name:'DISPATCH',    rgb:[200,218,245], tagline:'something needs to get out' },
@@ -899,7 +915,7 @@
     { key:'redline',    name:'REDLINE',     rgb:[245,200,176], tagline:'heat and pressure' },
     { key:'sunday',     name:'SUNDAY',      rgb:[199,176,247], tagline:'the best writing day' }
   ];
-  var atmosphere = 'untitled';
+  var atmosphere = 'original';
   try {
     var savedAtmo = localStorage.getItem('wf-atmosphere');
     for (var ai = 0; ai < ATMOSPHERES.length; ai++) {
@@ -913,6 +929,7 @@
   var fadeTop       = document.getElementById('fade-top');
   var cursorEl      = document.getElementById('cursor');
   var writingScroll = document.getElementById('writing-scroll');
+  var writeHint     = document.getElementById('write-hint');
   var swatchRow     = document.getElementById('atmo-swatches');
   var atmoCaption   = document.getElementById('atmo-caption');
 
@@ -920,10 +937,14 @@
 
   function atmoByKey(k) {
     for (var i = 0; i < ATMOSPHERES.length; i++) if (ATMOSPHERES[i].key === k) return ATMOSPHERES[i];
-    return ATMOSPHERES[1]; // untitled
+    return ATMOSPHERES[0]; // original
   }
   function getAtmo()    { return atmoByKey(atmosphere); }
   function isMidnight() { return getCurrentTheme() === 'midnight'; }
+  // 'original' = pure midnight: no atmosphere color tint at all.
+  function isOriginal() { return atmosphere === 'original'; }
+  // The atmosphere color system only engages in midnight + a tinted atmosphere.
+  function useAtmosphere() { return isMidnight() && !isOriginal(); }
   function c(alpha) {
     var r = getAtmo().rgb;
     return 'rgba(' + r[0] + ',' + r[1] + ',' + r[2] + ',' + alpha + ')';
@@ -936,13 +957,17 @@
   // Repaint static atmosphere surfaces. Backgrounds are swapped INSTANTLY
   // (no CSS transition) — a transitioned bg can freeze under the re-render.
   function repaintAtmosphere() {
-    if (isMidnight()) {
+    if (useAtmosphere()) {
       var tint = tintColor();
       atmoBg.style.background    = tint;
       atmoBloom.style.background  = 'radial-gradient(ellipse 85% 60% at 50% 120%, ' + c(0.16) + ', transparent 72%)';
       atmoWash.style.background   = 'radial-gradient(ellipse 90% 80% at 50% 55%, ' + c(0.07) + ', transparent 76%)';
       fadeTop.style.background    = 'linear-gradient(to bottom, ' + tint + ' 0%, transparent 100%)';
       cursorEl.style.background   = c(1);
+      // Tint the overlay screens to match the atmosphere bg — no seam.
+      startScr.style.background  = tint;
+      complScr.style.background  = tint;
+      draftScr.style.background  = tint;
     } else {
       atmoBg.style.background    = 'transparent';
       atmoBloom.style.background  = 'none';
@@ -953,6 +978,10 @@
       cursorEl.style.background   = '';
       cursorEl.style.boxShadow    = '';
       cursorEl.style.transform    = '';
+      // Fall back to the theme's base --bg so the screens blend seamlessly.
+      startScr.style.background  = '';
+      complScr.style.background  = '';
+      draftScr.style.background  = '';
     }
   }
 
@@ -960,16 +989,16 @@
   // Mutates style only; it never re-renders the text.
   function bumpKey() { lastKey = Date.now(); }
   function hapticFrame() {
-    if (isMidnight()) {
+    if (useAtmosphere()) {
       var writing = (Date.now() - lastKey) < 1200;
       var target  = writing ? 1 : 0;
       energy += (target - energy) * 0.035;
-      atmoBloom.style.opacity = (0.42 + energy * 0.30).toFixed(3);
-      atmoWash.style.opacity  = (energy * 0.5).toFixed(3);
+      atmoBloom.style.opacity = (0.42 + energy * 0.15).toFixed(3);
+      atmoWash.style.opacity  = (energy * 0.26).toFixed(3);
       var r = getAtmo().rgb;
-      cursorEl.style.boxShadow = '0 0 ' + (3 + energy*12).toFixed(2) + 'px rgba(' +
-        r[0] + ',' + r[1] + ',' + r[2] + ',' + (0.15 + energy*0.4).toFixed(3) + ')';
-      cursorEl.style.transform = 'scaleX(' + (1 + energy*0.18).toFixed(3) + ')';
+      cursorEl.style.boxShadow = '0 0 ' + (2 + energy*6).toFixed(2) + 'px rgba(' +
+        r[0] + ',' + r[1] + ',' + r[2] + ',' + (0.12 + energy*0.2).toFixed(3) + ')';
+      cursorEl.style.transform = 'scaleX(' + (1 + energy*0.09).toFixed(3) + ')';
     } else if (energy !== 0) {
       energy = 0;
     }
@@ -1056,6 +1085,13 @@
       var b = kids[i];
       var a = atmoByKey(b.dataset.key);
       var sel = b.dataset.key === atmosphere;
+      if (a.key === 'original') {
+        // Neutral dark swatch — no color tint; selection shown via border + bg.
+        b.style.color       = 'var(--text-dim1)';
+        b.style.borderColor = sel ? 'var(--text-bright)' : 'var(--btn-border)';
+        b.style.background  = sel ? '#0a0a0a' : 'transparent';
+        continue;
+      }
       var rgb = a.rgb.join(',');
       b.style.color       = 'rgba(' + rgb + ',' + (sel ? 0.95 : 0.34) + ')';
       b.style.borderColor = sel ? 'rgba(' + rgb + ',0.9)' : 'var(--btn-border)';
@@ -1236,6 +1272,10 @@
     if (btn) btn.title = titles[theme];
     var startBtn = document.getElementById('start-theme-btn');
     if (startBtn) startBtn.title = titles[theme];
+
+    // The atmosphere picker is midnight-only (.q defaults to display:flex).
+    var atmoQ = document.getElementById('atmo-q');
+    if (atmoQ) atmoQ.style.display = (theme === 'midnight') ? 'flex' : 'none';
 
     // Re-skin the atmosphere surfaces and repaint the writing text for the
     // new mode (a full rebuild so spans/classes don't carry across modes).
@@ -1458,6 +1498,7 @@
     timerInt = null; countInt = null;
     inp.value = '';
     curtext.textContent = '';
+    if (writeHint) writeHint.classList.remove('hidden');
     linesEl.innerHTML = '';
     lineEls = {};
     wcEl.textContent = '0 words';
@@ -1542,6 +1583,8 @@
     allText += val.slice(lastLen);
     lastLen = allText.length;
     inp.value = allText;
+    // Fade the hint out the moment the writer commits any text.
+    if (writeHint && allText.length) writeHint.classList.add('hidden');
     paint();
   }
 
@@ -1552,7 +1595,7 @@
   // midnight forks to a per-word, atmosphere-tinted path.
   function paint() {
     var w = wrap(allText);
-    if (isMidnight()) { paintMidnight(w); return; }
+    if (useAtmosphere()) { paintMidnight(w); return; }
     setLineContent(curtext, w.cur);
     curtext.style.color = '';
 
