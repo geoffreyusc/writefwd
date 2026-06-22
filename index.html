@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   <!-- ── Primary SEO ── -->
   <title>writefwd — Forward-Only Writing Tool. No Backspace. No Editing.</title>
@@ -339,6 +339,447 @@
       #mobile-demo .demo-line,
       #mobile-demo .demo-line.cur { font-size: 16px; line-height: 1.8; }
     }
+
+    /* ════════════════════════════════════════════════════════════
+       MOBILE-FIRST APP (≤600px) — Instagram traffic experience.
+       Hidden on desktop; replaces the whole page on small screens.
+       All selectors prefixed m- to avoid clashing with the page above.
+       (Note: the size-large footer button uses .m-szl, renamed from the
+        spec's .m-sl, which collided with the writing-strip line class.)
+       ════════════════════════════════════════════════════════════ */
+    #mobile-app {
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+
+      /* Hide the desktop landing page entirely */
+      body > *:not(#mobile-app) {
+        display: none !important;
+      }
+
+      #mobile-app {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        min-height: 100dvh;
+        background: #060608;
+        font-family: 'Courier New', Courier, monospace;
+        color: rgba(245,226,184,0.88);
+        overflow: hidden;
+      }
+
+      /* Screens */
+      .m-scr {
+        display: none;
+        flex-direction: column;
+        flex: 1;
+        overflow: hidden;
+      }
+      .m-on { display: flex; }
+
+      /* ── SCREEN 1: LANDING ── */
+      #m-land {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .m-hero {
+        flex-shrink: 0;
+        padding: 24px 22px 18px;
+        border-bottom: 1px solid #0e0e10;
+        position: relative;
+        background: #060608;
+      }
+
+      .m-hero-bloom {
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 50% 100%,
+          rgba(245,226,184,0.10), transparent 65%);
+        pointer-events: none;
+        animation: m-breathe 3s ease-in-out infinite;
+      }
+      @keyframes m-breathe {
+        0%,100% { opacity: 0.5; }
+        50%      { opacity: 1; }
+      }
+
+      .m-hero-lines {
+        position: relative;
+        z-index: 1;
+        height: 105px;
+      }
+
+      .mhl {
+        position: absolute; left: 0; right: 0;
+        font-size: 18px; line-height: 1.85;
+        white-space: nowrap; overflow: hidden;
+      }
+      .mhl-2 { bottom: 70px; color: rgba(245,226,184,0.10); }
+      .mhl-1 { bottom: 35px; color: rgba(245,226,184,0.35); }
+      .mhl-0 { bottom: 0;    color: rgba(245,226,184,0.90); }
+
+      .mhl-type {
+        display: inline-block;
+        overflow: hidden;
+        white-space: nowrap;
+        animation: m-type 6s steps(30) infinite;
+      }
+      @keyframes m-type {
+        0%   { width: 0 }
+        15%  { width: 18ch }
+        35%  { width: 18ch }
+        50%  { width: 22ch }
+        70%  { width: 22ch }
+        85%  { width: 26ch }
+        100% { width: 26ch }
+      }
+
+      .m-hero-cur {
+        display: inline-block;
+        width: 0.5em; height: 0.88em;
+        vertical-align: -0.12em; margin-left: 1px;
+        background: rgba(245,226,184,0.88);
+        animation: m-blink 1.1s steps(1) infinite;
+      }
+      @keyframes m-blink {
+        0%,48% { opacity: 1; }
+        56%,100% { opacity: 0.1; }
+      }
+
+      .m-pitch {
+        padding: 22px 22px 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .m-wordmark {
+        font-size: 9px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: #252528;
+        margin-bottom: 16px;
+      }
+
+      .m-head {
+        font-size: 26px;
+        font-weight: normal;
+        color: #d8d8dc;
+        line-height: 1.2;
+        margin-bottom: 10px;
+        letter-spacing: 0.01em;
+      }
+
+      .m-sub {
+        font-size: 13px;
+        color: #2e2e34;
+        line-height: 1.7;
+        margin-bottom: 24px;
+      }
+
+      .m-cta {
+        width: 100%;
+        padding: 18px 0;
+        font-size: 13px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(245,226,184,0.9);
+        border: 1px solid rgba(245,226,184,0.28);
+        border-radius: 2px;
+        background: rgba(245,226,184,0.04);
+        font-family: 'Courier New', Courier, monospace;
+        cursor: pointer;
+        margin-bottom: 12px;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .m-learn {
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #1e1e24;
+        background: none; border: none;
+        font-family: 'Courier New', Courier, monospace;
+        cursor: pointer;
+        padding: 6px 0;
+        margin-bottom: 20px;
+      }
+
+      .m-proof {
+        width: 100%;
+        padding-top: 18px;
+        border-top: 1px solid #0e0e10;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .m-quote {
+        font-size: 11px;
+        color: #1e1e24;
+        line-height: 1.65;
+        font-style: italic;
+        text-align: left;
+        padding-left: 12px;
+        border-left: 1px solid #141418;
+      }
+
+      /* ── SCREEN 2: COUNTDOWN ── */
+      .m-cd-body {
+        flex: 1;
+        display: flex; align-items: center;
+        justify-content: center;
+        padding: 32px;
+        background: #060608;
+      }
+
+      .m-cd-text {
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        line-height: 1.7;
+        white-space: pre-line;
+        color: rgba(245,226,184,0.5);
+        text-align: center;
+        transition: opacity 0.4s;
+      }
+
+      /* ── SCREEN 3: WRITING ── */
+      .m-hdr {
+        display: flex; justify-content: space-between;
+        align-items: center; padding: 9px 20px;
+        border-bottom: 1px solid #0e0e10;
+        flex-shrink: 0;
+      }
+      .m-hdr-l {
+        font-size: 9px; letter-spacing: 0.16em;
+        text-transform: uppercase; color: #1e1e24;
+      }
+      .m-hdr-r {
+        display: flex; align-items: center;
+        gap: 10px; font-size: 9px; color: #1e1e24;
+      }
+      .m-ibar {
+        width: 36px; height: 2px; border-radius: 1px;
+        background: rgba(245,226,184,0.06); overflow: hidden;
+      }
+      .m-ifil {
+        height: 100%; width: 0%;
+        background: rgba(245,226,184,0.4);
+        border-radius: 1px;
+        transition: width 0.6s ease;
+      }
+
+      /* THE STRIP */
+      .m-strip {
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+        background: #060608;
+      }
+      .m-bloom {
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 50% 100%,
+          rgba(245,226,184,0.14), transparent 65%);
+        pointer-events: none; z-index: 0; opacity: 0;
+        transition: opacity 0.6s;
+      }
+      .m-sfade {
+        position: absolute; top: 0; left: 0; right: 0;
+        height: 22px;
+        background: linear-gradient(to bottom,
+          #060608, transparent);
+        pointer-events: none; z-index: 3;
+      }
+      .m-sl {
+        position: absolute; left: 20px; right: 20px;
+        font-size: 19px; line-height: 1.85;
+        white-space: pre-wrap; word-break: break-word;
+        transition: color 0.55s ease; z-index: 1;
+      }
+      #m-sl0 { color: rgba(245,226,184,0.10); }
+      #m-sl1 { color: rgba(245,226,184,0.38); }
+      #m-sl2 { color: rgba(245,226,184,0.90); }
+
+      .m-cur {
+        display: inline-block;
+        width: 0.48em; height: 0.88em;
+        vertical-align: -0.12em; margin-left: 1px;
+        background: rgba(245,226,184,0.88);
+      }
+      .m-cur.idle  { animation: m-hb  2.4s ease-in-out infinite; }
+      .m-cur.typing{ animation: m-blink 1.1s steps(1) infinite; }
+      @keyframes m-hb {
+        0%,100% { opacity: 0.15; }
+        40%     { opacity: 0.75; }
+        60%     { opacity: 0.45; }
+        75%     { opacity: 0.65; }
+      }
+
+      @keyframes m-land {
+        from { text-shadow: 0 0 8px currentColor,
+                            0 0 3px currentColor; }
+        to   { text-shadow: none; }
+      }
+      .m-land { animation: m-land 1.1s ease-out forwards; }
+
+      /* Rhythm bar */
+      .m-rbar {
+        display: flex; justify-content: space-around;
+        padding: 5px 20px;
+        border-bottom: 1px solid #0e0e10;
+        flex-shrink: 0;
+      }
+      .m-rw {
+        font-size: 10px;
+        color: rgba(245,226,184,0.3);
+        letter-spacing: 0.04em;
+      }
+
+      /* Footer */
+      .m-ftr {
+        display: flex; justify-content: space-between;
+        align-items: center; padding: 8px 20px;
+        background: #060608;
+        border-top: 1px solid #0e0e10;
+        flex-shrink: 0;
+      }
+      .m-hint { font-size: 8px; color: #0e0e12; letter-spacing: 0.06em; }
+      .m-actions { display: flex; align-items: center; gap: 9px; }
+      .m-szg { display: flex; align-items: baseline; gap: 3px; }
+      .m-sz {
+        background: none; border: none; cursor: pointer;
+        font-family: 'Courier New', Courier, monospace;
+        padding: 2px 3px;
+        color: rgba(245,226,184,0.3);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .m-sz-on { color: rgba(245,226,184,0.7); }
+      .m-ss { font-size: 10px; }
+      .m-sm { font-size: 13px; }
+      .m-szl { font-size: 17px; line-height: 1; }
+      .m-vs { width: 1px; height: 13px;
+               background: rgba(245,226,184,0.08); }
+      .m-fin {
+        font-size: 9px; letter-spacing: 0.14em;
+        text-transform: uppercase; border-radius: 2px;
+        padding: 8px 14px; background: transparent;
+        font-family: 'Courier New', Courier, monospace;
+        color: rgba(245,226,184,0.65);
+        border: 1px solid rgba(245,226,184,0.25);
+        cursor: pointer; min-height: 36px;
+        display: flex; align-items: center;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      /* Keyboard */
+      .m-kb { flex-shrink: 0; padding: 3px 3px 20px;
+               background: #0c0c0e; }
+      .m-kbr {
+        display: flex; justify-content: center;
+        gap: 4px; margin-bottom: 4px;
+      }
+      .m-k {
+        height: 40px; flex: 1; max-width: 28px;
+        border-radius: 5px; display: flex;
+        align-items: center; justify-content: center;
+        font-size: 13px; cursor: pointer;
+        font-family: 'Courier New', Courier, monospace;
+        border: none; background: #1e1e26;
+        color: rgba(245,226,184,0.72);
+        box-shadow: 0 1px 0 #06060a;
+        user-select: none; -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .m-k:active { opacity: 0.5; transform: scale(0.88); }
+      .m-fn { max-width: 42px; font-size: 9px;
+               background: #111118;
+               color: rgba(245,226,184,0.3); }
+      .m-sp { max-width: 150px; flex: 6; font-size: 10px; }
+      .m-rt { max-width: 50px; font-size: 9px; }
+
+      /* ── SCREEN 4: COMPLETE ── */
+      .m-cpl-body {
+        flex: 1;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 24px 22px;
+        text-align: center;
+        background: #060608;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .m-cpl-mark { font-size: 22px; color: #1e1e24; margin-bottom: 10px; }
+      .m-cpl-head { font-size: 18px; font-weight: normal;
+                    color: #d8d8dc; margin-bottom: 4px; }
+      .m-cpl-sub  { font-size: 9px; color: #252530;
+                    letter-spacing: 0.1em; margin-bottom: 4px; }
+      .m-cpl-streak { font-size: 9px; color: #1e1e26;
+                      font-style: italic; margin-bottom: 16px; }
+      .m-cpl-first {
+        font-size: 12px; font-style: italic;
+        color: rgba(245,226,184,0.4);
+        margin-bottom: 20px; line-height: 1.6;
+        max-width: 240px; opacity: 0;
+        transition: opacity 1s ease 0.4s;
+      }
+      .m-cpl-first.m-show { opacity: 1; }
+      .m-cbtn {
+        width: 100%; padding: 13px 0;
+        font-size: 10px; letter-spacing: 0.16em;
+        text-transform: uppercase; border-radius: 2px;
+        background: transparent;
+        font-family: 'Courier New', Courier, monospace;
+        margin-bottom: 8px; border: 1px solid transparent;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .m-cbtn-p { color: rgba(245,226,184,0.7);
+                  border-color: rgba(245,226,184,0.22); }
+      .m-cbtn-s { color: #252530; border-color: #101014; }
+
+      .m-email-cap {
+        width: 100%; margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #0e0e10;
+      }
+      .m-email-line {
+        font-size: 9px; color: #1e1e26;
+        letter-spacing: 0.08em; margin-bottom: 10px;
+        font-style: italic;
+      }
+      .m-email-row {
+        display: flex; gap: 6px;
+      }
+      .m-email-in {
+        flex: 1; font-size: 14px; padding: 10px 12px;
+        border-radius: 2px; background: #0e0e10;
+        border: 1px solid #1a1a1e;
+        color: rgba(245,226,184,0.7);
+        font-family: 'Courier New', Courier, monospace;
+        outline: none;
+      }
+      .m-email-in::placeholder { color: rgba(245,226,184,0.18); }
+      .m-email-sub {
+        font-size: 9px; letter-spacing: 0.12em;
+        text-transform: uppercase; padding: 0 14px;
+        border-radius: 2px;
+        border: 1px solid rgba(245,226,184,0.22);
+        background: transparent;
+        color: rgba(245,226,184,0.55);
+        font-family: 'Courier New', Courier, monospace;
+        cursor: pointer; white-space: nowrap;
+      }
+      .m-new {
+        font-size: 9px; letter-spacing: 0.12em;
+        text-transform: uppercase; margin-top: 14px;
+        cursor: pointer; background: none; border: none;
+        font-family: 'Courier New', Courier, monospace;
+        color: #141418;
+      }
+
+    } /* end @media mobile */
   </style>
 <!-- Privacy-friendly analytics by Plausible -->
 <script async src="https://plausible.io/js/pa-OaYeADhGkddNPCZ5q7CiN.js"></script>
@@ -348,6 +789,166 @@
 </script>
 </head>
 <body>
+
+<div id="mobile-app" aria-hidden="true">
+
+  <!-- SCREEN 1: LANDING -->
+  <div class="m-scr m-on" id="m-land">
+
+    <!-- Hero: animated writing strip -->
+    <div class="m-hero">
+      <div class="m-hero-bloom"></div>
+      <div class="m-hero-lines">
+        <div class="mhl mhl-2">I never told her what I meant to</div>
+        <div class="mhl mhl-1">say. There was always tomorrow and</div>
+        <div class="mhl mhl-0">
+          <span class="mhl-type">then tomorrow was gone</span>
+          <span class="m-hero-cur"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pitch -->
+    <div class="m-pitch">
+      <div class="m-wordmark">writefwd</div>
+      <div class="m-head">Stop editing.<br>Start writing.</div>
+      <div class="m-sub">
+        No backspace. No going back.<br>
+        Just you and the page.
+      </div>
+      <button class="m-cta" id="m-cta-btn">
+        Write something now →
+      </button>
+      <button class="m-learn" id="m-learn-btn">
+        how it works ↓
+      </button>
+      <div class="m-proof">
+        <div class="m-quote">"I thought I wanted a backspace. Then I realized — if you add one, it defeats the entire purpose."</div>
+        <div class="m-quote">"I actually need this. I felt immediately spoken to."</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: COUNTDOWN -->
+  <div class="m-scr" id="m-cd">
+    <div class="m-cd-body">
+      <div class="m-cd-text" id="m-cdt"></div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: WRITING -->
+  <div class="m-scr" id="m-write">
+    <div class="m-hdr">
+      <div class="m-hdr-l">writefwd</div>
+      <div class="m-hdr-r">
+        <div class="m-ibar"><div class="m-ifil" id="m-ifil"></div></div>
+        <span id="m-wc">0 words</span>
+      </div>
+    </div>
+
+    <div class="m-strip" id="m-strip">
+      <div class="m-bloom" id="m-bloom"></div>
+      <div class="m-sfade"></div>
+      <div class="m-sl" id="m-sl0"></div>
+      <div class="m-sl" id="m-sl1"></div>
+      <div class="m-sl" id="m-sl2"></div>
+    </div>
+
+    <div class="m-rbar">
+      <span class="m-rw" id="m-rw0">—</span>
+      <span class="m-rw" id="m-rw1">—</span>
+      <span class="m-rw" id="m-rw2">—</span>
+    </div>
+
+    <div class="m-ftr">
+      <div class="m-hint">// backspace crosses out</div>
+      <div class="m-actions">
+        <div class="m-szg">
+          <button class="m-sz m-ss" onclick="mSetFs('s')">A</button>
+          <button class="m-sz m-sm m-sz-on" onclick="mSetFs('m')">A</button>
+          <button class="m-sz m-szl" onclick="mSetFs('l')">A</button>
+        </div>
+        <div class="m-vs"></div>
+        <button class="m-fin" id="m-fin-btn">FINISH</button>
+      </div>
+    </div>
+
+    <div class="m-kb">
+      <div class="m-kbr">
+        <div class="m-k" onclick="mTc('q')">q</div>
+        <div class="m-k" onclick="mTc('w')">w</div>
+        <div class="m-k" onclick="mTc('e')">e</div>
+        <div class="m-k" onclick="mTc('r')">r</div>
+        <div class="m-k" onclick="mTc('t')">t</div>
+        <div class="m-k" onclick="mTc('y')">y</div>
+        <div class="m-k" onclick="mTc('u')">u</div>
+        <div class="m-k" onclick="mTc('i')">i</div>
+        <div class="m-k" onclick="mTc('o')">o</div>
+        <div class="m-k" onclick="mTc('p')">p</div>
+      </div>
+      <div class="m-kbr">
+        <div class="m-k" onclick="mTc('a')">a</div>
+        <div class="m-k" onclick="mTc('s')">s</div>
+        <div class="m-k" onclick="mTc('d')">d</div>
+        <div class="m-k" onclick="mTc('f')">f</div>
+        <div class="m-k" onclick="mTc('g')">g</div>
+        <div class="m-k" onclick="mTc('h')">h</div>
+        <div class="m-k" onclick="mTc('j')">j</div>
+        <div class="m-k" onclick="mTc('k')">k</div>
+        <div class="m-k" onclick="mTc('l')">l</div>
+      </div>
+      <div class="m-kbr">
+        <div class="m-k m-fn">shift</div>
+        <div class="m-k" onclick="mTc('z')">z</div>
+        <div class="m-k" onclick="mTc('x')">x</div>
+        <div class="m-k" onclick="mTc('c')">c</div>
+        <div class="m-k" onclick="mTc('v')">v</div>
+        <div class="m-k" onclick="mTc('b')">b</div>
+        <div class="m-k" onclick="mTc('n')">n</div>
+        <div class="m-k" onclick="mTc('m')">m</div>
+        <div class="m-k m-fn" onclick="mBs()">del</div>
+      </div>
+      <div class="m-kbr">
+        <div class="m-k m-fn">123</div>
+        <div class="m-k m-sp" onclick="mTc(' ')">space</div>
+        <div class="m-k m-rt m-fn" onclick="mNl()">return</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: COMPLETE -->
+  <div class="m-scr" id="m-cpl">
+    <div class="m-cpl-body">
+      <div class="m-cpl-mark">¶</div>
+      <div class="m-cpl-head">finished.</div>
+      <div class="m-cpl-sub" id="m-csub">0 words</div>
+      <div class="m-cpl-first" id="m-cfl"></div>
+      <button class="m-cbtn m-cbtn-p" onclick="mCopy()">
+        Copy draft
+      </button>
+      <button class="m-cbtn m-cbtn-s" onclick="mEmail()">
+        Email draft
+      </button>
+      <div class="m-email-cap">
+        <div class="m-email-line">
+          save your streak — it's free.
+        </div>
+        <div class="m-email-row">
+          <input class="m-email-in" id="m-email-in"
+            type="email" placeholder="your@email.com"
+            autocomplete="email">
+          <button class="m-email-sub" onclick="mSaveEmail()">
+            Save
+          </button>
+        </div>
+      </div>
+      <button class="m-new" onclick="mReset()">
+        ← write again
+      </button>
+    </div>
+  </div>
+
+</div><!-- /mobile-app -->
 
 <nav>
   <div class="wordmark">writefwd</div>
@@ -914,6 +1515,436 @@
       setTimeout(function(){ document.getElementById('email-input').style.borderColor = ''; }, 1500);
     }
   };
+
+})();
+</script>
+
+<!-- ════════════════════════════════════════════════════════════
+     MOBILE-FIRST APP (≤600px). Self-contained IIFE, all globals
+     prefixed m* — no overlap with the landing-page script above.
+     Returns early on desktop so nothing runs at 601px+.
+     ════════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+  // only run on mobile
+  if (window.innerWidth > 600) return;
+
+  var mLines = [''], mCur = '', mCanStr = true;
+  var mWc = 0, mFs = 19, mLh = 35;
+  var mStarted = false, mNrg = 0, mLastT = 0;
+  var mRaf = null, mLastWords = [];
+  var mAllText = '';
+
+  var MPERMS = [
+    'the mess is the point.',
+    'nobody will see this but you.',
+    'get it out. fix it later.',
+    "it\'s always better than you think it is.",
+    'write like no one\'s editing.'
+  ];
+
+  function mEl(id) { return document.getElementById(id); }
+
+  function mShow(id) {
+    var ss = document.querySelectorAll('.m-scr');
+    for (var i = 0; i < ss.length; i++) {
+      ss[i].classList.remove('m-on');
+    }
+    mEl(id).classList.add('m-on');
+  }
+
+  function mInitStrip() {
+    mLh = mFs * 1.85;
+    var h = Math.round(mLh * 3) + 8;
+    mEl('m-strip').style.height = h + 'px';
+    var ids = ['m-sl0','m-sl1','m-sl2'];
+    for (var i = 0; i < 3; i++) {
+      var el = mEl(ids[i]);
+      el.style.fontSize = mFs + 'px';
+      el.style.lineHeight = '1.85';
+      el.style.bottom = Math.round((2 - i) * mLh + 4) + 'px';
+    }
+  }
+
+  function mMakeCur() {
+    var c = document.createElement('span');
+    c.id = 'm-cur';
+    c.className = 'm-cur idle';
+    return c;
+  }
+
+  function mStartRaf() {
+    if (mRaf) return;
+    function frame() {
+      var active = (Date.now() - mLastT) < 1500;
+      mNrg += ((active ? 1 : 0) - mNrg) * 0.035;
+      var p = Math.round(mNrg * 100);
+      var ifil = mEl('m-ifil');
+      if (ifil) ifil.style.width = p + '%';
+      var bloom = mEl('m-bloom');
+      if (bloom) bloom.style.opacity = (mNrg * 0.55).toFixed(2);
+      var cur = mEl('m-cur');
+      if (cur) {
+        var blur = (2 + mNrg * 6).toFixed(1);
+        var alp  = (0.12 + mNrg * 0.2).toFixed(2);
+        cur.style.boxShadow =
+          '0 0 ' + blur + 'px rgba(245,226,184,' + alp + ')';
+        cur.style.transform =
+          'scaleX(' + (1 + mNrg * 0.09).toFixed(3) + ')';
+      }
+      mRaf = requestAnimationFrame(frame);
+    }
+    mRaf = requestAnimationFrame(frame);
+  }
+
+  function mRenderStrip() {
+    var all = mLines.concat([mCur]);
+    var len = all.length;
+    var slots = [
+      { idx: len - 3, age: 2 },
+      { idx: len - 2, age: 1 },
+      { idx: len - 1, age: 0 }
+    ];
+    var cols = [
+      'rgba(245,226,184,0.90)',
+      'rgba(245,226,184,0.38)',
+      'rgba(245,226,184,0.10)'
+    ];
+    var ids = ['m-sl0','m-sl1','m-sl2'];
+    for (var i = 0; i < 3; i++) {
+      var el = mEl(ids[i]);
+      var s = slots[i];
+      if (s.idx < 0 || s.idx >= len) {
+        el.innerHTML = '';
+        el.style.color = 'transparent';
+        continue;
+      }
+      var txt = all[s.idx] || '';
+      el.style.color = cols[s.age];
+      if (s.age === 0) {
+        el.innerHTML = mRl(txt);
+        var cur = mEl('m-cur');
+        if (cur) el.appendChild(cur);
+      } else {
+        el.innerHTML = mRl(txt);
+      }
+    }
+  }
+
+  function mRl(txt) {
+    var parts = txt.split('\x00');
+    var html = '';
+    for (var i = 0; i < parts.length; i++) {
+      if (!parts[i]) continue;
+      if (i % 2 === 1) {
+        html += '<span style="text-decoration:line-through;' +
+                'opacity:0.4;">' + mEsc(parts[i]) + '</span>';
+      } else {
+        html += mEsc(parts[i]);
+      }
+    }
+    return html;
+  }
+
+  function mEsc(s) {
+    return s.replace(/&/g,'&amp;')
+             .replace(/</g,'&lt;')
+             .replace(/>/g,'&gt;');
+  }
+
+  function mStartType() {
+    if (mStarted) return;
+    mStarted = true;
+    var h = mEl('m-hint-span');
+    if (h) {
+      h.style.transition = 'opacity 0.5s';
+      h.style.opacity = '0';
+      setTimeout(function() {
+        if (h.parentNode) h.parentNode.removeChild(h);
+      }, 500);
+    }
+    var cur = mEl('m-cur');
+    if (cur) {
+      cur.classList.remove('idle');
+      cur.classList.add('typing');
+    }
+  }
+
+  function mTriggerLand() {
+    var l2 = mEl('m-sl2');
+    if (!l2) return;
+    var nodes = l2.childNodes;
+    var lastNode = null;
+    for (var i = nodes.length - 1; i >= 0; i--) {
+      if (nodes[i].nodeType === 3 &&
+          nodes[i].textContent.trim()) {
+        lastNode = nodes[i]; break;
+      }
+      if (nodes[i].nodeType === 1 &&
+          nodes[i].id !== 'm-cur') {
+        lastNode = nodes[i]; break;
+      }
+    }
+    if (!lastNode || lastNode.nodeType !== 3) return;
+    var t = lastNode.textContent;
+    var sp = t.lastIndexOf(' ', t.length - 2);
+    var lw = sp >= 0 ? t.slice(sp + 1) : t;
+    if (!lw.trim()) return;
+    var gs = document.createElement('span');
+    gs.className = 'm-land';
+    gs.style.color = 'rgba(245,226,184,0.95)';
+    gs.textContent = lw;
+    lastNode.textContent = sp >= 0 ? t.slice(0, sp + 1) : '';
+    lastNode.parentNode.insertBefore(gs, lastNode.nextSibling);
+    setTimeout(function() {
+      if (gs.parentNode) {
+        var r = document.createTextNode(
+          (sp >= 0 ? t.slice(0, sp + 1) : '') + lw);
+        gs.parentNode.replaceChild(r, gs);
+        if (lastNode.parentNode)
+          lastNode.parentNode.removeChild(lastNode);
+      }
+    }, 1200);
+  }
+
+  window.mTc = function(ch) {
+    mLastT = Date.now();
+    mStartType();
+    mCanStr = true;
+    mCur += ch;
+    if (ch === ' ') mTriggerLand();
+    var wrapAt = Math.floor(
+      (window.innerWidth - 40) / (mFs * 0.6));
+    var cleanCur = mCur.replace(/\x00[^\x00]*\x00/g,'');
+    if (cleanCur.length > wrapAt && ch === ' ') {
+      mNl(); return;
+    }
+    mCntW(); mRenderStrip(); mUpRhythm();
+  };
+
+  window.mNl = function() {
+    mLastT = Date.now();
+    mStartType(); mCanStr = true;
+    mLines.push(mCur); mCur = '';
+    mCntW(); mRenderStrip();
+  };
+
+  window.mBs = function() {
+    if (!mStarted || !mCanStr) return;
+    mLastT = Date.now();
+    var tri = mCur.replace(/\s+$/, '');
+    if (!tri) {
+      if (mLines.length > 1) { mCur = mLines.pop(); }
+      return;
+    }
+    var sp = tri.lastIndexOf(' ');
+    var bef  = sp < 0 ? '' : tri.slice(0, sp + 1);
+    var word = sp < 0 ? tri : tri.slice(sp + 1);
+    mCur = bef + '\x00' + word + '\x00';
+    mCanStr = false;
+    mCntW(); mRenderStrip();
+  };
+
+  function mCntW() {
+    var all = mLines.concat([mCur]).join(' ');
+    var clean = all.replace(/\x00[^\x00]*\x00/g,'').trim();
+    mWc = clean ?
+      clean.split(/\s+/).filter(function(w){
+        return w.length > 0;
+      }).length : 0;
+    mAllText = clean;
+    var el = mEl('m-wc');
+    if (el) el.textContent = mWc +
+      (mWc === 1 ? ' word' : ' words');
+  }
+
+  function mUpRhythm() {
+    var all = mLines.concat([mCur]).join(' ');
+    var clean = all.replace(/\x00[^\x00]*\x00/g,' ').trim();
+    var words = clean.split(/\s+/).filter(function(w){
+      return w.length > 0;
+    });
+    mLastWords = words.slice(-3).reverse();
+    var ids = ['m-rw0','m-rw1','m-rw2'];
+    for (var i = 0; i < ids.length; i++) {
+      var el = mEl(ids[i]);
+      if (el) el.textContent = mLastWords[i] || '—';
+    }
+  }
+
+  window.mSetFs = function(s) {
+    var szs = { s: 14, m: 19, l: 24 };
+    mFs = szs[s];
+    mInitStrip(); mRenderStrip();
+    var map = { s: 'm-ss', m: 'm-sm', l: 'm-szl' };
+    var els = document.querySelectorAll('.m-sz');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      var match = el.classList.contains(map[s]);
+      el.className = el.className
+        .replace(/ ?m-sz-on/g, '') +
+        (match ? ' m-sz-on' : '');
+    }
+  };
+
+  // ── Begin session ──
+  function mBegin() {
+    mShow('m-cd');
+    var perm = MPERMS[Math.floor(Math.random() * MPERMS.length)];
+    var beats = [
+      { t: 'Type forward.\nBackspace crosses out the last word.',
+        sz: '13px', fi: false, d: 2200 },
+      { t: perm, sz: '15px', fi: true, d: 2000 },
+      { t: 'go.', sz: '22px', fi: false, d: 900 }
+    ];
+    var el = mEl('m-cdt');
+    var i = 0;
+    function next() {
+      if (i >= beats.length) {
+        mShow('m-write');
+        mInitStrip();
+        var l2 = mEl('m-sl2');
+        l2.innerHTML = '';
+        var hint = document.createElement('span');
+        hint.id = 'm-hint-span';
+        hint.style.opacity = '0.18';
+        hint.style.color = 'rgba(245,226,184,0.5)';
+        hint.textContent = 'just write.';
+        l2.appendChild(hint);
+        l2.appendChild(mMakeCur());
+        mStartRaf();
+        return;
+      }
+      var b = beats[i++];
+      el.style.opacity = '0';
+      setTimeout(function() {
+        el.style.fontSize = b.sz;
+        el.style.fontStyle = b.fi ? 'italic' : 'normal';
+        el.style.whiteSpace = 'pre-line';
+        el.textContent = b.t;
+        el.style.opacity = '1';
+        setTimeout(function() {
+          el.style.opacity = '0';
+          setTimeout(next, 350);
+        }, b.d);
+      }, 250);
+    }
+    next();
+  }
+
+  // ── Finish & ceremony ──
+  window.mFinSess = function() {
+    // not used directly — wired below
+  };
+
+  function mDoFinish() {
+    var ids = ['m-sl2','m-sl1','m-sl0'];
+    for (var i = 0; i < ids.length; i++) {
+      (function(id, d) {
+        setTimeout(function() {
+          var el = mEl(id);
+          if (el) {
+            el.style.transition = 'opacity 0.5s ease';
+            el.style.opacity = '0';
+          }
+        }, d);
+      })(ids[i], i * 220);
+    }
+    setTimeout(mShowCpl, 3 * 220 + 300);
+  }
+
+  function mShowCpl() {
+    var first = mAllText.split(/[.!?]/)[0];
+    var sub = mEl('m-csub');
+    if (sub) sub.textContent = mWc + ' words';
+    var cfl = mEl('m-cfl');
+    if (cfl && first && first.length > 3) {
+      cfl.textContent = '“' + first.trim() + '...”';
+      setTimeout(function() {
+        cfl.classList.add('m-show');
+      }, 100);
+    }
+    mShow('m-cpl');
+  }
+
+  window.mCopy = function() {
+    var clean = mLines.concat([mCur]).join('\n')
+      .replace(/\x00[^\x00]*\x00/g, '')
+      .replace(/  +/g, ' ').trim();
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(clean).catch(function(){});
+    }
+  };
+
+  window.mEmail = function() {
+    var clean = mLines.concat([mCur]).join('\n')
+      .replace(/\x00[^\x00]*\x00/g, '')
+      .replace(/  +/g, ' ').trim();
+    if (clean.length <= 1800) {
+      window.location.href = 'mailto:?subject=My%20Draft&body=' +
+        encodeURIComponent(clean);
+    } else {
+      window.mCopy();
+      alert('Draft copied — paste it into your email.');
+    }
+  };
+
+  window.mSaveEmail = function() {
+    var inp = mEl('m-email-in');
+    if (!inp || !inp.value) return;
+    var email = inp.value;
+    // POST to Buttondown or your email service here
+    // For now show confirmation
+    inp.value = '';
+    inp.placeholder = 'saved. see you tomorrow.';
+    inp.disabled = true;
+  };
+
+  window.mReset = function() {
+    mLines = ['']; mCur = ''; mCanStr = true;
+    mWc = 0; mStarted = false; mNrg = 0;
+    mAllText = ''; mLastWords = [];
+    if (mRaf) { cancelAnimationFrame(mRaf); mRaf = null; }
+    var sids = ['m-sl0','m-sl1','m-sl2'];
+    for (var i = 0; i < sids.length; i++) {
+      var el = mEl(sids[i]);
+      if (el) {
+        el.innerHTML = '';
+        el.style.opacity = '1';
+        el.style.color = 'transparent';
+      }
+    }
+    var wc = mEl('m-wc');
+    if (wc) wc.textContent = '0 words';
+    var ifil = mEl('m-ifil');
+    if (ifil) ifil.style.width = '0%';
+    var bloom = mEl('m-bloom');
+    if (bloom) bloom.style.opacity = '0';
+    var cfl = mEl('m-cfl');
+    if (cfl) cfl.classList.remove('m-show');
+    var rids = ['m-rw0','m-rw1','m-rw2'];
+    for (var j = 0; j < rids.length; j++) {
+      var rel = mEl(rids[j]);
+      if (rel) rel.textContent = '—';
+    }
+    mShow('m-land');
+  };
+
+  // Wire up buttons
+  var ctaBtn = mEl('m-cta-btn');
+  if (ctaBtn) ctaBtn.addEventListener('click', mBegin);
+
+  var learnBtn = mEl('m-learn-btn');
+  if (learnBtn) learnBtn.addEventListener('click', function() {
+    var proof = document.querySelector('.m-proof');
+    if (proof) proof.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  var finBtn = mEl('m-fin-btn');
+  if (finBtn) finBtn.addEventListener('click', mDoFinish);
+
+  // Init
+  mInitStrip();
 
 })();
 </script>
