@@ -696,11 +696,14 @@
          rules govern show/hide. An id-level `display:flex` would force the
          writing screen permanently visible and break the complete screen. */
       #m-write {
+        position: fixed;   /* pinned to the visible area; JS syncs to visualViewport */
+        top: 0;
+        left: 0;
+        right: 0;
         height: 100vh;
         height: 100dvh;
         overflow: hidden;
         flex-direction: column;
-        position: relative;   /* contains the absolutely-positioned #m-input */
       }
       #m-write.kb-open {
         padding-bottom: env(safe-area-inset-bottom);
@@ -732,14 +735,15 @@
 
       /* Hidden contenteditable that captures the real keyboard */
       #m-input {
-        position: absolute;
+        position: fixed;   /* out of flow entirely — can never grow page height */
         opacity: 0;
         pointer-events: none;
         width: 1px;
         height: 1px;
-        top: 50%;
-        left: 50%;
+        top: 0;
+        left: 0;
         font-size: 16px; /* prevents iOS zoom */
+        overflow: hidden;
         -webkit-user-select: text;
         user-select: text;
       }
@@ -1567,6 +1571,22 @@
     }
     mEl(id).classList.add('m-on');
     mScr = id;
+
+    if (id === 'm-write') {
+      // Lock the page so the iOS keyboard can't scroll or grow it.
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      // Drop any stale inline sizing from a prior session; CSS dvh applies
+      // until the visualViewport handler pins it to the visible area.
+      var we = mEl('m-write');
+      if (we) { we.style.height = ''; we.style.top = ''; }
+    } else {
+      // Restore normal scrolling for every other screen.
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    }
   }
 
   function mInitStrip() {
@@ -2051,6 +2071,19 @@
       mRaw += text;
       mInp.innerText = mRaw;
       mCursorEnd();
+    });
+  }
+
+  // Keep the writing screen pinned to the visible area when the iOS keyboard
+  // opens/closes (the visual viewport shrinks beneath the overlaid keyboard).
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', function() {
+      var vv = window.visualViewport;
+      var writeEl = mEl('m-write');
+      if (writeEl && mScr === 'm-write') {
+        writeEl.style.height = vv.height + 'px';
+        writeEl.style.top = vv.offsetTop + 'px';
+      }
     });
   }
 
