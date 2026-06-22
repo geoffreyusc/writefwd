@@ -249,12 +249,17 @@
       letter-spacing: 0.02em;
       white-space: pre-wrap;
       word-break: break-word;
+      margin: 0;
+      padding: 0;
     }
     #write-hint {
       color: var(--text-dim3-fade);
       pointer-events: none;
       transition: opacity 0.6s ease;
       opacity: 1;
+      line-height: 1.9;
+      margin: 0;
+      padding: 0;
     }
     #write-hint.hidden {
       opacity: 0;
@@ -267,13 +272,15 @@
       pointer-events: none;
       z-index: 2;
     }
-    #lines { display: flex; flex-direction: column; }
+    #lines { display: block; margin: 0; padding: 0; }
     .line {
       font-size: inherit;   /* follow #writing-col so the size buttons take effect */
-      line-height: 1.9;
+      line-height: 1.9;      /* uniform rhythm — matches #curline and wrapped lines */
       white-space: pre-wrap;
       word-break: break-word;
-      min-height: 1.9em;
+      min-height: 1.9em;     /* blank lines (Enter) hold exactly one line, == line-height */
+      margin: 0;
+      padding: 0;
       transition: color 0.6s cubic-bezier(0.25, 0, 0.5, 1),
                   opacity 0.6s cubic-bezier(0.25, 0, 0.5, 1);
     }
@@ -288,14 +295,18 @@
     }
     #curline {
       font-size: inherit;   /* follow #writing-col so the size buttons take effect */
-      line-height: 1.9;
+      line-height: 1.9;     /* same rhythm as committed .line elements */
       color: var(--text-bright);
       min-height: 1.9em;
       white-space: pre-wrap;
       word-break: break-word;
+      margin: 0;
+      padding: 0;
       position: relative;
       z-index: 1;
     }
+    /* Inline text holders must not override the line rhythm. */
+    #curtext { line-height: 1.9; }
     #cursor {
       display: inline-block;
       width: 0.46em; height: 1.05em;
