@@ -1813,8 +1813,16 @@
     // their age class, so the CSS color/opacity transition fires on the same
     // element as a line recedes - no innerHTML rebuild, no DOM jump.
     for (var i = start; i < w.result.length; i++) {
-      var age = w.result.length - i;
-      var cls = 'line a' + Math.min(age, 3);
+      // Hold off fading until there are >=4 committed lines; below that every
+      // committed line stays full-brightness (no age class). At 4+ the existing
+      // age-class logic applies exactly as before.
+      var cls;
+      if (w.result.length < 4) {
+        cls = 'line';
+      } else {
+        var age = w.result.length - i;
+        cls = 'line a' + Math.min(age, 3);
+      }
       var text = w.result[i] || ' ';
       var el = lineEls[i];
       if (!el) {
