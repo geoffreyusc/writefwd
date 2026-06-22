@@ -517,6 +517,13 @@
       border-color: var(--text-bright) !important;
       background: var(--opt-sel-bg) !important;
     }
+    /* Light mode: pin the selected pill to a clear dark ink so it never reads
+       as "grayed out" against the cream background. */
+    [data-theme="light"] .opt.sel {
+      color: #2c2a27 !important;
+      border-color: #2c2a27 !important;
+      background: rgba(44, 42, 39, 0.08) !important;
+    }
     #begin-btn {
       font-family: 'Courier New', monospace;
       font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
@@ -676,7 +683,8 @@
 
     /* Mobile */
     @media (max-width: 600px) {
-      #writing-scroll { padding: 22px 18px 0 18px; }
+      /* Extra bottom padding so the active line is never hidden behind the footer */
+      #writing-scroll { padding: 22px 18px 80px 18px; }
       #input-zone { padding: 4px 20px 12px; }
       /* Footer is a normal in-flow flex child of the (now position:fixed,
          viewport-resized) #app, so it rides the bottom of the visible area
@@ -748,14 +756,36 @@
         letter-spacing: 0.14em;
       }
 
-      /* Higher text contrast for real-world mobile lighting */
-      :root {
+      /* Higher text contrast for real-world mobile lighting. Scope the
+         brightening to the default dark theme only (the :not() guards) so it
+         never leaks into light mode, where a light --text-bright would make
+         the writing text invisible against the cream background. */
+      :root:not([data-theme="light"]):not([data-theme="midnight"]) {
         --text-bright: #f0f0f0;
         --text-dim1:   #999999;
       }
       [data-theme="midnight"] {
         --text-bright: #f0f0f0;
         --text-dim1:   #cccccc;
+      }
+      [data-theme="light"] {
+        --text-bright: #1a1816 !important;
+        --text-dim1:   #6b6560 !important;
+        --text-dim2:   #aaa89f !important;
+      }
+
+      /* Selected timer pill stays clearly highlighted (not grayed) in light mode */
+      [data-theme="light"] .opt.sel {
+        color: #1a1816 !important;
+        border-color: #1a1816 !important;
+        background: rgba(26, 24, 22, 0.1) !important;
+      }
+
+      /* Finish button: force-visible + proper 44px touch target on mobile */
+      #finish-btn.visible {
+        display: flex !important;
+        min-height: 44px;
+        min-width: 80px;
       }
     }
   </style>
@@ -2133,10 +2163,13 @@
       // Set app height to the visible viewport height (shrinks above the keyboard).
       app.style.height = vv.height + 'px';
       app.style.top = vv.offsetTop + 'px';
-      // Scroll the writing area to keep the active line visible.
+      // Scroll the writing area to keep the active line visible. Defer one tick
+      // so the scroll runs after the app has resized to the new viewport height.
       var scroll = document.getElementById('writing-scroll');
       if (scroll && started) {
-        scroll.scrollTop = scroll.scrollHeight;
+        setTimeout(function() {
+          scroll.scrollTop = scroll.scrollHeight;
+        }, 50);
       }
     }
     window.visualViewport.addEventListener('resize', onViewportResize);
