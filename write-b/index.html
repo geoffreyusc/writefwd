@@ -22,8 +22,8 @@
       --wordmark: #777777;
       --stats: #777777;
       --hint: #555555;
-      --finish-text: #777777;
-      --finish-border: #444444;
+      --finish-text: #aaaaaa;
+      --finish-border: #666666;
       --icon: #555555;
       --btn-bg: #252525;
       --btn-text: #666666;
@@ -130,8 +130,8 @@
       --wordmark: #555;
       --stats: #555;
       --hint: #333;
-      --finish-text: #666;
-      --finish-border: #2a2a2a;
+      --finish-text: #888888;
+      --finish-border: #444444;
       --icon: #444;
       --btn-bg: #111;
       --btn-text: #555;
@@ -374,6 +374,17 @@
       margin-top: 4px;
     }
 
+    /* Mobile-only active-atmosphere text label (replaces the swatch picker) */
+    #atmo-mobile-label {
+      display: none;
+      font-size: 10px;
+      color: var(--text-dim1);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+
     /* ── Input zone ── */
     #input-zone { position: relative; padding: 4px 32px 12px; }
     #clickzone { position: absolute; inset: 0; cursor: text; z-index: 1; }
@@ -442,10 +453,12 @@
       font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
       color: var(--finish-text); background: transparent;
       border: 1px solid var(--finish-border); border-radius: 2px;
-      padding: 6px 18px; cursor: pointer;
+      min-height: 44px; min-width: 80px;
+      padding: 0 18px; cursor: pointer;
+      align-items: center; justify-content: center;
       transition: border-color 0.2s, color 0.2s;
     }
-    #finish-btn.visible { display: block; }
+    #finish-btn.visible { display: flex; align-items: center; justify-content: center; }
     #finish-btn:hover { border-color: var(--btn-hover-border); color: var(--btn-hover-text); }
 
     /* ── Overlay screens ── */
@@ -661,6 +674,52 @@
          doesn't hide behind the fixed footer */
       #app { padding-bottom: 60px; }
       #header { padding: 16px 20px 12px; }
+
+      /* Hide the atmosphere swatch picker; show a text label instead */
+      #atmo-q { display: none !important; }
+      #atmo-caption { display: none !important; }
+      #atmo-mobile-label { display: block; }
+
+      /* Tighter start screen so Begin is always visible without scrolling */
+      #start-screen {
+        padding: 16px 20px;
+        justify-content: flex-start;
+        padding-top: 20px;
+        overflow-y: auto;
+      }
+      #start-mark {
+        font-size: 20px;
+        margin-bottom: 8px;
+      }
+      #start-head {
+        font-size: 16px;
+        margin-bottom: 4px;
+      }
+      #start-sub {
+        margin-bottom: 12px;
+      }
+      #how-it-works {
+        margin-bottom: 14px;
+        padding: 10px 14px;
+      }
+      .q { margin-bottom: 14px; }
+      #begin-btn {
+        margin-top: 4px;
+        padding: 10px 32px;
+      }
+
+      /* Shorter how-it-works copy fits one line each */
+      .how-line { font-size: 10px; }
+
+      /* Higher text contrast for real-world mobile lighting */
+      :root {
+        --text-bright: #f0f0f0;
+        --text-dim1:   #999999;
+      }
+      [data-theme="midnight"] {
+        --text-bright: #f0f0f0;
+        --text-dim1:   #cccccc;
+      }
     }
   </style>
   <script>
@@ -844,7 +903,7 @@
     <div id="how-it-works">
       <div class="how-line">
         <span class="how-dot">·</span>
-        <span>type forward — <span class="how-em">words lock in as you write</span></span>
+        <span>type forward — <span class="how-em">words lock in</span></span>
       </div>
       <div class="how-line">
         <span class="how-dot">·</span>
@@ -852,11 +911,11 @@
       </div>
       <div class="how-line">
         <span class="how-dot">·</span>
-        <span>text fades behind you — <span class="how-em">eyes ahead</span></span>
+        <span>text fades — <span class="how-em">eyes ahead</span></span>
       </div>
       <div class="how-line">
         <span class="how-dot">·</span>
-        <span>when done — <span class="how-em">copy, share, or email your draft</span></span>
+        <span>when done — <span class="how-em">copy or email your draft</span></span>
       </div>
     </div>
 
@@ -877,6 +936,8 @@
       <div id="atmo-caption"></div>
       <div id="atmo-hint">shapes the writing glow in midnight</div>
     </div>
+
+    <div id="atmo-mobile-label"></div>
 
     <button id="begin-btn">Begin</button>
   </div>
@@ -1164,11 +1225,30 @@
     atmoCaption.textContent = cur.name + ' — ' + cur.tagline;
   }
 
+  // Mobile shows the active atmosphere as a single text line in place of the
+  // swatch picker (which is hidden under 600px). Keep it in sync on change + load.
+  function updateAtmoMobileLabel() {
+    var mobileLabel = document.getElementById('atmo-mobile-label');
+    if (mobileLabel) {
+      var atmoNames = {
+        original: 'pure midnight',
+        candlewick: 'candlewick',
+        untitled: 'untitled',
+        dispatch: 'dispatch',
+        greenlight: 'green light',
+        redline: 'redline',
+        sunday: 'sunday'
+      };
+      mobileLabel.textContent = '· ' + (atmoNames[atmosphere] || atmosphere);
+    }
+  }
+
   function setAtmosphere(key) {
     atmosphere = key;
     try { localStorage.setItem('wf-atmosphere', key); } catch (e) {}
     styleSwatches();
     updateWritingSwatches();   // keep footer swatches in sync with the picker
+    updateAtmoMobileLabel();   // keep the mobile text label in sync too
     repaintAtmosphere();
     paint();
   }
@@ -1404,6 +1484,14 @@
           }
 
           inp.focus();
+
+          // iOS scrolls the page when the keyboard opens; force it back to top.
+          if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+            setTimeout(function() {
+              window.scrollTo(0, 0);
+              document.body.scrollTop = 0;
+            }, 100);
+          }
         });
       });
     });
@@ -1491,6 +1579,7 @@
   // Build the atmosphere picker and start the breathing-haptics loop.
   buildSwatches();
   buildWritingSwatches();
+  updateAtmoMobileLabel();   // show the correct initial atmosphere on the mobile label
   applyFontSize(fontSize);   // reapply the saved font size to #writing-col
 
   // Apply footer-swatch visibility AFTER building (buildWritingSwatches forces
