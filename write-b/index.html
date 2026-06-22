@@ -976,40 +976,64 @@
     requestAnimationFrame(hapticFrame);
   }
 
-  // Render one line's words into `el` as atmosphere-tinted spans.
+  // Count words in a line the way the token model would: struck \x00…\x00
+  // segments count as one word each; normal runs split on spaces.
+  function segWordCount(text) {
+    var segs = text.split('\x00'), n = 0;
+    for (var i = 0; i < segs.length; i++) {
+      if (i % 2 === 1) { if (segs[i] !== '') n++; }           // struck word
+      else { var ws = segs[i].split(' '); for (var j = 0; j < ws.length; j++) if (ws[j] !== '') n++; }
+    }
+    return n;
+  }
+
+  // Render one line's words into `el` as atmosphere-tinted spans. Splits on the
+  // \x00 strike markers FIRST so a struck word always renders struck — even when
+  // a freshly-typed word is merged right after it (e.g. "\x00teh\x00the").
   // ctx carries the running committed-word index + total (for the recency
   // ladder) and captures the newest committed span (age 1) for the land glow.
-  // hasLive=true marks the line's trailing word as the in-progress buffer.
+  // hasLive=true marks this line's final, non-struck trailing word as the buffer.
   function renderAged(el, lineText, ctx, hasLive) {
     el.textContent = '';
-    var parts = lineText.split(' ');
-    var liveTokenIndex = -1;
-    if (hasLive) {
-      for (var q = parts.length - 1; q >= 0; q--) { if (parts[q] !== '') { liveTokenIndex = q; break; } }
+    var segs = lineText.split('\x00');   // even index = normal text, odd = struck word
+    var lastIdx = segs.length - 1;
+    // The live buffer is the last non-empty word of the final segment, only when
+    // that segment is normal text (an un-closed strike can't be the buffer).
+    var livePos = -1;
+    if (hasLive && lastIdx % 2 === 0) {
+      var lw = segs[lastIdx].split(' ');
+      for (var z = lw.length - 1; z >= 0; z--) { if (lw[z] !== '') { livePos = z; break; } }
     }
-    for (var p = 0; p < parts.length; p++) {
-      if (p > 0) el.appendChild(document.createTextNode(' '));
-      var tok = parts[p];
-      if (tok === '') continue;
-      var span = document.createElement('span');
-      var clean = tok.indexOf('\x00') !== -1 ? tok.replace(/\x00/g, '') : tok;
-      if (p === liveTokenIndex) {
-        span.textContent = clean;
-        span.style.color = c(0.95);
-      } else if (tok.indexOf('\x00') !== -1) {
-        span.textContent = clean;
-        span.style.color = c(0.26);
-        span.style.textDecoration = 'line-through';
-        span.style.textDecorationColor = c(0.38);
+    for (var si = 0; si < segs.length; si++) {
+      var seg = segs[si];
+      if (si % 2 === 1) {                                      // struck word
+        if (seg === '') continue;
+        var ss = document.createElement('span');
+        ss.textContent = seg;
+        ss.style.color = c(0.26);
+        ss.style.textDecoration = 'line-through';
+        ss.style.textDecorationColor = c(0.38);
+        el.appendChild(ss);
         ctx.idx++;
-      } else {
-        var age = ctx.total - ctx.idx;
-        span.textContent = tok;
-        span.style.color = (age <= 1) ? c(1) : c(Math.max(0.05, Math.pow(0.84, age)));
-        if (age <= 1) ctx.newest = span;
-        ctx.idx++;
+        continue;
       }
-      el.appendChild(span);
+      var words = seg.split(' ');                             // normal run (spaces live here)
+      for (var wi = 0; wi < words.length; wi++) {
+        if (wi > 0) el.appendChild(document.createTextNode(' '));
+        var wd = words[wi];
+        if (wd === '') continue;
+        var span = document.createElement('span');
+        span.textContent = wd;
+        if (si === lastIdx && wi === livePos) {
+          span.style.color = c(0.95);                         // live buffer
+        } else {
+          var age = ctx.total - ctx.idx;
+          span.style.color = (age <= 1) ? c(1) : c(Math.max(0.05, Math.pow(0.84, age)));
+          if (age <= 1) ctx.newest = span;
+          ctx.idx++;
+        }
+        el.appendChild(span);
+      }
     }
   }
 
@@ -1458,7 +1482,10 @@
 
   // ── Text rendering ────────────────────────────────────────────
   function wc(t) {
-    return t.trim().split(/\s+/).filter(function(w) { return w.length > 0; }).length;
+    // Count live words only: struck \x00…\x00 segments don't count (and newlines
+    // collapse to whitespace), matching "tokens where !nl && !struck".
+    return t.replace(/\x00[^\x00]*\x00/g, ' ')
+            .trim().split(/\s+/).filter(function(w) { return w.length > 0; }).length;
   }
 
   function wrap(text) {
@@ -1584,22 +1611,19 @@
 
     var lines = w.result;
     var cur = w.cur;
-    var trailingSpace = cur === '' || /\s$/.test(allText);
+    // A live (in-progress) buffer exists only when the text doesn't end in
+    // whitespace AND doesn't end with a closed strike marker.
+    var hasLive = !(cur === '' || /\s$/.test(allText) || allText.slice(-1) === '\x00');
 
-    // Count committed visible words (result words + cur words minus the live one)
-    var total = 0, li, ts, t;
-    for (li = start; li < lines.length; li++) {
-      ts = lines[li].split(' ');
-      for (t = 0; t < ts.length; t++) if (ts[t] !== '') total++;
-    }
-    var curParts = cur.split(' '), curWordCount = 0;
-    for (t = 0; t < curParts.length; t++) if (curParts[t] !== '') curWordCount++;
-    var liveCount = (!trailingSpace && curWordCount > 0) ? 1 : 0;
-    total += (curWordCount - liveCount);
+    // Count committed visible words (struck + normal), minus the live buffer.
+    var total = 0, li;
+    for (li = start; li < lines.length; li++) total += segWordCount(lines[li]);
+    total += segWordCount(cur) - (hasLive ? 1 : 0);
 
     // Landing detection: a new word commits when the committed-word count grows.
-    var totalWords = wc(allText);
-    var committedCount = trailingSpace ? totalWords : Math.max(0, totalWords - 1);
+    // wc() excludes struck words, so striking lowers it (no glow); typing a new
+    // word raises it (glow on the just-committed word).
+    var committedCount = Math.max(0, wc(allText) - (hasLive ? 1 : 0));
     var landed = committedCount > prevCommitted;
     prevCommitted = committedCount;
 
@@ -1613,7 +1637,7 @@
       renderAged(el, lines[li] || ' ', ctx, false);
     }
 
-    renderAged(curtext, cur, ctx, !trailingSpace);
+    renderAged(curtext, cur, ctx, hasLive);
     curtext.style.color = '';
 
     if (landed && ctx.newest) {
@@ -1640,45 +1664,30 @@
     }
     if (e.key === 'Backspace' || e.key === 'Delete') {
       e.preventDefault();
-      // Prevent double-striking — one strike per backspace press.
-      if (lastActionWasStrike) return;
-
-      // Strip trailing spaces to find last real word
-      var trimmed = allText.replace(/\s+$/, '');
-      if (trimmed.length === 0) {
-        e.preventDefault(); return;
+      // Forward-only cross-out: backspace NEVER deletes. It strikes the most
+      // recent LIVE word — walking back over trailing whitespace, newline
+      // chars, and already-struck \x00…\x00 segments (which are skipped, never
+      // re-struck). Each press strikes one more word; past the start is a no-op.
+      // An in-progress (uncommitted) word is just the trailing live token, so
+      // the first backspace strikes it whole, the next strikes the prior word.
+      var i = allText.length - 1, start = -1, end = -1;
+      while (i >= 0) {
+        if (/\s/.test(allText[i])) { i--; continue; }           // skip whitespace / newlines
+        if (allText[i] === '\x00') {                            // skip a struck segment
+          i--;                                                  // past the closing marker
+          while (i >= 0 && allText[i] !== '\x00') i--;          // back over the struck word
+          i--;                                                  // past the opening marker
+          continue;
+        }
+        end = i + 1;                                            // tail of a live word found
+        while (i >= 0 && !/\s/.test(allText[i]) && allText[i] !== '\x00') i--;
+        start = i + 1;
+        break;
       }
-
-      // Find the last word in trimmed text
-      var lastSpaceIdx = trimmed.lastIndexOf(' ');
-      var lastNewlineIdx = trimmed.lastIndexOf('\n');
-      var splitIdx = Math.max(lastSpaceIdx, lastNewlineIdx);
-
-      var beforeWord, lastWord, afterWord;
-      if (splitIdx === -1) {
-        // Only one word in entire text
-        beforeWord = '';
-        lastWord = trimmed;
-      } else {
-        beforeWord = trimmed.slice(0, splitIdx + 1);
-        lastWord = trimmed.slice(splitIdx + 1);
-      }
-
-      // Preserve trailing whitespace that was after the word
-      var trailingSpace = allText.slice(trimmed.length);
-
-      // Don't strike if lastWord is empty or already struck
-      if (!lastWord || lastWord === '') {
-        e.preventDefault(); return;
-      }
-
-      // Build new allText with strike markers
-      allText = beforeWord + '\x00' + lastWord + '\x00'
-                + trailingSpace;
+      if (start === -1) return;                                 // nothing live left — no-op
+      allText = allText.slice(0, start) + '\x00' + allText.slice(start, end) + '\x00' + allText.slice(end);
       lastLen = allText.length;
       inp.value = allText;
-      lastActionWasStrike = true;
-      e.preventDefault();
       render();
       return;
     }
