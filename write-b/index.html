@@ -153,6 +153,10 @@
     }
 
     html, body {
+      position: fixed;          /* lock the page so iOS can't scroll the body when the keyboard opens */
+      top: 0;
+      left: 0;
+      width: 100%;
       height: 100vh;
       height: 100dvh;
       background: var(--bg);
@@ -165,11 +169,18 @@
     #app {
       display: flex;
       flex-direction: column;
+      /* position:fixed takes the app out of normal flow so iOS Safari's keyboard
+         overlay can't push it; the visualViewport handler resizes it live. */
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       height: 100vh;          /* fallback */
       height: 100dvh;         /* modern browsers — shrinks with keyboard */
-      max-width: 780px;
-      margin: 0 auto;
-      position: relative;
+      max-width: 780px;       /* keep desktop centering */
+      margin: 0 auto;         /* left:0 + right:0 + margin:auto centers within the viewport */
+      overflow: hidden;
       z-index: 1;   /* sit above the fixed atmosphere layers (z-index 0) */
     }
 
@@ -237,6 +248,7 @@
       inset: 0;
       overflow-y: auto;            /* keeps scrollTop programmatic auto-scroll working */
       overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;  /* smooth momentum scroll inside the fixed app on iOS */
       padding: 22px 28px 0 28px;   /* top-anchored, full-width, only side padding */
       -ms-overflow-style: none;    /* hide scrollbar — IE/Edge */
       scrollbar-width: none;       /* hide scrollbar — Firefox */
@@ -1925,6 +1937,8 @@
     // Fade the hint out the moment the writer commits any text.
     if (writeHint && allText.length) writeHint.classList.add('hidden');
     paint();
+    // Keep the cursor line visible above the keyboard at all times.
+    if (writingScroll) writingScroll.scrollTop = writingScroll.scrollHeight;
   }
 
   function resetLines() { linesEl.innerHTML = ''; lineEls = {}; }
@@ -2115,6 +2129,28 @@
 
   // Mark the start screen so the fixed mobile footer is hidden until writing begins.
   document.body.classList.add('on-start-screen');
+
+  // ── iOS keyboard fix ──────────────────────────────────────────
+  // iOS Safari overlays the keyboard on top of the viewport instead of
+  // resizing it, so dvh alone doesn't help. Use visualViewport to resize the
+  // fixed #app to the visible area, keeping the writing area above the keyboard.
+  if (window.visualViewport) {
+    function onViewportResize() {
+      var vv = window.visualViewport;
+      var app = document.getElementById('app');
+      if (!app) return;
+      // Set app height to the visible viewport height (shrinks above the keyboard).
+      app.style.height = vv.height + 'px';
+      app.style.top = vv.offsetTop + 'px';
+      // Scroll the writing area to keep the active line visible.
+      var scroll = document.getElementById('writing-scroll');
+      if (scroll && started) {
+        scroll.scrollTop = scroll.scrollHeight;
+      }
+    }
+    window.visualViewport.addEventListener('resize', onViewportResize);
+    window.visualViewport.addEventListener('scroll', onViewportResize);
+  }
 
 })();
 </script>
