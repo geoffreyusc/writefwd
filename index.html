@@ -584,11 +584,11 @@
       }
       .m-hdr-l {
         font-size: 9px; letter-spacing: 0.16em;
-        text-transform: uppercase; color: #1e1e24;
+        text-transform: uppercase; color: #555;
       }
       .m-hdr-r {
         display: flex; align-items: center;
-        gap: 10px; font-size: 9px; color: #1e1e24;
+        gap: 10px; font-size: 9px; color: #555;
       }
       .m-ibar {
         width: 36px; height: 2px; border-radius: 1px;
@@ -629,9 +629,24 @@
         white-space: pre-wrap; word-break: break-word;
         transition: color 0.55s ease; z-index: 1;
       }
-      #m-sl0 { color: rgba(245,226,184,0.10); }
-      #m-sl1 { color: rgba(245,226,184,0.38); }
-      #m-sl2 { color: rgba(245,226,184,0.90); }
+      /* Candlewick fade tiers (JS sets these inline too; these are fallbacks).
+         m-sl2 = current (age 0), m-sl1 = one back, m-sl0 = two back. */
+      #m-sl0 { color: #3d2e18; }   /* age 2 */
+      #m-sl1 { color: #6b4f20; }   /* age 1 */
+      #m-sl2 { color: #f5e2b8; }   /* age 0 — current, bright amber */
+
+      /* Glow on the current line — matches write-b Candlewick */
+      .m-strip .m-sl-cur {
+        text-shadow:
+          0 0 18px rgba(240, 240, 240, 0.5),
+          0 0 40px rgba(240, 240, 240, 0.2);
+      }
+      #m-write.candlewick .m-strip .m-sl-cur {
+        text-shadow:
+          0 0 18px rgba(245, 226, 184, 0.6),
+          0 0 40px rgba(245, 226, 184, 0.3),
+          0 0 80px rgba(245, 226, 184, 0.15);
+      }
 
       .m-cur {
         display: inline-block;
@@ -663,29 +678,29 @@
         border-top: 1px solid #0e0e10;
         flex-shrink: 0;
       }
-      .m-hint { font-size: 8px; color: #0e0e12; letter-spacing: 0.06em; }
+      .m-hint { font-size: 8px; color: #555; letter-spacing: 0.06em; }
       .m-actions { display: flex; align-items: center; gap: 9px; }
       .m-szg { display: flex; align-items: baseline; gap: 3px; }
       .m-sz {
         background: none; border: none; cursor: pointer;
         font-family: 'Courier New', Courier, monospace;
         padding: 2px 3px;
-        color: rgba(245,226,184,0.3);
+        color: rgba(245,226,184,0.5);
         -webkit-tap-highlight-color: transparent;
       }
-      .m-sz-on { color: rgba(245,226,184,0.7); }
+      .m-sz-on { color: rgba(245,226,184,0.9); }
       .m-ss { font-size: 10px; }
       .m-sm { font-size: 13px; }
       .m-szl { font-size: 17px; line-height: 1; }
       .m-vs { width: 1px; height: 13px;
-               background: rgba(245,226,184,0.08); }
+               background: rgba(245,226,184,0.12); }
       .m-fin {
         font-size: 9px; letter-spacing: 0.14em;
         text-transform: uppercase; border-radius: 2px;
         padding: 8px 14px; background: transparent;
         font-family: 'Courier New', Courier, monospace;
-        color: rgba(245,226,184,0.65);
-        border: 1px solid rgba(245,226,184,0.25);
+        color: rgba(245,226,184,0.8);
+        border: 1px solid rgba(245,226,184,0.4);
         cursor: pointer; min-height: 36px;
         display: flex; align-items: center;
         -webkit-tap-highlight-color: transparent;
@@ -727,7 +742,7 @@
         font-size: 12px;
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        color: #2a2a2a;
+        color: #444;
         cursor: text;
         -webkit-tap-highlight-color: transparent;
       }
@@ -889,7 +904,7 @@
   </div>
 
   <!-- SCREEN 3: WRITING -->
-  <div class="m-scr" id="m-write">
+  <div class="m-scr candlewick" id="m-write">
     <div class="m-hdr">
       <div class="m-hdr-l">writefwd</div>
       <div class="m-hdr-r">
@@ -903,7 +918,7 @@
       <div class="m-sfade"></div>
       <div class="m-sl" id="m-sl0"></div>
       <div class="m-sl" id="m-sl1"></div>
-      <div class="m-sl" id="m-sl2"></div>
+      <div class="m-sl m-sl-cur" id="m-sl2"></div>
     </div>
 
     <div id="m-tap" aria-label="Tap to write">
@@ -1618,7 +1633,7 @@
       var ifil = mEl('m-ifil');
       if (ifil) ifil.style.width = p + '%';
       var bloom = mEl('m-bloom');
-      if (bloom) bloom.style.opacity = (mNrg * 0.55).toFixed(2);
+      if (bloom) bloom.style.opacity = (0.3 + mNrg * 0.4).toFixed(2);
       var cur = mEl('m-cur');
       if (cur) {
         var blur = (2 + mNrg * 6).toFixed(1);
@@ -1641,10 +1656,11 @@
       { idx: len - 2, age: 1 },
       { idx: len - 1, age: 0 }
     ];
+    // Candlewick fade tiers by age: [current, one back, two back]
     var cols = [
-      'rgba(245,226,184,0.90)',
-      'rgba(245,226,184,0.38)',
-      'rgba(245,226,184,0.10)'
+      '#f5e2b8',   // age 0 — current, bright amber
+      '#6b4f20',   // age 1
+      '#3d2e18'    // age 2
     ];
     var ids = ['m-sl0','m-sl1','m-sl2'];
     for (var i = 0; i < 3; i++) {
