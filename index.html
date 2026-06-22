@@ -655,19 +655,6 @@
       }
       .m-land { animation: m-land 1.1s ease-out forwards; }
 
-      /* Rhythm bar */
-      .m-rbar {
-        display: flex; justify-content: space-around;
-        padding: 5px 20px;
-        border-bottom: 1px solid #0e0e10;
-        flex-shrink: 0;
-      }
-      .m-rw {
-        font-size: 10px;
-        color: rgba(245,226,184,0.3);
-        letter-spacing: 0.04em;
-      }
-
       /* Footer */
       .m-ftr {
         display: flex; justify-content: space-between;
@@ -704,98 +691,57 @@
         -webkit-tap-highlight-color: transparent;
       }
 
-      /* Keyboard */
-      .m-kb { flex-shrink: 0; padding: 3px 3px 20px;
-               background: #0c0c0e; }
-      .m-kbr {
-        display: flex; justify-content: center;
-        gap: 4px; margin-bottom: 4px;
-      }
-      .m-k {
-        height: 40px; flex: 1; max-width: 28px;
-        border-radius: 5px; display: flex;
-        align-items: center; justify-content: center;
-        font-size: 13px; cursor: pointer;
-        font-family: 'Courier New', Courier, monospace;
-        border: none; background: #1e1e26;
-        color: rgba(245,226,184,0.72);
-        box-shadow: 0 1px 0 #06060a;
-        user-select: none; -webkit-user-select: none;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .m-k:active { opacity: 0.5; transform: scale(0.88); }
-      .m-fn { max-width: 42px; font-size: 9px;
-               background: #111118;
-               color: rgba(245,226,184,0.3); }
-      .m-sp { max-width: 150px; flex: 6; font-size: 10px; }
-      .m-rt { max-width: 50px; font-size: 9px; }
-
-      /* ── WRITING SCREEN: full-viewport layout, keyboard ~half ──
-         NOTE: deliberately no `display` here — the .m-scr/.m-on rules
-         govern show/hide. An id-level `display:flex` would force the
+      /* ── WRITING SCREEN: real iOS keyboard, no simulated keys ──
+         NOTE: deliberately no id-level `display` here — the .m-scr/.m-on
+         rules govern show/hide. An id-level `display:flex` would force the
          writing screen permanently visible and break the complete screen. */
       #m-write {
         height: 100vh;
         height: 100dvh;
         overflow: hidden;
         flex-direction: column;
+        position: relative;   /* contains the absolutely-positioned #m-input */
+      }
+      #m-write.kb-open {
+        padding-bottom: env(safe-area-inset-bottom);
       }
 
-      /* Header — minimal, fixed height */
-      #m-write .m-hdr {
-        flex-shrink: 0;
-        padding: 8px 18px;
-      }
-
-      /* Strip — fixed height, not flex-growing (height set by JS) */
-      #m-write .m-strip {
-        flex-shrink: 0;
-      }
-
-      /* Rhythm bar — minimal */
-      #m-write .m-rbar {
-        flex-shrink: 0;
-        padding: 4px 18px;
-      }
-
-      /* Footer — minimal */
+      #m-write .m-hdr { flex-shrink: 0; padding: 8px 18px; }
+      #m-write .m-strip { flex-shrink: 0; height: 112px; }
       #m-write .m-ftr {
         flex-shrink: 0;
         padding: 7px 18px;
+        padding-bottom: max(14px, env(safe-area-inset-bottom));
       }
 
-      /* Keyboard — takes ALL remaining space */
-      #m-write .m-kb {
+      /* "Tap to write" hint fills the area below the strip */
+      #m-tap {
         flex: 1;
         display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        padding: 4px 3px 24px;
-        /* safe area for iPhone home bar */
-        padding-bottom: max(24px, env(safe-area-inset-bottom));
-      }
-
-      /* Each keyboard row fills space evenly */
-      #m-write .m-kbr {
-        flex: 1;
-        display: flex;
-        justify-content: center;
         align-items: center;
-        gap: 4px;
-        margin-bottom: 0;
-        max-height: 52px;
+        justify-content: center;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #2a2a2a;
+        cursor: text;
+        -webkit-tap-highlight-color: transparent;
       }
+      #m-tap.hidden { display: none; }
 
-      /* Keys fill the row height */
-      #m-write .m-k {
-        height: 100%;
-        max-height: 48px;
-        min-height: 36px;
-        font-size: 14px;
-      }
-
-      #m-write .m-fn {
-        font-size: 10px;
+      /* Hidden contenteditable that captures the real keyboard */
+      #m-input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+        width: 1px;
+        height: 1px;
+        top: 50%;
+        left: 50%;
+        font-size: 16px; /* prevents iOS zoom */
+        -webkit-user-select: text;
+        user-select: text;
       }
 
       /* ── SCREEN 4: COMPLETE ── */
@@ -956,11 +902,19 @@
       <div class="m-sl" id="m-sl2"></div>
     </div>
 
-    <div class="m-rbar">
-      <span class="m-rw" id="m-rw0">—</span>
-      <span class="m-rw" id="m-rw1">—</span>
-      <span class="m-rw" id="m-rw2">—</span>
+    <div id="m-tap" aria-label="Tap to write">
+      Tap to write
     </div>
+
+    <div
+      id="m-input"
+      contenteditable="true"
+      autocorrect="off"
+      autocapitalize="sentences"
+      spellcheck="false"
+      inputmode="text"
+      aria-label="Writing area"
+    ></div>
 
     <div class="m-ftr">
       <div class="m-hint">// backspace crosses out</div>
@@ -972,48 +926,6 @@
         </div>
         <div class="m-vs"></div>
         <button class="m-fin" id="m-fin-btn">FINISH</button>
-      </div>
-    </div>
-
-    <div class="m-kb">
-      <div class="m-kbr">
-        <div class="m-k" onclick="mTc('q')">q</div>
-        <div class="m-k" onclick="mTc('w')">w</div>
-        <div class="m-k" onclick="mTc('e')">e</div>
-        <div class="m-k" onclick="mTc('r')">r</div>
-        <div class="m-k" onclick="mTc('t')">t</div>
-        <div class="m-k" onclick="mTc('y')">y</div>
-        <div class="m-k" onclick="mTc('u')">u</div>
-        <div class="m-k" onclick="mTc('i')">i</div>
-        <div class="m-k" onclick="mTc('o')">o</div>
-        <div class="m-k" onclick="mTc('p')">p</div>
-      </div>
-      <div class="m-kbr">
-        <div class="m-k" onclick="mTc('a')">a</div>
-        <div class="m-k" onclick="mTc('s')">s</div>
-        <div class="m-k" onclick="mTc('d')">d</div>
-        <div class="m-k" onclick="mTc('f')">f</div>
-        <div class="m-k" onclick="mTc('g')">g</div>
-        <div class="m-k" onclick="mTc('h')">h</div>
-        <div class="m-k" onclick="mTc('j')">j</div>
-        <div class="m-k" onclick="mTc('k')">k</div>
-        <div class="m-k" onclick="mTc('l')">l</div>
-      </div>
-      <div class="m-kbr">
-        <div class="m-k m-fn">shift</div>
-        <div class="m-k" onclick="mTc('z')">z</div>
-        <div class="m-k" onclick="mTc('x')">x</div>
-        <div class="m-k" onclick="mTc('c')">c</div>
-        <div class="m-k" onclick="mTc('v')">v</div>
-        <div class="m-k" onclick="mTc('b')">b</div>
-        <div class="m-k" onclick="mTc('n')">n</div>
-        <div class="m-k" onclick="mTc('m')">m</div>
-        <div class="m-k m-fn" onclick="mBs()">⌫</div>
-      </div>
-      <div class="m-kbr">
-        <div class="m-k m-fn">123</div>
-        <div class="m-k m-sp" onclick="mTc(' ')">space</div>
-        <div class="m-k m-rt m-fn" onclick="mNl()">return</div>
       </div>
     </div>
   </div>
@@ -1636,6 +1548,7 @@
   var mStarted = false, mNrg = 0, mLastT = 0;
   var mRaf = null, mLastWords = [];
   var mAllText = '';
+  var mScr = 'm-land';   // id of the currently-visible screen
 
   var MPERMS = [
     'the mess is the point.',
@@ -1653,6 +1566,7 @@
       ss[i].classList.remove('m-on');
     }
     mEl(id).classList.add('m-on');
+    mScr = id;
   }
 
   function mInitStrip() {
@@ -2024,11 +1938,14 @@
     if (bloom) bloom.style.opacity = '0';
     var cfl = mEl('m-cfl');
     if (cfl) cfl.classList.remove('m-show');
-    var rids = ['m-rw0','m-rw1','m-rw2'];
-    for (var j = 0; j < rids.length; j++) {
-      var rel = mEl(rids[j]);
-      if (rel) rel.textContent = '—';
-    }
+    // Reset the real-keyboard input layer
+    mRaw = '';
+    var rinp = mEl('m-input');
+    if (rinp) { rinp.innerText = ''; rinp.blur(); }
+    var rtap = mEl('m-tap');
+    if (rtap) rtap.classList.remove('hidden');
+    var rwrite = mEl('m-write');
+    if (rwrite) rwrite.classList.remove('kb-open');
     mShow('m-land');
   };
 
@@ -2044,6 +1961,98 @@
 
   var finBtn = mEl('m-fin-btn');
   if (finBtn) finBtn.addEventListener('click', mDoFinish);
+
+  /* ── Real iOS keyboard input ──────────────────────────────────
+     A hidden contenteditable captures the device keyboard; keystrokes
+     are routed into the existing forward-only strip engine (mTc / mNl /
+     mBs), so the fade, wrap, landing glow and strike-out are unchanged.
+     mRaw mirrors the contenteditable's forward text (mAllText stays the
+     cleaned draft used by the completion screen). */
+  var mInp    = mEl('m-input');
+  var mTapEl  = mEl('m-tap');
+  var mWriteEl = mEl('m-write');
+  var mRaw = '';
+
+  function mCursorEnd() {
+    try {
+      var sel = window.getSelection();
+      var range = document.createRange();
+      range.selectNodeContents(mInp);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    } catch (e) {}
+  }
+
+  function mFocus() {
+    if (!mInp) return;
+    mInp.focus();
+    mCursorEnd();
+  }
+
+  if (mWriteEl) {
+    // Tap anywhere on the writing screen (except the footer buttons) → focus
+    mWriteEl.addEventListener('click', function(e) {
+      var onBtn = e.target && e.target.closest && e.target.closest('button');
+      if (mScr === 'm-write' && !onBtn) mFocus();
+    });
+  }
+
+  if (mInp) {
+    mInp.addEventListener('focus', function() {
+      mTapEl.classList.add('hidden');
+      mWriteEl.classList.add('kb-open');
+    });
+
+    mInp.addEventListener('blur', function() {
+      if (!mRaw.trim()) mTapEl.classList.remove('hidden');
+      mWriteEl.classList.remove('kb-open');
+    });
+
+    // Deletions and hard line-breaks: intercept before the DOM changes so the
+    // contenteditable never actually shrinks. Backspace → strike last word.
+    mInp.addEventListener('beforeinput', function(e) {
+      var t = e.inputType || '';
+      if (t.indexOf('delete') === 0) { e.preventDefault(); mBs(); return; }
+      if (t === 'insertParagraph' || t === 'insertLineBreak') {
+        e.preventDefault(); mNl();
+      }
+    });
+
+    // Insertions: diff the new text and forward each character to the engine.
+    mInp.addEventListener('input', function() {
+      var raw = mInp.innerText || '';
+      if (raw.length < mRaw.length) {   // a deletion slipped through — undo it
+        mInp.innerText = mRaw;
+        mCursorEnd();
+        return;
+      }
+      var added = raw.slice(mRaw.length);
+      mRaw = raw;
+      for (var i = 0; i < added.length; i++) {
+        var ch = added[i];
+        if (ch === '\n') mNl(); else mTc(ch);
+      }
+    });
+
+    // Belt-and-suspenders for hardware keyboards + block undo.
+    mInp.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); mBs(); return; }
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); }
+    });
+
+    mInp.addEventListener('paste', function(e) {
+      e.preventDefault();
+      var text = ((e.clipboardData || window.clipboardData).getData('text/plain')) || '';
+      for (var i = 0; i < text.length; i++) {
+        var ch = text[i];
+        if (ch === '\n') mNl(); else mTc(ch);
+      }
+      mRaw += text;
+      mInp.innerText = mRaw;
+      mCursorEnd();
+    });
+  }
 
   // Init
   mInitStrip();
