@@ -272,7 +272,7 @@
     }
     #lines { display: flex; flex-direction: column; }
     .line {
-      font-size: clamp(21px, 3vw, 30px);
+      font-size: inherit;   /* follow #writing-col so the size buttons take effect */
       line-height: 1.85;
       white-space: pre-wrap;
       word-break: break-word;
@@ -290,7 +290,7 @@
       color: var(--text-dim1);
     }
     #curline {
-      font-size: clamp(21px, 3vw, 30px);
+      font-size: inherit;   /* follow #writing-col so the size buttons take effect */
       line-height: 1.85;
       color: var(--text-bright);
       min-height: 1.85em;
@@ -376,6 +376,36 @@
     }
     #hint { font-size: 11px; color: var(--hint); letter-spacing: 0.1em; }
     #footer-right { display: flex; align-items: center; gap: 10px; }
+
+    /* Font-size buttons (footer, all themes) */
+    #size-btns {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .size-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-dim2);
+      padding: 3px 4px;
+      letter-spacing: 0.06em;
+      line-height: 1;
+      transition: color 0.2s;
+      font-family: 'Courier New', Courier, monospace;
+    }
+    .size-btn:hover { color: var(--text-dim1); }
+    .size-btn.active { color: var(--text-muted); }
+    #size-btn-small  { font-size: 10px; }
+    #size-btn-medium { font-size: 13px; }
+    #size-btn-large  { font-size: 17px; }
+
+    .footer-sep {
+      width: 1px;
+      height: 14px;
+      background: var(--border);
+      opacity: 0.5;
+    }
 
     /* Icon toggles (theme + sound) */
     .icon-btn {
@@ -681,6 +711,32 @@
   <div id="footer">
     <div id="hint">// backspace crosses out the last word</div>
     <div id="footer-right">
+      <!-- Atmosphere swatches (writing screen, midnight only) -->
+      <div id="writing-atmo-swatches"></div>
+      <div class="footer-sep" id="atmo-writing-sep"></div>
+
+      <!-- Font size -->
+      <div id="size-btns">
+        <button class="size-btn" id="size-btn-small" onclick="applyFontSize('small')">A</button>
+        <button class="size-btn active" id="size-btn-medium" onclick="applyFontSize('medium')">A</button>
+        <button class="size-btn" id="size-btn-large" onclick="applyFontSize('large')">A</button>
+      </div>
+      <div class="footer-sep"></div>
+
+      <!-- Sound toggle -->
+      <button class="icon-btn" id="sound-btn" title="Toggle typewriter sound">
+        <svg id="snd-on" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+        </svg>
+        <svg id="snd-off" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <line x1="23" y1="9" x2="17" y2="15"></line>
+          <line x1="17" y1="9" x2="23" y2="15"></line>
+        </svg>
+      </button>
+
       <!-- Theme toggle (three-state: Dark → Midnight → Light) -->
       <button class="icon-btn" id="theme-btn" data-theme-toggle title="Switch to Midnight">
 
@@ -716,19 +772,7 @@
           <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
         </svg>
       </button>
-      <!-- Sound toggle -->
-      <button class="icon-btn" id="sound-btn" title="Toggle typewriter sound">
-        <svg id="snd-on" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-        </svg>
-        <svg id="snd-off" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-          <line x1="23" y1="9" x2="17" y2="15"></line>
-          <line x1="17" y1="9" x2="23" y2="15"></line>
-        </svg>
-      </button>
+      <div class="footer-sep"></div>
       <button id="finish-btn">Finish</button>
     </div>
   </div>
@@ -902,6 +946,7 @@
   var countInt = null, timerInt = null;
   var soundOn = false;
   var audioCtx = null;
+  var fontSize = localStorage.getItem('wf-fontsize') || 'medium';
 
   var CIRC = 65.97;
 
@@ -1105,8 +1150,120 @@
     atmosphere = key;
     try { localStorage.setItem('wf-atmosphere', key); } catch (e) {}
     styleSwatches();
+    updateWritingSwatches();   // keep footer swatches in sync with the picker
     repaintAtmosphere();
     paint();
+  }
+
+  // ── Font size (footer, all themes) ────────────────────────────
+  function applyFontSize(size) {
+    fontSize = size;
+    var sizes = {
+      small:  '16px',
+      medium: 'clamp(21px, 3vw, 30px)',
+      large:  'clamp(28px, 4vw, 38px)'
+    };
+    var col = document.getElementById('writing-col');
+    if (col) col.style.fontSize = sizes[size] || sizes.medium;
+    try { localStorage.setItem('wf-fontsize', size); } catch(e) {}
+    updateSizeBtns();
+  }
+
+  function updateSizeBtns() {
+    ['small','medium','large'].forEach(function(s) {
+      var btn = document.getElementById('size-btn-' + s);
+      if (btn) btn.classList.toggle('active', s === fontSize);
+    });
+  }
+
+  // ── Footer atmosphere swatches (midnight only) ────────────────
+  // Mirrors the start-screen picker; selecting one updates the live session.
+  function buildWritingSwatches() {
+    var container = document.getElementById('writing-atmo-swatches');
+    if (!container) return;
+    container.innerHTML = '';
+    container.style.display = 'flex';
+    container.style.alignItems = 'center';
+    container.style.gap = '5px';
+
+    var atmos = [
+      { key: 'original',   name: 'ORIGINAL',    hex: null,      rgb: null },
+      { key: 'candlewick', name: 'CANDLEWICK',  hex: '#f5e2b8', rgb: [245,226,184] },
+      { key: 'untitled',   name: 'UNTITLED',    hex: '#e0e0e0', rgb: [224,224,224] },
+      { key: 'dispatch',   name: 'DISPATCH',    hex: '#c8daf5', rgb: [200,218,245] },
+      { key: 'greenlight', name: 'GREEN LIGHT', hex: '#e8f0c8', rgb: [232,240,200] },
+      { key: 'redline',    name: 'REDLINE',     hex: '#f5c8b0', rgb: [245,200,176] },
+      { key: 'sunday',     name: 'SUNDAY',      hex: '#c7b0f7', rgb: [199,176,247] }
+    ];
+
+    atmos.forEach(function(a) {
+      var btn = document.createElement('button');
+      btn.title = a.name;
+      btn.setAttribute('data-atmo-key', a.key);
+      btn.style.cssText = [
+        'width:20px', 'height:20px', 'border-radius:3px',
+        'cursor:pointer', 'display:flex',
+        'align-items:center', 'justify-content:center',
+        'font-size:9px', 'padding:0',
+        "font-family:'Courier New',Courier,monospace",
+        'transition:all 0.2s', 'background:transparent'
+      ].join(';');
+
+      var isOrig = a.key === 'original';
+      btn.textContent = isOrig ? '·' : 'a';
+
+      btn.addEventListener('click', function() {
+        setAtmosphere(a.key);
+        updateWritingSwatches();
+      });
+
+      container.appendChild(btn);
+    });
+
+    updateWritingSwatches();
+  }
+
+  function updateWritingSwatches() {
+    var btns = document.querySelectorAll('#writing-atmo-swatches button');
+    var currentAtmo = atmosphere;   // the existing atmosphere state variable
+
+    btns.forEach(function(btn) {
+      var key = btn.getAttribute('data-atmo-key');
+      var sel = key === currentAtmo;
+      var isOrig = key === 'original';
+
+      if (isOrig) {
+        btn.style.border = sel ? '1px solid #555' : '1px solid #252525';
+        btn.style.color  = sel ? '#555' : '#222';
+      } else {
+        var atmoMap = {
+          candlewick: [245,226,184],
+          untitled:   [224,224,224],
+          dispatch:   [200,218,245],
+          greenlight: [232,240,200],
+          redline:    [245,200,176],
+          sunday:     [199,176,247]
+        };
+        var rgb = atmoMap[key];
+        if (rgb) {
+          var r = rgb[0], g = rgb[1], b = rgb[2];
+          btn.style.border = sel
+            ? 'rgba('+r+','+g+','+b+',0.7) 1px solid'
+            : 'rgba('+r+','+g+','+b+',0.15) 1px solid';
+          btn.style.background = sel
+            ? 'rgba('+r+','+g+','+b+',0.06)'
+            : 'transparent';
+          btn.style.color = sel
+            ? 'rgba('+r+','+g+','+b+',0.9)'
+            : 'rgba('+r+','+g+','+b+',0.22)';
+        }
+      }
+    });
+
+    // also sync the start screen swatches
+    if (typeof styleSwatches === 'function') {
+      styleSwatches();
+    }
   }
 
   // ── Rotating start screen heading ─────────────────────────────
@@ -1277,6 +1434,13 @@
     var atmoQ = document.getElementById('atmo-q');
     if (atmoQ) atmoQ.style.display = (theme === 'midnight') ? 'flex' : 'none';
 
+    // Footer atmosphere swatches + their separator are midnight-only too.
+    var writingSwatches = document.getElementById('writing-atmo-swatches');
+    var writingSep = document.getElementById('atmo-writing-sep');
+    var isMidnight = theme === 'midnight';
+    if (writingSwatches) writingSwatches.style.display = isMidnight ? 'flex' : 'none';
+    if (writingSep) writingSep.style.display = isMidnight ? 'block' : 'none';
+
     // Re-skin the atmosphere surfaces and repaint the writing text for the
     // new mode (a full rebuild so spans/classes don't carry across modes).
     repaintAtmosphere();
@@ -1303,8 +1467,24 @@
       btn.addEventListener('click', cycleTheme);
     });
 
+  // Expose applyFontSize globally so the footer buttons' inline onclick can reach it.
+  window.applyFontSize = applyFontSize;
+
   // Build the atmosphere picker and start the breathing-haptics loop.
   buildSwatches();
+  buildWritingSwatches();
+  applyFontSize(fontSize);   // reapply the saved font size to #writing-col
+
+  // Apply footer-swatch visibility AFTER building (buildWritingSwatches forces
+  // display:flex on the container, which would otherwise override applyTheme).
+  (function() {
+    var ws   = document.getElementById('writing-atmo-swatches');
+    var wsep = document.getElementById('atmo-writing-sep');
+    var mid  = getCurrentTheme() === 'midnight';
+    if (ws)   ws.style.display   = mid ? 'flex' : 'none';
+    if (wsep) wsep.style.display = mid ? 'block' : 'none';
+  })();
+
   requestAnimationFrame(hapticFrame);
 
   // ── Audio ─────────────────────────────────────────────────────
@@ -1498,6 +1678,7 @@
     timerInt = null; countInt = null;
     inp.value = '';
     curtext.textContent = '';
+    applyFontSize(fontSize);   // reapply saved font size after reset
     if (writeHint) writeHint.classList.remove('hidden');
     linesEl.innerHTML = '';
     lineEls = {};
