@@ -678,19 +678,10 @@
     @media (max-width: 600px) {
       #writing-scroll { padding: 22px 18px 0 18px; }
       #input-zone { padding: 4px 20px 12px; }
-      #footer {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 50;
-        background: var(--bg);
-        padding: 12px 20px 16px;
-        padding-bottom: max(10px, env(safe-area-inset-bottom));
-      }
-      /* Add bottom padding to the app so content
-         doesn't hide behind the fixed footer */
-      #app { padding-bottom: 60px; }
+      /* Footer is a normal in-flow flex child of the (now position:fixed,
+         viewport-resized) #app, so it rides the bottom of the visible area
+         above the keyboard — no fixed positioning needed. */
+      #footer { padding: 12px 20px 16px; }
       #header { padding: 16px 20px 12px; }
 
       /* Hide the atmosphere swatch picker; show a text label instead */
