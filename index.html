@@ -604,7 +604,7 @@
       /* THE STRIP */
       .m-strip {
         flex-shrink: 0;
-        height: 112px; /* fallback for fs=19; JS sets exact height */
+        height: 136px; /* fallback for fs=19 @ 1.9; JS sets exact height */
         position: relative;
         overflow: hidden;
         background: #060608;
@@ -625,9 +625,9 @@
       }
       .m-sl {
         position: absolute; left: 20px; right: 20px;
-        font-size: 19px; line-height: 1.85;
+        font-size: 19px; line-height: 1.9; min-height: 36px;
         white-space: pre-wrap; word-break: break-word;
-        transition: color 0.55s ease; z-index: 1;
+        transition: color 0.6s ease, opacity 0.6s ease; z-index: 1;
       }
       /* Candlewick fade tiers (JS sets these inline too; these are fallbacks).
          m-sl2 = current (age 0), m-sl1 = one back, m-sl0 = two back. */
@@ -725,7 +725,7 @@
       }
 
       #m-write .m-hdr { flex-shrink: 0; padding: 8px 18px; }
-      #m-write .m-strip { flex-shrink: 0; height: 112px; }
+      #m-write .m-strip { flex-shrink: 0; height: 136px; }
       #m-write .m-ftr {
         flex-shrink: 0;
         padding: 7px 18px;
@@ -848,6 +848,10 @@
       /* ── 1+2. LANDING ── */
       #m-hero {
         width: 100%;
+        height: 148px;
+        min-height: 148px;
+        max-height: 148px;
+        overflow: hidden;
         padding: 30px 20px 16px;
         flex-shrink: 0;
         border-bottom: 1px solid #161616;
@@ -984,9 +988,9 @@
       }
 
       /* ── 6. WRITING CONTRAST (neutral strip) ── */
-      #m-sl0 { color: #252525; }   /* two back  */
-      #m-sl1 { color: #505050; }   /* one back  */
-      #m-sl2 { color: #f0f0f0; }   /* current — also set in JS */
+      #m-sl0 { color: #1e1e1e; opacity: 0.55; }   /* two back */
+      #m-sl1 { color: #444;    opacity: 0.75; }   /* one back */
+      #m-sl2 { color: #f0f0f0; opacity: 1; }      /* current — also set in JS */
       #m-write .m-hdr-mark { color: #555; }
       #m-write .m-hdr-wc { color: #777; }
       #m-tap {
@@ -2040,14 +2044,14 @@
   }
 
   function mInitStrip() {
-    mLh = mFs * 1.85;
+    mLh = mFs * 1.9;
     var h = Math.round(mLh * 3) + 8;
     mEl('m-strip').style.height = h + 'px';
     var ids = ['m-sl0','m-sl1','m-sl2'];
     for (var i = 0; i < 3; i++) {
       var el = mEl(ids[i]);
       el.style.fontSize = mFs + 'px';
-      el.style.lineHeight = '1.85';
+      el.style.lineHeight = '1.9';
       el.style.bottom = Math.round((2 - i) * mLh + 4) + 'px';
     }
   }
@@ -2108,7 +2112,7 @@
     var lines = mAllText.split('\n');
     var show = lines.slice(-3);
     var ids  = ['m-sl0','m-sl1','m-sl2'];
-    var cols = ['#252525','#505050','#f0f0f0']; // two-back, one-back, current
+    var cols = ['#1e1e1e','#444','#f0f0f0']; // two-back, one-back, current
     for (var i = 0; i < 3; i++) {
       var el = mEl(ids[i]);
       if (!el) continue;
