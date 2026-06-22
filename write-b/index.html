@@ -329,10 +329,10 @@
 
     /* Word-landing glow — the most recently committed word pulses once. */
     @keyframes wf-land {
-      from { text-shadow: 0 0 7px currentColor; }
+      from { text-shadow: 0 0 4px currentColor; }
       to   { text-shadow: none; }
     }
-    .wf-land { animation: wf-land 0.9s ease-out; }
+    .wf-land { animation: wf-land 1.4s ease-out; }
 
     /* Atmosphere picker (start screen) */
     #atmo-swatches { gap: 8px; }
@@ -1045,13 +1045,13 @@
     if (useAtmosphere()) {
       var writing = (Date.now() - lastKey) < 1200;
       var target  = writing ? 1 : 0;
-      energy += (target - energy) * 0.035;
-      atmoBloom.style.opacity = (0.42 + energy * 0.15).toFixed(3);
-      atmoWash.style.opacity  = (energy * 0.26).toFixed(3);
+      energy += (target - energy) * 0.018;
+      atmoBloom.style.opacity = (0.42 + energy * 0.08).toFixed(3);
+      atmoWash.style.opacity  = (energy * 0.12).toFixed(3);
       var r = getAtmo().rgb;
-      cursorEl.style.boxShadow = '0 0 ' + (2 + energy*6).toFixed(2) + 'px rgba(' +
-        r[0] + ',' + r[1] + ',' + r[2] + ',' + (0.12 + energy*0.2).toFixed(3) + ')';
-      cursorEl.style.transform = 'scaleX(' + (1 + energy*0.09).toFixed(3) + ')';
+      cursorEl.style.boxShadow = '0 0 ' + (2 + energy*3).toFixed(2) + 'px rgba(' +
+        r[0] + ',' + r[1] + ',' + r[2] + ',' + (0.08 + energy*0.1).toFixed(3) + ')';
+      cursorEl.style.transform = 'scaleX(' + (1 + energy*0.04).toFixed(3) + ')';
     } else if (energy !== 0) {
       energy = 0;
     }
