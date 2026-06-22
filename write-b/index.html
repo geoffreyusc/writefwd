@@ -170,6 +170,7 @@
       max-width: 780px;
       margin: 0 auto;
       position: relative;
+      z-index: 1;   /* sit above the fixed atmosphere layers (z-index 0) */
     }
 
     /* ── Header ── */
@@ -223,30 +224,45 @@
     #timer-label { font-size: 14px; color: var(--stats); }
 
     /* ── Writing area ── */
+    /* Top-anchored typing: text begins under the top bar and grows
+       downward inside a scroll container, centered horizontally. */
     #writing-area {
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 32px 32px 0;
+      min-height: 0;
       position: relative;
       overflow: hidden;
+    }
+    #writing-scroll {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      justify-content: center;   /* horizontal centering only */
+      align-items: flex-start;   /* content starts at the top */
+      padding: 2vh 7vw 12vh;
+    }
+    #writing-scroll::-webkit-scrollbar { width: 2px; }
+    #writing-scroll::-webkit-scrollbar-thumb { background: var(--border); }
+    #writing-col {
+      width: 100%;
+      max-width: 760px;
     }
     #fade-top {
       position: absolute;
       top: 0; left: 0; right: 0;
-      height: 140px;
+      height: 120px;
       background: linear-gradient(to bottom, var(--bg) 0%, transparent 100%);
       pointer-events: none;
       z-index: 2;
     }
     #lines { display: flex; flex-direction: column; }
     .line {
-      font-size: 22px;
-      line-height: 1.9;
+      font-size: clamp(21px, 3vw, 30px);
+      line-height: 1.85;
       white-space: pre-wrap;
       word-break: break-word;
-      min-height: 42px;
+      min-height: 1.85em;
       transition: color 0.6s cubic-bezier(0.25, 0, 0.5, 1),
                   opacity 0.6s cubic-bezier(0.25, 0, 0.5, 1);
     }
@@ -260,10 +276,10 @@
       color: var(--text-dim1);
     }
     #curline {
-      font-size: 22px;
-      line-height: 1.9;
+      font-size: clamp(21px, 3vw, 30px);
+      line-height: 1.85;
       color: var(--text-bright);
-      min-height: 42px;
+      min-height: 1.85em;
       white-space: pre-wrap;
       word-break: break-word;
       position: relative;
@@ -271,13 +287,60 @@
     }
     #cursor {
       display: inline-block;
-      width: 12px; height: 22px;
+      width: 0.46em; height: 1.05em;
       background: var(--text-bright);
       vertical-align: middle;
       margin-left: 1px;
       animation: blink 0.9s step-end infinite;
     }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* ── Atmosphere layers (midnight only; transparent otherwise) ──
+       Base tint + two glow layers sit behind everything; the glow
+       opacities are driven per-frame by the haptics RAF loop. None of
+       these carry a background transition (see the re-render gotcha). */
+    #atmo-bg, #atmo-wash, #atmo-bloom {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    }
+    #atmo-bg { background: transparent; }
+    #atmo-wash, #atmo-bloom { opacity: 0; }
+
+    /* Word-landing glow — the most recently committed word pulses once. */
+    @keyframes wf-land {
+      from { text-shadow: 0 0 16px currentColor, 0 0 4px currentColor; }
+      to   { text-shadow: none; }
+    }
+    .wf-land { animation: wf-land 0.55s ease-out; }
+
+    /* Atmosphere picker (start screen) */
+    #atmo-swatches { gap: 8px; }
+    .atmo-swatch {
+      width: 44px; height: 44px;
+      border-radius: 3px;
+      padding: 0;
+      background: transparent;
+      border: 1px solid var(--btn-border);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+    }
+    #atmo-caption {
+      font-size: 11px;
+      color: var(--text-dim1);
+      letter-spacing: 0.04em;
+      margin-top: 6px;
+      min-height: 14px;
+    }
+    #atmo-hint {
+      font-size: 10px;
+      color: var(--text-dim2);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
 
     /* ── Input zone ── */
     #input-zone { position: relative; padding: 4px 32px 12px; }
@@ -520,11 +583,7 @@
 
     /* Mobile */
     @media (max-width: 600px) {
-      #writing-area {
-        flex: 1;
-        min-height: 0;
-        padding: 24px 20px 0;
-      }
+      #writing-scroll { padding: 2vh 5vw 16vh; }
       #input-zone { padding: 4px 20px 12px; }
       #footer {
         position: fixed;
@@ -540,7 +599,6 @@
          doesn't hide behind the fixed footer */
       #app { padding-bottom: 60px; }
       #header { padding: 16px 20px 12px; }
-      .line, #curline { font-size: 20px; }
     }
   </style>
   <script>
@@ -558,6 +616,11 @@
   </script>
 </head>
 <body>
+
+<!-- Atmosphere layers (midnight only): base tint + two glow washes -->
+<div id="atmo-bg"></div>
+<div id="atmo-wash"></div>
+<div id="atmo-bloom"></div>
 
 <div id="scanlines"></div>
 <div id="vignette"></div>
@@ -585,8 +648,12 @@
   <!-- Writing area -->
   <div id="writing-area">
     <div id="fade-top"></div>
-    <div id="lines"></div>
-    <div id="curline"><span id="curtext"></span><span id="cursor"></span></div>
+    <div id="writing-scroll">
+      <div id="writing-col">
+        <div id="lines"></div>
+        <div id="curline"><span id="curtext"></span><span id="cursor"></span></div>
+      </div>
+    </div>
   </div>
 
   <!-- Hidden input -->
@@ -727,6 +794,13 @@
       </div>
     </div>
 
+    <div class="q">
+      <div class="q-label">Atmosphere</div>
+      <div class="opts" id="atmo-swatches"></div>
+      <div id="atmo-caption"></div>
+      <div id="atmo-hint">shapes the writing glow in midnight</div>
+    </div>
+
     <button id="begin-btn">Begin</button>
   </div>
 
@@ -815,6 +889,165 @@
   var audioCtx = null;
 
   var CIRC = 65.97;
+
+  // ── Atmosphere + haptics (midnight only) ──────────────────────
+  var ATMOSPHERES = [
+    { key:'candlewick', name:'CANDLEWICK',  rgb:[245,226,184], tagline:'writing by hand at night' },
+    { key:'untitled',   name:'UNTITLED',    rgb:[224,224,224], tagline:'the honest default' },
+    { key:'dispatch',   name:'DISPATCH',    rgb:[200,218,245], tagline:'something needs to get out' },
+    { key:'greenlight', name:'GREEN LIGHT', rgb:[232,240,200], tagline:'permission to go' },
+    { key:'redline',    name:'REDLINE',     rgb:[245,200,176], tagline:'heat and pressure' },
+    { key:'sunday',     name:'SUNDAY',      rgb:[199,176,247], tagline:'the best writing day' }
+  ];
+  var atmosphere = 'untitled';
+  try {
+    var savedAtmo = localStorage.getItem('wf-atmosphere');
+    for (var ai = 0; ai < ATMOSPHERES.length; ai++) {
+      if (ATMOSPHERES[ai].key === savedAtmo) { atmosphere = savedAtmo; break; }
+    }
+  } catch (e) {}
+
+  var atmoBg        = document.getElementById('atmo-bg');
+  var atmoWash      = document.getElementById('atmo-wash');
+  var atmoBloom     = document.getElementById('atmo-bloom');
+  var fadeTop       = document.getElementById('fade-top');
+  var cursorEl      = document.getElementById('cursor');
+  var writingScroll = document.getElementById('writing-scroll');
+  var swatchRow     = document.getElementById('atmo-swatches');
+  var atmoCaption   = document.getElementById('atmo-caption');
+
+  var energy = 0, lastKey = 0, prevCommitted = 0;
+
+  function atmoByKey(k) {
+    for (var i = 0; i < ATMOSPHERES.length; i++) if (ATMOSPHERES[i].key === k) return ATMOSPHERES[i];
+    return ATMOSPHERES[1]; // untitled
+  }
+  function getAtmo()    { return atmoByKey(atmosphere); }
+  function isMidnight() { return getCurrentTheme() === 'midnight'; }
+  function c(alpha) {
+    var r = getAtmo().rgb;
+    return 'rgba(' + r[0] + ',' + r[1] + ',' + r[2] + ',' + alpha + ')';
+  }
+  function tintColor() {
+    var r = getAtmo().rgb;
+    return 'rgb(' + Math.round(r[0]*0.05+4) + ',' + Math.round(r[1]*0.05+4) + ',' + Math.round(r[2]*0.05+4) + ')';
+  }
+
+  // Repaint static atmosphere surfaces. Backgrounds are swapped INSTANTLY
+  // (no CSS transition) — a transitioned bg can freeze under the re-render.
+  function repaintAtmosphere() {
+    if (isMidnight()) {
+      var tint = tintColor();
+      atmoBg.style.background    = tint;
+      atmoBloom.style.background  = 'radial-gradient(ellipse 85% 60% at 50% 120%, ' + c(0.16) + ', transparent 72%)';
+      atmoWash.style.background   = 'radial-gradient(ellipse 90% 80% at 50% 55%, ' + c(0.07) + ', transparent 76%)';
+      fadeTop.style.background    = 'linear-gradient(to bottom, ' + tint + ' 0%, transparent 100%)';
+      cursorEl.style.background   = c(1);
+    } else {
+      atmoBg.style.background    = 'transparent';
+      atmoBloom.style.background  = 'none';
+      atmoWash.style.background   = 'none';
+      atmoBloom.style.opacity     = '0';
+      atmoWash.style.opacity      = '0';
+      fadeTop.style.background    = '';
+      cursorEl.style.background   = '';
+      cursorEl.style.boxShadow    = '';
+      cursorEl.style.transform    = '';
+    }
+  }
+
+  // Breathing haptics — a single eased energy value drives the glow + caret.
+  // Mutates style only; it never re-renders the text.
+  function bumpKey() { lastKey = Date.now(); }
+  function hapticFrame() {
+    if (isMidnight()) {
+      var writing = (Date.now() - lastKey) < 1200;
+      var target  = writing ? 1 : 0;
+      energy += (target - energy) * 0.035;
+      atmoBloom.style.opacity = (0.42 + energy * 0.30).toFixed(3);
+      atmoWash.style.opacity  = (energy * 0.5).toFixed(3);
+      var r = getAtmo().rgb;
+      cursorEl.style.boxShadow = '0 0 ' + (3 + energy*12).toFixed(2) + 'px rgba(' +
+        r[0] + ',' + r[1] + ',' + r[2] + ',' + (0.15 + energy*0.4).toFixed(3) + ')';
+      cursorEl.style.transform = 'scaleX(' + (1 + energy*0.18).toFixed(3) + ')';
+    } else if (energy !== 0) {
+      energy = 0;
+    }
+    requestAnimationFrame(hapticFrame);
+  }
+
+  // Render one line's words into `el` as atmosphere-tinted spans.
+  // ctx carries the running committed-word index + total (for the recency
+  // ladder) and captures the newest committed span (age 1) for the land glow.
+  // hasLive=true marks the line's trailing word as the in-progress buffer.
+  function renderAged(el, lineText, ctx, hasLive) {
+    el.textContent = '';
+    var parts = lineText.split(' ');
+    var liveTokenIndex = -1;
+    if (hasLive) {
+      for (var q = parts.length - 1; q >= 0; q--) { if (parts[q] !== '') { liveTokenIndex = q; break; } }
+    }
+    for (var p = 0; p < parts.length; p++) {
+      if (p > 0) el.appendChild(document.createTextNode(' '));
+      var tok = parts[p];
+      if (tok === '') continue;
+      var span = document.createElement('span');
+      var clean = tok.indexOf('\x00') !== -1 ? tok.replace(/\x00/g, '') : tok;
+      if (p === liveTokenIndex) {
+        span.textContent = clean;
+        span.style.color = c(0.95);
+      } else if (tok.indexOf('\x00') !== -1) {
+        span.textContent = clean;
+        span.style.color = c(0.26);
+        span.style.textDecoration = 'line-through';
+        span.style.textDecorationColor = c(0.38);
+        ctx.idx++;
+      } else {
+        var age = ctx.total - ctx.idx;
+        span.textContent = tok;
+        span.style.color = (age <= 1) ? c(1) : c(Math.max(0.05, Math.pow(0.84, age)));
+        if (age <= 1) ctx.newest = span;
+        ctx.idx++;
+      }
+      el.appendChild(span);
+    }
+  }
+
+  function buildSwatches() {
+    ATMOSPHERES.forEach(function (a) {
+      var b = document.createElement('button');
+      b.className = 'atmo-swatch';
+      b.dataset.key = a.key;
+      b.textContent = 'a';
+      b.title = a.name;
+      b.addEventListener('click', function () { setAtmosphere(a.key); });
+      swatchRow.appendChild(b);
+    });
+    styleSwatches();
+  }
+
+  function styleSwatches() {
+    var kids = swatchRow.children;
+    for (var i = 0; i < kids.length; i++) {
+      var b = kids[i];
+      var a = atmoByKey(b.dataset.key);
+      var sel = b.dataset.key === atmosphere;
+      var rgb = a.rgb.join(',');
+      b.style.color       = 'rgba(' + rgb + ',' + (sel ? 0.95 : 0.34) + ')';
+      b.style.borderColor = sel ? 'rgba(' + rgb + ',0.9)' : 'var(--btn-border)';
+      b.style.background  = sel ? 'rgba(' + rgb + ',0.10)' : 'transparent';
+    }
+    var cur = getAtmo();
+    atmoCaption.textContent = cur.name + ' — ' + cur.tagline;
+  }
+
+  function setAtmosphere(key) {
+    atmosphere = key;
+    try { localStorage.setItem('wf-atmosphere', key); } catch (e) {}
+    styleSwatches();
+    repaintAtmosphere();
+    paint();
+  }
 
   // ── Rotating start screen heading ─────────────────────────────
   var START_PHRASES = [
@@ -979,6 +1212,12 @@
     if (btn) btn.title = titles[theme];
     var startBtn = document.getElementById('start-theme-btn');
     if (startBtn) startBtn.title = titles[theme];
+
+    // Re-skin the atmosphere surfaces and repaint the writing text for the
+    // new mode (a full rebuild so spans/classes don't carry across modes).
+    repaintAtmosphere();
+    resetLines();
+    paint();
   }
 
   function cycleTheme() {
@@ -999,6 +1238,10 @@
     .forEach(function(btn) {
       btn.addEventListener('click', cycleTheme);
     });
+
+  // Build the atmosphere picker and start the breathing-haptics loop.
+  buildSwatches();
+  requestAnimationFrame(hapticFrame);
 
   // ── Audio ─────────────────────────────────────────────────────
   function getAudioCtx() {
@@ -1184,6 +1427,8 @@
     allText = ''; lastLen = 0; lastWc = 0; secsElapsed = 0;
     durationMins = 0; started = false;
     lastActionWasStrike = false; strikes = [];
+    prevCommitted = 0; lastKey = 0; energy = 0;
+    curtext.style.color = '';
     if (timerInt) clearInterval(timerInt);
     if (countInt) clearInterval(countInt);
     timerInt = null; countInt = null;
@@ -1270,9 +1515,19 @@
     allText += val.slice(lastLen);
     lastLen = allText.length;
     inp.value = allText;
+    paint();
+  }
 
+  function resetLines() { linesEl.innerHTML = ''; lineEls = {}; }
+
+  // Repaint visible text from allText (no mutation) — runs on input and on
+  // a theme switch. Light/dark keep the original line-level fade below;
+  // midnight forks to a per-word, atmosphere-tinted path.
+  function paint() {
     var w = wrap(allText);
+    if (isMidnight()) { paintMidnight(w); return; }
     setLineContent(curtext, w.cur);
+    curtext.style.color = '';
 
     var SHOW = 4;
     var start = Math.max(0, w.result.length - SHOW);
@@ -1310,6 +1565,67 @@
     var n = wc(allText);
     wcEl.textContent = n + (n === 1 ? ' word' : ' words');
     lastWc = n;
+    writingScroll.scrollTop = writingScroll.scrollHeight;
+  }
+
+  // Midnight: per-word recency fade tinted to the atmosphere color, plus a
+  // landing glow on the most recently committed word.
+  function paintMidnight(w) {
+    var SHOW = 4;
+    var start = Math.max(0, w.result.length - SHOW);
+
+    for (var key in lineEls) {
+      var ki = +key;
+      if (ki < start || ki >= w.result.length) {
+        linesEl.removeChild(lineEls[key]);
+        delete lineEls[key];
+      }
+    }
+
+    var lines = w.result;
+    var cur = w.cur;
+    var trailingSpace = cur === '' || /\s$/.test(allText);
+
+    // Count committed visible words (result words + cur words minus the live one)
+    var total = 0, li, ts, t;
+    for (li = start; li < lines.length; li++) {
+      ts = lines[li].split(' ');
+      for (t = 0; t < ts.length; t++) if (ts[t] !== '') total++;
+    }
+    var curParts = cur.split(' '), curWordCount = 0;
+    for (t = 0; t < curParts.length; t++) if (curParts[t] !== '') curWordCount++;
+    var liveCount = (!trailingSpace && curWordCount > 0) ? 1 : 0;
+    total += (curWordCount - liveCount);
+
+    // Landing detection: a new word commits when the committed-word count grows.
+    var totalWords = wc(allText);
+    var committedCount = trailingSpace ? totalWords : Math.max(0, totalWords - 1);
+    var landed = committedCount > prevCommitted;
+    prevCommitted = committedCount;
+
+    var ctx = { idx: 0, total: total, newest: null };
+
+    for (li = start; li < lines.length; li++) {
+      var el = lineEls[li];
+      if (!el) { el = document.createElement('div'); lineEls[li] = el; linesEl.appendChild(el); }
+      el.className = 'line';
+      el.dataset.raw = '\x01';   // sentinel: forces a rebuild if mode flips back
+      renderAged(el, lines[li] || ' ', ctx, false);
+    }
+
+    renderAged(curtext, cur, ctx, !trailingSpace);
+    curtext.style.color = '';
+
+    if (landed && ctx.newest) {
+      ctx.newest.classList.remove('wf-land');
+      void ctx.newest.offsetWidth;   // restart the keyframe
+      ctx.newest.classList.add('wf-land');
+    }
+
+    var n = wc(allText);
+    wcEl.textContent = n + (n === 1 ? ' word' : ' words');
+    lastWc = n;
+    writingScroll.scrollTop = writingScroll.scrollHeight;
   }
 
   // ── Input handling ────────────────────────────────────────────
@@ -1317,6 +1633,11 @@
 
   inp.addEventListener('keydown', function(e) {
     if (!started) return;
+    // Haptic energy bump on any typing / commit / backspace (not arrows/modifiers).
+    if (e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Enter' ||
+        e.key === ' ' || e.key.length === 1) {
+      bumpKey();
+    }
     if (e.key === 'Backspace' || e.key === 'Delete') {
       e.preventDefault();
       // Prevent double-striking — one strike per backspace press.
@@ -1377,6 +1698,7 @@
     e.preventDefault();
     var p = (e.clipboardData || window.clipboardData).getData('text');
     inp.value = allText + p;
+    bumpKey();
     render();
   });
 
