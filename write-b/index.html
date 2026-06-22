@@ -374,7 +374,8 @@
       margin-top: 4px;
     }
 
-    /* Mobile-only active-atmosphere text label (replaces the swatch picker) */
+    /* Mobile-only active-atmosphere text label (replaces the swatch picker).
+       Tapping it cycles through the atmospheres; the arrows hint at that. */
     #atmo-mobile-label {
       display: none;
       font-size: 10px;
@@ -383,7 +384,12 @@
       text-transform: uppercase;
       margin-bottom: 12px;
       cursor: pointer;
+      padding: 6px 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
+    #atmo-mobile-label::before { content: '← '; opacity: 0.4; }
+    #atmo-mobile-label::after  { content: ' →'; opacity: 0.4; }
 
     /* ── Input zone ── */
     #input-zone { position: relative; padding: 4px 32px 12px; }
@@ -668,7 +674,7 @@
         z-index: 50;
         background: var(--bg);
         padding: 12px 20px 16px;
-        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        padding-bottom: max(10px, env(safe-area-inset-bottom));
       }
       /* Add bottom padding to the app so content
          doesn't hide behind the fixed footer */
@@ -680,36 +686,64 @@
       #atmo-caption { display: none !important; }
       #atmo-mobile-label { display: block; }
 
-      /* Tighter start screen so Begin is always visible without scrolling */
+      /* Hide the fixed footer on the start screen so it doesn't bleed through */
+      body.on-start-screen #footer { display: none !important; }
+
+      /* Bigger, centered start screen */
       #start-screen {
+        justify-content: center;
         padding: 16px 20px;
-        justify-content: flex-start;
-        padding-top: 20px;
         overflow-y: auto;
       }
       #start-mark {
-        font-size: 20px;
-        margin-bottom: 8px;
+        font-size: 24px;
+        margin-bottom: 10px;
       }
       #start-head {
-        font-size: 16px;
-        margin-bottom: 4px;
+        font-size: 20px;
+        margin-bottom: 5px;
+        line-height: 1.25;
       }
       #start-sub {
-        margin-bottom: 12px;
+        font-size: 9px;
+        margin-bottom: 16px;
       }
       #how-it-works {
-        margin-bottom: 14px;
-        padding: 10px 14px;
+        margin-bottom: 16px;
+        padding: 12px 14px;
       }
-      .q { margin-bottom: 14px; }
+      .how-line {
+        font-size: 12px;
+        line-height: 1.7;
+      }
+      .q { margin-bottom: 12px; }
+      .q-label { font-size: 10px; }
       #begin-btn {
-        margin-top: 4px;
-        padding: 10px 32px;
+        width: 100%;
+        padding: 15px 0;
+        font-size: 12px;
+        letter-spacing: 0.2em;
+        margin-top: 14px;
       }
 
-      /* Shorter how-it-works copy fits one line each */
-      .how-line { font-size: 10px; }
+      /* Timer pills: all five fit in one row */
+      #dur-opts {
+        gap: 5px;
+        flex-wrap: nowrap;
+      }
+      #dur-opts .opt {
+        font-size: 10px;
+        padding: 6px 8px;
+        letter-spacing: 0.03em;
+      }
+
+      /* Atmosphere text label — bigger, clearly tappable */
+      #atmo-mobile-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-bottom: 14px;
+        letter-spacing: 0.14em;
+      }
 
       /* Higher text contrast for real-world mobile lighting */
       :root {
@@ -903,7 +937,7 @@
     <div id="how-it-works">
       <div class="how-line">
         <span class="how-dot">·</span>
-        <span>type forward — <span class="how-em">words lock in</span></span>
+        <span>type forward — <span class="how-em">words lock</span></span>
       </div>
       <div class="how-line">
         <span class="how-dot">·</span>
@@ -923,10 +957,10 @@
       <div class="q-label">How long?</div>
       <div class="opts" id="dur-opts">
         <button class="opt sel" data-min="0">No limit</button>
-        <button class="opt" data-min="0.5">30 sec</button>
-        <button class="opt" data-min="1">1 min</button>
-        <button class="opt" data-min="5">5 min</button>
-        <button class="opt" data-min="10">10 min</button>
+        <button class="opt" data-min="0.5">30s</button>
+        <button class="opt" data-min="1">1m</button>
+        <button class="opt" data-min="5">5m</button>
+        <button class="opt" data-min="10">10m</button>
       </div>
     </div>
 
@@ -1582,6 +1616,21 @@
   updateAtmoMobileLabel();   // show the correct initial atmosphere on the mobile label
   applyFontSize(fontSize);   // reapply the saved font size to #writing-col
 
+  // Mobile: tapping the atmosphere text label cycles through all 7 in order.
+  var ATMO_ORDER = [
+    'original', 'candlewick', 'untitled',
+    'dispatch', 'greenlight', 'redline', 'sunday'
+  ];
+  var atmoMobileLabel = document.getElementById('atmo-mobile-label');
+  if (atmoMobileLabel) {
+    atmoMobileLabel.addEventListener('click', function() {
+      var currentIdx = ATMO_ORDER.indexOf(atmosphere);
+      var nextIdx = (currentIdx + 1) % ATMO_ORDER.length;
+      setAtmosphere(ATMO_ORDER[nextIdx]);
+      updateWritingSwatches();
+    });
+  }
+
   // Apply footer-swatch visibility AFTER building (buildWritingSwatches forces
   // display:flex on the container, which would otherwise override applyTheme).
   (function() {
@@ -1676,6 +1725,7 @@
   // ── Begin session ─────────────────────────────────────────────
   beginBtn.addEventListener('click', function() {
     startScr.classList.add('hidden');
+    document.body.classList.remove('on-start-screen');
     started = true;
     secsElapsed = 0;
     wordmark.textContent = 'drafting...';
@@ -1804,6 +1854,7 @@
     overlay.classList.remove('visible');
     setStartPhrase();
     startScr.classList.remove('hidden');
+    document.body.classList.add('on-start-screen');
     // Reset duration selection
     document.querySelectorAll('#dur-opts .opt').forEach(function(x) { x.classList.remove('sel'); });
     document.querySelector('#dur-opts [data-min="0"]').classList.add('sel');
@@ -2061,6 +2112,9 @@
 
   // Set an initial rotating phrase on first load
   setStartPhrase();
+
+  // Mark the start screen so the fixed mobile footer is hidden until writing begins.
+  document.body.classList.add('on-start-screen');
 
 })();
 </script>
