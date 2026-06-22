@@ -235,20 +235,17 @@
     #writing-scroll {
       position: absolute;
       inset: 0;
-      overflow-y: auto;
+      overflow-y: auto;            /* keeps scrollTop programmatic auto-scroll working */
       overflow-x: hidden;
-      display: flex;
-      justify-content: center;   /* horizontal centering only */
-      align-items: flex-start;   /* content starts at the top */
-      padding: 2vh 7vw 12vh;
+      padding: 22px 28px 0 28px;   /* top-anchored, full-width, only side padding */
+      -ms-overflow-style: none;    /* hide scrollbar — IE/Edge */
+      scrollbar-width: none;       /* hide scrollbar — Firefox */
     }
-    #writing-scroll::-webkit-scrollbar { width: 2px; }
-    #writing-scroll::-webkit-scrollbar-thumb { background: var(--border); }
+    #writing-scroll::-webkit-scrollbar { display: none; }  /* hide scrollbar — Chrome/Safari */
     #writing-col {
       width: 100%;
-      max-width: 760px;
-      font-size: clamp(21px, 3vw, 30px);
-      line-height: 1.85;
+      font-size: 18px;
+      line-height: 1.9;
       letter-spacing: 0.02em;
       white-space: pre-wrap;
       word-break: break-word;
@@ -273,10 +270,10 @@
     #lines { display: flex; flex-direction: column; }
     .line {
       font-size: inherit;   /* follow #writing-col so the size buttons take effect */
-      line-height: 1.85;
+      line-height: 1.9;
       white-space: pre-wrap;
       word-break: break-word;
-      min-height: 1.85em;
+      min-height: 1.9em;
       transition: color 0.6s cubic-bezier(0.25, 0, 0.5, 1),
                   opacity 0.6s cubic-bezier(0.25, 0, 0.5, 1);
     }
@@ -291,9 +288,9 @@
     }
     #curline {
       font-size: inherit;   /* follow #writing-col so the size buttons take effect */
-      line-height: 1.85;
+      line-height: 1.9;
       color: var(--text-bright);
-      min-height: 1.85em;
+      min-height: 1.9em;
       white-space: pre-wrap;
       word-break: break-word;
       position: relative;
@@ -627,7 +624,7 @@
 
     /* Mobile */
     @media (max-width: 600px) {
-      #writing-scroll { padding: 2vh 5vw 16vh; }
+      #writing-scroll { padding: 22px 18px 0 18px; }
       #input-zone { padding: 4px 20px 12px; }
       #footer {
         position: fixed;
@@ -1160,8 +1157,8 @@
     fontSize = size;
     var sizes = {
       small:  '16px',
-      medium: 'clamp(21px, 3vw, 30px)',
-      large:  'clamp(28px, 4vw, 38px)'
+      medium: '18px',
+      large:  '24px'
     };
     var col = document.getElementById('writing-col');
     if (col) col.style.fontSize = sizes[size] || sizes.medium;
