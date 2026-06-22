@@ -247,7 +247,10 @@
       font-size: 18px;
       line-height: 1.9;
       letter-spacing: 0.02em;
-      white-space: pre-wrap;
+      /* white-space:normal so the HTML source indentation between #write-hint,
+         #lines and #curline collapses instead of rendering as blank lines.
+         The writing text preserves its own spacing via .line / #curline / #curtext. */
+      white-space: normal;
       word-break: break-word;
       margin: 0;
       padding: 0;
