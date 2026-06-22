@@ -843,6 +843,390 @@
         color: #141418;
       }
 
+      /* ════════════ REWRITE: landing / countdown / writing / complete / keep ════════════ */
+
+      /* ── 1+2. LANDING ── */
+      #m-hero {
+        width: 100%;
+        padding: 30px 20px 16px;
+        flex-shrink: 0;
+        border-bottom: 1px solid #161616;
+        position: relative;
+        background: #0b0905;
+      }
+      #m-hero-bloom {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          ellipse at 50% 90%,
+          rgba(245,226,184,0.09),
+          transparent 70%
+        );
+        pointer-events: none;
+      }
+      .m-hl {
+        position: relative;
+        font-size: 17px;
+        line-height: 1.85;
+        min-height: 32px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      #m-hl2 { color: #141414; }
+      #m-hl1 { color: #2a2010; }
+      #m-hl0 { color: #f5e2b8; }
+      .m-hcur {
+        display: inline-block;
+        width: 9px; height: 16px;
+        background: #f5e2b8;
+        vertical-align: middle;
+        margin-left: 2px;
+        animation: m-blink 0.9s step-end infinite;
+      }
+      .m-struck {
+        text-decoration: line-through;
+        color: #4a3820;
+        opacity: 0.7;
+      }
+      .m-ins { color: #f5e2b8; }
+
+      #m-pitch {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        display: flex;
+        flex-direction: column;
+        padding: 16px 20px 20px;
+        gap: 12px;
+      }
+      #m-wm {
+        font-size: 13px;
+        letter-spacing: 0.22em;
+        color: #e0e0e0;
+        text-transform: uppercase;
+      }
+      #m-kicker {
+        font-size: 16px;
+        color: #f0f0f0;
+        line-height: 1.55;
+        letter-spacing: 0.02em;
+      }
+      #m-rule {
+        width: 24px;
+        height: 1px;
+        background: #222;
+        flex-shrink: 0;
+      }
+      #m-proof {
+        border-left: 2px solid #1e1e1e;
+        padding: 8px 12px;
+      }
+      #m-proof-q {
+        font-size: 12px;
+        color: #666;
+        line-height: 1.75;
+        font-style: italic;
+      }
+      #m-proof-attr {
+        font-size: 10px;
+        color: #333;
+        letter-spacing: 0.1em;
+        margin-top: 4px;
+      }
+      #m-explainer {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      #m-exp-a {
+        font-size: 14px;
+        color: #aaa;
+        line-height: 1.7;
+      }
+      #m-exp-a strong { color: #e0e0e0; }
+      #m-exp-b {
+        font-size: 13px;
+        color: #666;
+        line-height: 1.75;
+      }
+      #m-cta-btn {
+        width: 100%;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #0a0a0a;
+        background: #f0f0f0;
+        border: none;
+        border-radius: 2px;
+        padding: 15px;
+        cursor: pointer;
+        font-weight: bold;
+        flex-shrink: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      /* ── 5. COUNTDOWN (single beat) ── */
+      .m-cd-body { flex-direction: column; }
+      #m-count-word {
+        font-size: 48px;
+        color: #f0f0f0;
+        text-align: center;
+        letter-spacing: 0.04em;
+      }
+      #m-count-sub {
+        font-size: 11px;
+        color: #555;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-top: 10px;
+        text-align: center;
+      }
+
+      /* ── 6. WRITING CONTRAST (neutral strip) ── */
+      #m-sl0 { color: #252525; }   /* two back  */
+      #m-sl1 { color: #505050; }   /* one back  */
+      #m-sl2 { color: #f0f0f0; }   /* current — also set in JS */
+      #m-write .m-hdr-mark { color: #555; }
+      #m-write .m-hdr-wc { color: #777; }
+      #m-tap {
+        flex-direction: column;
+        gap: 4px;
+        font-size: 16px;
+        color: #999;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      #m-tap-sub {
+        font-size: 12px;
+        color: #555;
+        letter-spacing: 0.06em;
+        text-transform: none;
+      }
+      #m-write .m-ftr-hint {
+        font-size: 11px;
+        color: #555;
+        letter-spacing: 0.1em;
+      }
+      #m-fin-btn {
+        color: #777;
+        border-color: #333;
+      }
+      .m-struck-word {
+        text-decoration: line-through;
+        color: #3a3a3a;
+        opacity: 0.6;
+      }
+
+      /* ── 8. COMPLETE ── */
+      #m-cpl { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+      #m-done-hdr {
+        padding: 32px 20px 18px;
+        border-bottom: 1px solid #161616;
+        flex-shrink: 0;
+      }
+      #m-done-wc {
+        font-size: 56px;
+        color: #f0f0f0;
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+      #m-done-wc-lbl {
+        font-size: 10px;
+        color: #555;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-top: 2px;
+      }
+      #m-done-cel {
+        font-size: 14px;
+        color: #777;
+        margin-top: 10px;
+        line-height: 1.7;
+      }
+      #m-done-streak {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      #m-done-dots { display: flex; gap: 3px; }
+      .m-streak-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: #1e1e1e;
+      }
+      .m-streak-dot.m-lit { background: #e0e0e0; }
+      #m-done-streak-lbl {
+        font-size: 10px;
+        color: #555;
+        letter-spacing: 0.1em;
+      }
+      #m-done-first {
+        padding: 14px 20px;
+        border-bottom: 1px solid #161616;
+        flex-shrink: 0;
+      }
+      #m-done-first-lbl {
+        font-size: 10px;
+        color: #444;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+      }
+      #m-done-first-txt {
+        font-size: 13px;
+        color: #555;
+        line-height: 1.75;
+        font-style: italic;
+      }
+      #m-done-acts {
+        padding: 14px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        flex-shrink: 0;
+      }
+      #m-keep-btn {
+        width: 100%;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #0a0a0a;
+        background: #f0f0f0;
+        border: none;
+        border-radius: 2px;
+        padding: 14px;
+        cursor: pointer;
+        font-weight: bold;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #m-copy-btn {
+        width: 100%;
+        font-family: 'Courier New', monospace;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #666;
+        background: transparent;
+        border: 1px solid #282828;
+        border-radius: 2px;
+        padding: 11px;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #m-done-divider {
+        margin: 2px 20px;
+        border: none;
+        border-top: 1px solid #141414;
+        flex-shrink: 0;
+      }
+      #m-done-waitlist {
+        padding: 12px 20px 24px;
+        flex-shrink: 0;
+      }
+      #m-done-wl-head {
+        font-size: 12px;
+        color: #777;
+        line-height: 1.7;
+        margin-bottom: 10px;
+      }
+      #m-done-wl-head strong { color: #e0e0e0; }
+      #m-done-wl-row { display: flex; gap: 6px; }
+      #m-done-wl-inp {
+        flex: 1;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        background: #111;
+        border: 1px solid #222;
+        color: #e0e0e0;
+        padding: 10px 12px;
+        border-radius: 2px;
+        outline: none;
+      }
+      #m-done-wl-inp::placeholder { color: #333; }
+      #m-done-wl-inp:focus { border-color: #555; }
+      #m-done-wl-btn {
+        font-family: 'Courier New', monospace;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #e0e0e0;
+        background: transparent;
+        border: 1px solid #444;
+        border-radius: 2px;
+        padding: 10px 12px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      /* ── 9. KEEP GOING ── */
+      #m-keep { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+      #m-keep-head {
+        font-size: 22px;
+        color: #f0f0f0;
+        line-height: 1.3;
+        margin-top: 36px;
+        margin-bottom: 6px;
+        padding: 0 20px;
+      }
+      #m-keep-sub {
+        font-size: 13px;
+        color: #666;
+        line-height: 1.7;
+        margin-bottom: 22px;
+        padding: 0 20px;
+      }
+      #m-keep-streak {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 22px;
+        padding: 0 20px;
+      }
+      #m-keep-dots { display: flex; gap: 4px; }
+      .m-keep-dot {
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        background: #1a1a1a;
+      }
+      .m-keep-dot.m-lit { background: #e0e0e0; }
+      #m-keep-streak-txt {
+        font-size: 11px;
+        color: #555;
+        letter-spacing: 0.08em;
+      }
+      #m-keep-opts {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 0 20px;
+      }
+      .m-keep-opt {
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        letter-spacing: 0.06em;
+        color: #888;
+        background: transparent;
+        border: 1px solid #222;
+        border-radius: 2px;
+        padding: 14px 16px;
+        cursor: pointer;
+        text-align: left;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .m-keep-opt:hover { color: #e0e0e0; border-color: #666; }
+      .m-keep-est {
+        font-size: 10px;
+        color: #333;
+        letter-spacing: 0.08em;
+      }
+
     } /* end @media mobile */
   </style>
 <!-- Privacy-friendly analytics by Plausible -->
@@ -859,57 +1243,59 @@
   <!-- SCREEN 1: LANDING -->
   <div class="m-scr m-on" id="m-land">
 
-    <!-- Hero: animated writing strip -->
-    <div class="m-hero">
-      <div class="m-hero-bloom"></div>
-      <div class="m-hero-lines">
-        <div class="mhl mhl-2" id="mhl-a">
-          I never told her what I meant to
-        </div>
-        <div class="mhl mhl-1" id="mhl-b">
-          say. There was always tomorrow and
-        </div>
-        <div class="mhl mhl-0" id="mhl-c">
-          then tomorrow was gone<span class="m-hero-cur"></span>
-        </div>
+    <!-- Hero strip — animated, amber -->
+    <div id="m-hero">
+      <div id="m-hero-bloom"></div>
+      <div id="m-hl2" class="m-hl"></div>
+      <div id="m-hl1" class="m-hl"></div>
+      <div id="m-hl0" class="m-hl">
+        <span id="m-hct"></span>
+        <span class="m-hcur"></span>
       </div>
     </div>
 
     <!-- Pitch -->
-    <div class="m-pitch">
-      <div class="m-wordmark">writefwd</div>
-      <div class="m-head">Stop editing.<br>Start writing.</div>
-      <div class="m-sub">
-        No backspace. No going back.<br>
-        Just you and the page.
+    <div id="m-pitch">
+      <div id="m-wm">writefwd</div>
+      <div id="m-kicker">
+        No backspace.<span> </span>No going back.
       </div>
-      <button class="m-cta" id="m-cta-btn">
-        Write something now →
-      </button>
-      <button class="m-learn" id="m-learn-btn">
-        how it works ↓
-      </button>
-      <div class="m-proof">
-        <div class="m-quote">"I thought I wanted a backspace. Then I realized — if you add one, it defeats the entire purpose."</div>
-        <div class="m-quote">"I actually need this. I felt immediately spoken to."</div>
+      <div id="m-rule"></div>
+      <div id="m-proof">
+        <div id="m-proof-q"></div>
+        <div id="m-proof-attr">— writer, first session</div>
       </div>
+      <div id="m-explainer">
+        <div id="m-exp-a">
+          <strong>No editing.</strong> What comes out
+          is more honest than anything you'd write
+          with a delete key.
+        </div>
+        <div id="m-exp-b">
+          The internal critic fires the moment the
+          first word appears. writefwd removes it
+          from the room.
+        </div>
+      </div>
+      <button id="m-cta-btn">Write something now →</button>
     </div>
   </div>
 
-  <!-- SCREEN 2: COUNTDOWN -->
+  <!-- SCREEN 2: COUNTDOWN — single beat -->
   <div class="m-scr" id="m-cd">
     <div class="m-cd-body">
-      <div class="m-cd-text" id="m-cdt"></div>
+      <div id="m-count-word">Ready.</div>
+      <div id="m-count-sub">no going back</div>
     </div>
   </div>
 
   <!-- SCREEN 3: WRITING -->
-  <div class="m-scr candlewick" id="m-write">
+  <div class="m-scr" id="m-write">
     <div class="m-hdr">
-      <div class="m-hdr-l">writefwd</div>
+      <div class="m-hdr-l m-hdr-mark">writefwd</div>
       <div class="m-hdr-r">
         <div class="m-ibar"><div class="m-ifil" id="m-ifil"></div></div>
-        <span id="m-wc">0 words</span>
+        <span id="m-wc" class="m-hdr-wc">0 words</span>
       </div>
     </div>
 
@@ -922,7 +1308,8 @@
     </div>
 
     <div id="m-tap" aria-label="Tap to write">
-      Tap to write
+      <span>Tap here to write</span>
+      <span id="m-tap-sub">your words appear above</span>
     </div>
 
     <div
@@ -936,7 +1323,7 @@
     ></div>
 
     <div class="m-ftr">
-      <div class="m-hint">// backspace crosses out</div>
+      <div class="m-hint m-ftr-hint">backspace crosses out</div>
       <div class="m-actions">
         <div class="m-szg">
           <button class="m-sz m-ss" onclick="mSetFs('s')">A</button>
@@ -951,32 +1338,71 @@
 
   <!-- SCREEN 4: COMPLETE -->
   <div class="m-scr" id="m-cpl">
-    <div class="m-cpl-body">
-      <div class="m-cpl-mark">¶</div>
-      <div class="m-cpl-head">finished.</div>
-      <div class="m-cpl-sub" id="m-csub">0 words</div>
-      <div class="m-cpl-first" id="m-cfl"></div>
-      <button class="m-cbtn m-cbtn-p" onclick="mCopy()">
-        Copy draft
-      </button>
-      <button class="m-cbtn m-cbtn-s" onclick="mEmail()">
-        Email draft
-      </button>
-      <div class="m-email-cap">
-        <div class="m-email-line">
-          save your streak — it's free.
-        </div>
-        <div class="m-email-row">
-          <input class="m-email-in" id="m-email-in"
-            type="email" placeholder="your@email.com"
-            autocomplete="email">
-          <button class="m-email-sub" onclick="mSaveEmail()">
-            Save
-          </button>
-        </div>
+    <div id="m-done-hdr">
+      <div id="m-done-wc">0</div>
+      <div id="m-done-wc-lbl">words written</div>
+      <div id="m-done-cel">
+        You wrote something real.
+        It's always better than you think it is.
       </div>
-      <button class="m-new" onclick="mReset()">
-        ← write again
+      <div id="m-done-streak">
+        <div id="m-done-dots"></div>
+        <div id="m-done-streak-lbl">1 day streak</div>
+      </div>
+    </div>
+
+    <div id="m-done-first">
+      <div id="m-done-first-lbl">your first line</div>
+      <div id="m-done-first-txt"></div>
+    </div>
+
+    <div id="m-done-acts">
+      <button id="m-keep-btn">Keep going →</button>
+      <button id="m-copy-btn">Copy draft</button>
+    </div>
+
+    <hr id="m-done-divider">
+
+    <div id="m-done-waitlist">
+      <div id="m-done-wl-head">
+        Save your streak. Join the
+        <strong>Writer's Edition</strong> waitlist.
+      </div>
+      <div id="m-done-wl-row">
+        <input id="m-done-wl-inp"
+          type="email"
+          placeholder="your@email.com">
+        <button id="m-done-wl-btn">Join</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 5: KEEP GOING -->
+  <div class="m-scr" id="m-keep">
+    <div id="m-keep-head">
+      You're in it.<br>Keep going.
+    </div>
+    <div id="m-keep-sub">
+      Pick how much longer.
+    </div>
+    <div id="m-keep-streak">
+      <div id="m-keep-dots"></div>
+      <div id="m-keep-streak-txt">
+        0 words so far
+      </div>
+    </div>
+    <div id="m-keep-opts">
+      <button class="m-keep-opt" data-mins="5">
+        <span>5 more minutes</span>
+        <span class="m-keep-est">~250 words</span>
+      </button>
+      <button class="m-keep-opt" data-mins="10">
+        <span>10 more minutes</span>
+        <span class="m-keep-est">~500 words</span>
+      </button>
+      <button class="m-keep-opt" data-mins="0">
+        <span>until I stop</span>
+        <span class="m-keep-est">no limit</span>
       </button>
     </div>
   </div>
@@ -1562,19 +1988,18 @@
   // only run on mobile
   if (window.innerWidth > 600) return;
 
-  var mLines = [''], mCur = '', mCanStr = true;
+  // Single-source writing buffer: forward text, '\n' line breaks, and
+  // <m-struck>word</m-struck> for crossed-out words.
+  var mAllText = '';
   var mWc = 0, mFs = 19, mLh = 35;
   var mStarted = false, mNrg = 0, mLastT = 0;
-  var mRaf = null, mLastWords = [];
-  var mAllText = '';
-  var mScr = 'm-land';   // id of the currently-visible screen
-
-  var MPERMS = [
-    'the mess is the point.',
-    'nobody will see this but you.',
-    'get it out. fix it later.',
-    "it\'s always better than you think it is.",
-    'write like no one\'s editing.'
+  var mRaf = null;
+  var mScr = 'm-land';        // id of the currently-visible screen
+  var mStreak = 1;            // day one for now (could be localStorage-driven later)
+  var mQuoteIdx = 0;
+  var mQuotes = [
+    "I actually need this. I felt immediately spoken to — like it could solve a problem I have today.",
+    "I thought I wanted a backspace. Then I realized if you add one, it defeats the entire purpose."
   ];
 
   function mEl(id) { return document.getElementById(id); }
@@ -1602,6 +2027,16 @@
       document.body.style.position = '';
       document.body.style.width = '';
     }
+
+    // Hero animation + rotating proof quote live only on the landing screen.
+    if (id === 'm-land') { mRotateQuote(); mHeroStart(); }
+    else { mHeroStop(); }
+  }
+
+  function mRotateQuote() {
+    var q = mEl('m-proof-q');
+    if (q) q.textContent = mQuotes[mQuoteIdx % mQuotes.length];
+    mQuoteIdx++;
   }
 
   function mInitStrip() {
@@ -1648,180 +2083,115 @@
     mRaf = requestAnimationFrame(frame);
   }
 
-  function mRenderStrip() {
-    var all = mLines.concat([mCur]);
-    var len = all.length;
-    var slots = [
-      { idx: len - 3, age: 2 },
-      { idx: len - 2, age: 1 },
-      { idx: len - 1, age: 0 }
-    ];
-    // Candlewick fade tiers by age: [current, one back, two back]
-    var cols = [
-      '#f5e2b8',   // age 0 — current, bright amber
-      '#6b4f20',   // age 1
-      '#3d2e18'    // age 2
-    ];
-    var ids = ['m-sl0','m-sl1','m-sl2'];
-    for (var i = 0; i < 3; i++) {
-      var el = mEl(ids[i]);
-      var s = slots[i];
-      if (s.idx < 0 || s.idx >= len) {
-        el.innerHTML = '';
-        el.style.color = 'transparent';
-        continue;
-      }
-      var txt = all[s.idx] || '';
-      el.style.color = cols[s.age];
-      if (s.age === 0) {
-        el.innerHTML = mRl(txt);
-        var cur = mEl('m-cur');
-        if (cur) el.appendChild(cur);
-      } else {
-        el.innerHTML = mRl(txt);
-      }
-    }
-  }
-
-  function mRl(txt) {
-    var parts = txt.split('\x00');
-    var html = '';
-    for (var i = 0; i < parts.length; i++) {
-      if (!parts[i]) continue;
-      if (i % 2 === 1) {
-        html += '<span style="text-decoration:line-through;' +
-                'opacity:0.4;">' + mEsc(parts[i]) + '</span>';
-      } else {
-        html += mEsc(parts[i]);
-      }
-    }
-    return html;
-  }
-
   function mEsc(s) {
     return s.replace(/&/g,'&amp;')
              .replace(/</g,'&lt;')
              .replace(/>/g,'&gt;');
   }
 
-  function mStartType() {
-    if (mStarted) return;
-    mStarted = true;
-    var h = mEl('m-hint-span');
-    if (h) {
-      h.style.transition = 'opacity 0.5s';
-      h.style.opacity = '0';
-      setTimeout(function() {
-        if (h.parentNode) h.parentNode.removeChild(h);
-      }, 500);
+  // Render one display line (which may contain <m-struck>word</m-struck>)
+  // to safe HTML, converting struck markers to crossed-out spans.
+  function mRl(txt) {
+    var html = '', re = /<m-struck>([^<]*)<\/m-struck>/g, last = 0, m;
+    while ((m = re.exec(txt))) {
+      html += mEsc(txt.slice(last, m.index));
+      html += '<span class="m-struck-word">' + mEsc(m[1]) + '</span>';
+      last = re.lastIndex;
     }
-    var cur = mEl('m-cur');
-    if (cur) {
-      cur.classList.remove('idle');
-      cur.classList.add('typing');
+    html += mEsc(txt.slice(last));
+    return html;
+  }
+
+  // Render the strip: last 3 lines of mAllText, neutral fade tiers, cursor on
+  // the current (last) line. Lines are pre-wrapped by mTc inserting '\n'.
+  function mRenderStrip() {
+    var lines = mAllText.split('\n');
+    var show = lines.slice(-3);
+    var ids  = ['m-sl0','m-sl1','m-sl2'];
+    var cols = ['#252525','#505050','#f0f0f0']; // two-back, one-back, current
+    for (var i = 0; i < 3; i++) {
+      var el = mEl(ids[i]);
+      if (!el) continue;
+      var lineIdx = i - (3 - show.length);
+      if (lineIdx < 0) { el.innerHTML = ''; el.style.color = 'transparent'; continue; }
+      var isCur = (lineIdx === show.length - 1);
+      el.style.color = cols[i];
+      var html = mRl(show[lineIdx]);
+      if (isCur) {
+        html += '<span id="m-cur" class="m-cur ' + (mStarted ? 'typing' : 'idle') + '"></span>';
+      }
+      el.innerHTML = html;
     }
   }
 
-  function mTriggerLand() {
-    var l2 = mEl('m-sl2');
-    if (!l2) return;
-    var nodes = l2.childNodes;
-    var lastNode = null;
-    for (var i = nodes.length - 1; i >= 0; i--) {
-      if (nodes[i].nodeType === 3 &&
-          nodes[i].textContent.trim()) {
-        lastNode = nodes[i]; break;
+  function mStartType() {
+    if (mStarted) return;
+    mStarted = true;   // cursor flips idle→typing on the next render
+  }
+
+  // mCleanText: mAllText with all struck words removed, whitespace collapsed.
+  function mCleanText() {
+    return mAllText.replace(/<m-struck>[^<]*<\/m-struck>/g, '')
+                   .replace(/\s+/g, ' ').trim();
+  }
+
+  // Remove the last plain (non-struck) occurrence of `word` from text.
+  // Preserves newlines (only collapses runs of spaces) so the strip's lines
+  // survive a backspace.
+  function mRemoveLastCleanWord(text, word) {
+    var idx = text.lastIndexOf(word);
+    while (idx !== -1) {
+      var before = text.slice(0, idx);
+      var open  = (before.match(/<m-struck>/g) || []).length;
+      var close = (before.match(/<\/m-struck>/g) || []).length;
+      if (open === close) {   // not inside a struck span
+        return (text.slice(0, idx) + text.slice(idx + word.length))
+               .replace(/ +/g, ' ');
       }
-      if (nodes[i].nodeType === 1 &&
-          nodes[i].id !== 'm-cur') {
-        lastNode = nodes[i]; break;
-      }
+      idx = text.lastIndexOf(word, idx - 1);
     }
-    if (!lastNode || lastNode.nodeType !== 3) return;
-    var t = lastNode.textContent;
-    var sp = t.lastIndexOf(' ', t.length - 2);
-    var lw = sp >= 0 ? t.slice(sp + 1) : t;
-    if (!lw.trim()) return;
-    var gs = document.createElement('span');
-    gs.className = 'm-land';
-    gs.style.color = 'rgba(245,226,184,0.95)';
-    gs.textContent = lw;
-    lastNode.textContent = sp >= 0 ? t.slice(0, sp + 1) : '';
-    lastNode.parentNode.insertBefore(gs, lastNode.nextSibling);
-    setTimeout(function() {
-      if (gs.parentNode) {
-        var r = document.createTextNode(
-          (sp >= 0 ? t.slice(0, sp + 1) : '') + lw);
-        gs.parentNode.replaceChild(r, gs);
-        if (lastNode.parentNode)
-          lastNode.parentNode.removeChild(lastNode);
-      }
-    }, 1200);
+    return text;
   }
 
   window.mTc = function(ch) {
     mLastT = Date.now();
     mStartType();
-    mCanStr = true;
-    mCur += ch;
-    if (ch === ' ') mTriggerLand();
-    var wrapAt = Math.floor(
-      (window.innerWidth - 40) / (mFs * 0.6));
-    var cleanCur = mCur.replace(/\x00[^\x00]*\x00/g,'');
-    if (cleanCur.length > wrapAt && ch === ' ') {
-      mNl(); return;
+    var nl = mAllText.lastIndexOf('\n');
+    var curLine = mAllText.slice(nl + 1);
+    var cleanCur = curLine.replace(/<m-struck>[^<]*<\/m-struck>/g, '');
+    var wrapAt = Math.floor((window.innerWidth - 40) / (mFs * 0.6));
+    if (ch === ' ' && cleanCur.length > wrapAt) {
+      mAllText += '\n';        // soft-wrap: the space becomes a line break
+    } else {
+      mAllText += ch;
     }
-    mCntW(); mRenderStrip(); mUpRhythm();
+    mCntW(); mRenderStrip();
   };
 
   window.mNl = function() {
     mLastT = Date.now();
-    mStartType(); mCanStr = true;
-    mLines.push(mCur); mCur = '';
+    mStartType();
+    mAllText += '\n';
     mCntW(); mRenderStrip();
   };
 
+  // Backspace = cross out the last live word, accumulating. Struck words stay
+  // visible; new typing continues forward after them.
   window.mBs = function() {
-    if (!mStarted || !mCanStr) return;
     mLastT = Date.now();
-    var tri = mCur.replace(/\s+$/, '');
-    if (!tri) {
-      if (mLines.length > 1) { mCur = mLines.pop(); }
-      return;
-    }
-    var sp = tri.lastIndexOf(' ');
-    var bef  = sp < 0 ? '' : tri.slice(0, sp + 1);
-    var word = sp < 0 ? tri : tri.slice(sp + 1);
-    mCur = bef + '\x00' + word + '\x00';
-    mCanStr = false;
+    var cleanWords = mCleanText().split(/\s+/).filter(function(w){ return w.length > 0; });
+    if (cleanWords.length === 0) return;
+    var lastWord = cleanWords[cleanWords.length - 1];
+    mAllText = mRemoveLastCleanWord(mAllText, lastWord);
+    mAllText += ' <m-struck>' + lastWord + '</m-struck>';
     mCntW(); mRenderStrip();
   };
 
   function mCntW() {
-    var all = mLines.concat([mCur]).join(' ');
-    var clean = all.replace(/\x00[^\x00]*\x00/g,'').trim();
-    mWc = clean ?
-      clean.split(/\s+/).filter(function(w){
-        return w.length > 0;
-      }).length : 0;
-    mAllText = clean;
+    var clean = mCleanText();
+    mWc = clean ? clean.split(/\s+/).filter(function(w){ return w.length > 0; }).length : 0;
     var el = mEl('m-wc');
-    if (el) el.textContent = mWc +
-      (mWc === 1 ? ' word' : ' words');
-  }
-
-  function mUpRhythm() {
-    var all = mLines.concat([mCur]).join(' ');
-    var clean = all.replace(/\x00[^\x00]*\x00/g,' ').trim();
-    var words = clean.split(/\s+/).filter(function(w){
-      return w.length > 0;
-    });
-    mLastWords = words.slice(-3).reverse();
-    var ids = ['m-rw0','m-rw1','m-rw2'];
-    for (var i = 0; i < ids.length; i++) {
-      var el = mEl(ids[i]);
-      if (el) el.textContent = mLastWords[i] || '—';
-    }
+    if (el) el.textContent = mWc + (mWc === 1 ? ' word' : ' words');
   }
 
   window.mSetFs = function(s) {
@@ -1839,49 +2209,26 @@
     }
   };
 
-  // ── Begin session ──
+  // ── Begin session — single-beat countdown ──
   function mBegin() {
     mShow('m-cd');
-    var perm = MPERMS[Math.floor(Math.random() * MPERMS.length)];
-    var beats = [
-      { t: 'Type forward.\nBackspace crosses out the last word.',
-        sz: '13px', fi: false, d: 2200 },
-      { t: perm, sz: '15px', fi: true, d: 2000 },
-      { t: 'go.', sz: '22px', fi: false, d: 900 }
-    ];
-    var el = mEl('m-cdt');
-    var i = 0;
-    function next() {
-      if (i >= beats.length) {
-        mShow('m-write');
-        mInitStrip();
-        var l2 = mEl('m-sl2');
-        l2.innerHTML = '';
-        var hint = document.createElement('span');
-        hint.id = 'm-hint-span';
-        hint.style.opacity = '0.18';
-        hint.style.color = 'rgba(245,226,184,0.5)';
-        hint.textContent = 'just write.';
-        l2.appendChild(hint);
-        l2.appendChild(mMakeCur());
-        mStartRaf();
-        return;
-      }
-      var b = beats[i++];
-      el.style.opacity = '0';
-      setTimeout(function() {
-        el.style.fontSize = b.sz;
-        el.style.fontStyle = b.fi ? 'italic' : 'normal';
-        el.style.whiteSpace = 'pre-line';
-        el.textContent = b.t;
-        el.style.opacity = '1';
-        setTimeout(function() {
-          el.style.opacity = '0';
-          setTimeout(next, 350);
-        }, b.d);
-      }, 250);
+    var w = mEl('m-count-word'), s = mEl('m-count-sub');
+    if (w) w.textContent = 'Ready.';
+    if (s) s.textContent = 'no going back';
+    setTimeout(mEnterWrite, 1000);
+  }
+
+  // Enter (or resume) the writing screen with the current draft intact.
+  function mEnterWrite() {
+    mShow('m-write');
+    var sids = ['m-sl0','m-sl1','m-sl2'];
+    for (var i = 0; i < sids.length; i++) {
+      var el = mEl(sids[i]);
+      if (el) { el.style.opacity = '1'; el.style.transition = ''; }
     }
-    next();
+    mInitStrip();
+    mRenderStrip();   // shows the cursor on the (possibly empty) current line
+    mStartRaf();
   }
 
   // ── Finish & ceremony ──
@@ -1905,83 +2252,77 @@
     setTimeout(mShowCpl, 3 * 220 + 300);
   }
 
-  function mShowCpl() {
-    var first = mAllText.split(/[.!?]/)[0];
-    var sub = mEl('m-csub');
-    if (sub) sub.textContent = mWc + ' words';
-    var cfl = mEl('m-cfl');
-    if (cfl && first && first.length > 3) {
-      cfl.textContent = '“' + first.trim() + '...”';
-      setTimeout(function() {
-        cfl.classList.add('m-show');
-      }, 100);
+  // Build 7 streak dots into `container`, lighting the first mStreak.
+  function mBuildDots(container, cls) {
+    if (!container) return;
+    container.innerHTML = '';
+    for (var i = 0; i < 7; i++) {
+      var d = document.createElement('div');
+      d.className = cls + (i < mStreak ? ' m-lit' : '');
+      container.appendChild(d);
     }
+  }
+
+  // First sentence (or first 120 chars) of the clean draft.
+  function mFirstLine() {
+    var clean = mCleanText();
+    if (!clean) return '';
+    var dot = clean.indexOf('.');
+    var end = (dot >= 0 && dot < 120) ? dot + 1 : Math.min(120, clean.length);
+    return clean.slice(0, end).trim();
+  }
+
+  function mShowCpl() {
+    var wc = mEl('m-done-wc');
+    if (wc) wc.textContent = mWc;
+    var ft = mEl('m-done-first-txt');
+    if (ft) { var fl = mFirstLine(); ft.textContent = fl ? '“' + fl + '”' : ''; }
+    mBuildDots(mEl('m-done-dots'), 'm-streak-dot');
+    var sl = mEl('m-done-streak-lbl');
+    if (sl) sl.textContent = mStreak + (mStreak === 1 ? ' day streak' : ' day streak');
     mShow('m-cpl');
   }
 
+  function mShowKeep() {
+    mBuildDots(mEl('m-keep-dots'), 'm-keep-dot');
+    var t = mEl('m-keep-streak-txt');
+    if (t) t.textContent = mWc + ' words so far';
+    mShow('m-keep');
+  }
+
   window.mCopy = function() {
-    var clean = mLines.concat([mCur]).join('\n')
-      .replace(/\x00[^\x00]*\x00/g, '')
-      .replace(/  +/g, ' ').trim();
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(clean).catch(function(){});
-    }
+    var clean = mCleanText();
+    if (navigator.clipboard) navigator.clipboard.writeText(clean).catch(function(){});
+    var b = mEl('m-copy-btn');
+    if (b) { var o = b.textContent; b.textContent = 'Copied'; setTimeout(function(){ b.textContent = o; }, 1500); }
   };
 
-  window.mEmail = function() {
-    var clean = mLines.concat([mCur]).join('\n')
-      .replace(/\x00[^\x00]*\x00/g, '')
-      .replace(/  +/g, ' ').trim();
-    if (clean.length <= 1800) {
-      window.location.href = 'mailto:?subject=My%20Draft&body=' +
-        encodeURIComponent(clean);
-    } else {
-      window.mCopy();
-      alert('Draft copied — paste it into your email.');
-    }
-  };
-
-  window.mSaveEmail = function() {
-    var inp = mEl('m-email-in');
+  function mSaveWl() {
+    var inp = mEl('m-done-wl-inp');
     if (!inp || !inp.value) return;
-    var email = inp.value;
-    // POST to Buttondown or your email service here
-    // For now show confirmation
     inp.value = '';
-    inp.placeholder = 'saved. see you tomorrow.';
+    inp.placeholder = 'saved. see you soon.';
     inp.disabled = true;
-  };
+  }
 
+  // Reset everything back to a fresh landing (not wired to a button in the new
+  // complete screen, but kept for a clean restart if needed).
   window.mReset = function() {
-    mLines = ['']; mCur = ''; mCanStr = true;
-    mWc = 0; mStarted = false; mNrg = 0;
-    mAllText = ''; mLastWords = [];
+    mAllText = ''; mWc = 0; mStarted = false; mNrg = 0;
     if (mRaf) { cancelAnimationFrame(mRaf); mRaf = null; }
     var sids = ['m-sl0','m-sl1','m-sl2'];
     for (var i = 0; i < sids.length; i++) {
       var el = mEl(sids[i]);
-      if (el) {
-        el.innerHTML = '';
-        el.style.opacity = '1';
-        el.style.color = 'transparent';
-      }
+      if (el) { el.innerHTML = ''; el.style.opacity = '1'; el.style.color = 'transparent'; }
     }
-    var wc = mEl('m-wc');
-    if (wc) wc.textContent = '0 words';
-    var ifil = mEl('m-ifil');
-    if (ifil) ifil.style.width = '0%';
-    var bloom = mEl('m-bloom');
-    if (bloom) bloom.style.opacity = '0';
-    var cfl = mEl('m-cfl');
-    if (cfl) cfl.classList.remove('m-show');
+    var wc = mEl('m-wc'); if (wc) wc.textContent = '0 words';
+    var ifil = mEl('m-ifil'); if (ifil) ifil.style.width = '0%';
+    var bloom = mEl('m-bloom'); if (bloom) bloom.style.opacity = '0';
     // Reset the real-keyboard input layer
     mRaw = '';
-    var rinp = mEl('m-input');
-    if (rinp) { rinp.innerText = ''; rinp.blur(); }
-    var rtap = mEl('m-tap');
-    if (rtap) rtap.classList.remove('hidden');
-    var rwrite = mEl('m-write');
-    if (rwrite) rwrite.classList.remove('kb-open');
+    var rinp = mEl('m-input'); if (rinp) { rinp.innerText = ''; rinp.blur(); }
+    var rtap = mEl('m-tap'); if (rtap) rtap.classList.remove('hidden');
+    var rwrite = mEl('m-write'); if (rwrite) rwrite.classList.remove('kb-open');
     mShow('m-land');
   };
 
@@ -1989,14 +2330,28 @@
   var ctaBtn = mEl('m-cta-btn');
   if (ctaBtn) ctaBtn.addEventListener('click', mBegin);
 
-  var learnBtn = mEl('m-learn-btn');
-  if (learnBtn) learnBtn.addEventListener('click', function() {
-    var proof = document.querySelector('.m-proof');
-    if (proof) proof.scrollIntoView({ behavior: 'smooth' });
-  });
-
   var finBtn = mEl('m-fin-btn');
   if (finBtn) finBtn.addEventListener('click', mDoFinish);
+
+  var keepBtn = mEl('m-keep-btn');
+  if (keepBtn) keepBtn.addEventListener('click', mShowKeep);
+
+  var copyBtn = mEl('m-copy-btn');
+  if (copyBtn) copyBtn.addEventListener('click', window.mCopy);
+
+  var wlBtn = mEl('m-done-wl-btn');
+  if (wlBtn) wlBtn.addEventListener('click', mSaveWl);
+
+  // Keep-going time options → resume writing with the existing draft.
+  // (No countdown timer exists on mobile yet, so data-mins is recorded but the
+  // session simply continues; wire a timer here later if desired.)
+  var keepOpts = document.querySelectorAll('.m-keep-opt');
+  for (var ko = 0; ko < keepOpts.length; ko++) {
+    keepOpts[ko].addEventListener('click', function() {
+      mEnterWrite();
+      setTimeout(mFocus, 60);
+    });
+  }
 
   /* ── Real iOS keyboard input ──────────────────────────────────
      A hidden contenteditable captures the device keyboard; keystrokes
@@ -2103,43 +2458,127 @@
     });
   }
 
-  // Init
-  mInitStrip();
+  /* ── Hero strip animation (landing) ───────────────────────────
+     A looping typewriter that types, pushes lines up, strikes the last word,
+     and inserts replacements. The current line is modelled as segments so
+     struck/inserted spans accumulate correctly. */
+  var mHeroAlive = false, mHeroTimer = null;
+  var mHeroSegs = [];          // current line: [{text, cls}] cls '' | 'm-struck' | 'm-ins'
+  var mHeroL1 = '', mHeroL2 = '';
 
-  // Hero line rotation
-  var heroSets = [
-    ['I never told her what I meant to',
-     'say. There was always tomorrow and',
-     'then tomorrow was gone'],
-    ['the only thing I need to do today',
-     'is write this down before',
-     'I lose it again'],
-    ['she said something important and',
-     'I meant to remember it but',
-     'I kept moving forward']
-  ];
-  var heroIdx = 0;
-  function rotateHero() {
-    var lines = document.querySelector('.m-hero-lines');
-    if (!lines) return;
-    lines.style.transition = 'opacity 0.6s ease';
-    lines.style.opacity = '0';
-    setTimeout(function() {
-      heroIdx = (heroIdx + 1) % heroSets.length;
-      var set = heroSets[heroIdx];
-      var a = document.getElementById('mhl-a');
-      var b = document.getElementById('mhl-b');
-      var c = document.getElementById('mhl-c');
-      if (a) a.textContent = set[0];
-      if (b) b.textContent = set[1];
-      if (c) {
-        c.innerHTML = set[2] +
-          '<span class="m-hero-cur"></span>';
-      }
-      lines.style.opacity = '1';
-    }, 600);
+  function mHeroSegHtml(segs) {
+    var h = '';
+    for (var i = 0; i < segs.length; i++) {
+      var s = segs[i];
+      if (s.cls === 'm-struck')   h += '<span class="m-struck">' + mEsc(s.text) + '</span>';
+      else if (s.cls === 'm-ins') h += '<span class="m-ins">' + mEsc(s.text) + '</span>';
+      else                        h += mEsc(s.text);
+    }
+    return h;
   }
-  setInterval(rotateHero, 5000);
+  function mHeroRender() {
+    var ct = mEl('m-hct'); if (ct) ct.innerHTML = mHeroSegHtml(mHeroSegs);
+    var l1 = mEl('m-hl1'); if (l1) l1.innerHTML = mHeroL1;
+    var l2 = mEl('m-hl2'); if (l2) l2.innerHTML = mHeroL2;
+  }
+  function mHeroType(str, done) {
+    if (!mHeroSegs.length || mHeroSegs[mHeroSegs.length - 1].cls !== '') {
+      mHeroSegs.push({ text: '', cls: '' });
+    }
+    var seg = mHeroSegs[mHeroSegs.length - 1];
+    var i = 0;
+    (function step() {
+      if (!mHeroAlive) return;
+      seg.text += str.charAt(i); i++;
+      mHeroRender();
+      if (i < str.length) mHeroTimer = setTimeout(step, 58);
+      else mHeroTimer = setTimeout(done, 0);
+    })();
+  }
+  function mHeroPush() {
+    mHeroL2 = mHeroL1;
+    mHeroL1 = mHeroSegHtml(mHeroSegs);
+    mHeroSegs = [];
+    mHeroRender();
+  }
+  function mHeroStrike() {
+    for (var i = mHeroSegs.length - 1; i >= 0; i--) {
+      var s = mHeroSegs[i];
+      var trimmed = s.text.replace(/\s+$/, '');
+      if (trimmed.length) {
+        var sp = trimmed.lastIndexOf(' ');
+        var head = sp < 0 ? '' : trimmed.slice(0, sp + 1);
+        var word = sp < 0 ? trimmed : trimmed.slice(sp + 1);
+        var repl = [];
+        if (head) repl.push({ text: head, cls: s.cls });
+        repl.push({ text: word, cls: 'm-struck' });
+        mHeroSegs.splice.apply(mHeroSegs, [i, 1].concat(repl));
+        break;
+      }
+    }
+    mHeroRender();
+  }
+  function mHeroInsert(text) { mHeroSegs.push({ text: text, cls: 'm-ins' }); mHeroRender(); }
+  function mHeroPause(ms, done) { mHeroTimer = setTimeout(function(){ if (mHeroAlive) done(); }, ms); }
+
+  var mHeroSteps = [
+    function(n){ mHeroType("you don't have a", n); },
+    function(n){ mHeroPush(); n(); },
+    function(n){ mHeroType("writing problem.", n); },
+    function(n){ mHeroPause(900, n); },
+    function(n){ mHeroStrike(); n(); },
+    function(n){ mHeroPause(500, n); },
+    function(n){ mHeroInsert(" editing"); n(); },
+    function(n){ mHeroPause(900, n); },
+    function(n){ mHeroPush(); n(); },
+    function(n){ mHeroType("you have an editor", n); },
+    function(n){ mHeroPause(400, n); },
+    function(n){ mHeroStrike(); n(); },
+    function(n){ mHeroInsert(" critic"); n(); },
+    function(n){ mHeroPause(400, n); },
+    function(n){ mHeroStrike(); n(); },
+    function(n){ mHeroInsert(" voice in your head."); n(); },
+    function(n){ mHeroPause(800, n); },
+    function(n){ mHeroPush(); n(); },
+    function(n){ mHeroType("writefwd removes it.", n); },
+    function(n){ mHeroPause(1000, n); },
+    function(n){ mHeroPush(); n(); },
+    function(n){ mHeroType("no backspace. ever.", n); },
+    function(n){ mHeroPause(900, n); },
+    function(n){ mHeroPush(); n(); },
+    function(n){ mHeroType("what comes out is more", n); },
+    function(n){ mHeroPush(); n(); },
+    function(n){ mHeroType("honest. more alive.", n); },
+    function(n){ mHeroPause(900, n); },
+    function(n){ mHeroPush(); n(); },
+    function(n){ mHeroType("more you.", n); },
+    function(n){ mHeroPause(1400, n); }
+  ];
+  function mHeroRun(idx) {
+    if (!mHeroAlive) return;
+    if (idx >= mHeroSteps.length) {   // loop: clear and restart
+      mHeroSegs = []; mHeroL1 = ''; mHeroL2 = ''; mHeroRender();
+      mHeroTimer = setTimeout(function(){ mHeroRun(0); }, 200);
+      return;
+    }
+    mHeroSteps[idx](function(){ mHeroRun(idx + 1); });
+  }
+  function mHeroStart() {
+    mHeroStop();
+    mHeroAlive = true;
+    mHeroSegs = []; mHeroL1 = ''; mHeroL2 = '';
+    mHeroRender();
+    mHeroRun(0);
+  }
+  function mHeroStop() {
+    mHeroAlive = false;
+    if (mHeroTimer) { clearTimeout(mHeroTimer); mHeroTimer = null; }
+  }
+
+  // Init — landing is the initial screen
+  mInitStrip();
+  mRotateQuote();
+  mHeroStart();
 
 })();
 </script>
