@@ -1,0 +1,7 @@
+{
+  "projectId": "d93bdbc1-bebb-4497-bf12-cca13293c58a",
+  "projectName": "writefwd",
+  "shape": "knowledge-base",
+  "source": "write-b/index.html",
+  "note": "No node in this environment and the site is intentionally build-less (plain HTML/CSS/JS). This project is a hand-authored knowledge base for Claude Design (tokens + component CSS + guidelines) extracted read-only from write-b, NOT a compiled component bundle. See NOTES.md."
+}
