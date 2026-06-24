@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>writefwd — write forward. never back.</title>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cream: #f5f2ed;
+  --cream2: #eeebe5;
+  --cream3: #e8e4dc;
+  --ink: #0a0a0a;
+  --ink2: #333;
+  --dim: #888;
+  --dimmer: #bbb;
+  --border-l: #dedad2;
+  --amber: #c8a060;
+  --amber-dim: #8a6028;
+  --bg-d: #0b0905;
+  --fw: 'Courier Prime','Courier New',monospace;
+  --fs: 'DM Mono',monospace;
+  --fb: 'DM Sans',sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+body { background: var(--cream); color: var(--ink); font-family: var(--fb); overflow-x: hidden; }
+
+/* grain utility — base opacity */
+.grain {
+  position: absolute; inset: 0; pointer-events: none; z-index: 2; opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px; border-radius: inherit;
+}
+/* heavier grain for dark sections — coated stock feel */
+.grain-dark {
+  position: absolute; inset: 0; pointer-events: none; z-index: 2; opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px; border-radius: inherit;
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 48px; height: 56px;
+  background: var(--cream); border-bottom: 1px solid var(--border-l);
+}
+.nav-wm { font-family: var(--fw); font-size: 11px; letter-spacing: 0.22em; color: var(--dim); }
+.nav-r { display: flex; align-items: center; gap: 28px; }
+.nav-a { font-family: var(--fs); font-size: 9px; letter-spacing: 0.13em; color: var(--dimmer); text-decoration: none; transition: color 0.15s; }
+.nav-a:hover { color: var(--dim); }
+.nav-cta {
+  font-family: var(--fs); font-size: 9px; letter-spacing: 0.13em;
+  background: var(--ink); color: var(--cream); border: none; border-radius: 2px;
+  padding: 8px 18px; cursor: pointer; text-decoration: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 0 #000, 0 3px 6px rgba(0,0,0,0.15);
+  transition: background 0.15s, box-shadow 0.08s, transform 0.08s;
+  display: inline-block; position: relative; top: 0;
+}
+.nav-cta:hover { background: #1a1a1a; }
+.nav-cta:active {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 #000;
+  transform: translateY(2px);
+  background: #111;
+}
+
+/* ════════════════════════════════════
+   HERO — BEFORE / AFTER SLIDER
+════════════════════════════════════ */
+.hero {
+  padding: 64px 48px 80px;
+  display: flex; flex-direction: column; align-items: center;
+  position: relative;
+}
+.hero-eyebrow {
+  font-family: var(--fs); font-size: 10px; letter-spacing: 0.28em;
+  text-transform: uppercase; color: var(--dimmer); margin-bottom: 40px;
+  text-align: center;
+}
+
+/* SLIDER WRAPPER */
+.slider-wrap {
+  width: 100%; max-width: 1080px; position: relative; margin-bottom: 48px;
+  border-radius: 6px; overflow: hidden;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.9) inset,
+    0 2px 0 var(--border-l),
+    0 6px 24px rgba(0,0,0,0.08),
+    0 20px 60px rgba(0,0,0,0.05);
+  border: 1px solid var(--border-l);
+  height: 480px;
+  cursor: ew-resize;
+  user-select: none;
+}
+
+/* ── AFTER — writefwd (right, revealed by handle) ── */
+.after-side {
+  position: absolute; inset: 0;
+  background: #0b0905;
+  overflow: hidden;
+}
+.after-glow {
+  position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+  width: 500px; height: 400px; border-radius: 50%;
+  background: radial-gradient(circle, #b86c14, transparent 65%);
+  filter: blur(70px); opacity: 0.15; pointer-events: none; z-index: 0;
+  transition: opacity 0.8s ease;
+}
+.after-vig {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 30%, transparent 20%, rgba(0,0,0,0.7) 100%);
+}
+/* scanlines */
+.after-sl {
+  position: absolute; inset: 0; pointer-events: none; z-index: 2;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.028) 3px, rgba(0,0,0,0.028) 4px);
+}
+
+.after-content {
+  position: absolute; inset: 0; z-index: 10;
+  display: flex; flex-direction: column;
+}
+.after-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 28px; border-bottom: 1px solid #141414; background: rgba(10,10,10,0.8);
+  flex-shrink: 0;
+}
+.after-wm { font-family: var(--fw); font-size: 10px; letter-spacing: 0.22em; color: #1e1408; }
+.after-meta { display: flex; align-items: center; gap: 12px; }
+.after-bar-wrap { width: 60px; height: 1px; background: #1a1a1a; }
+.after-bar-fill { height: 100%; background: #3d2a10; width: 0%; transition: width 0.3s; }
+.after-wc { font-family: var(--fs); font-size: 10px; color: #2a1e08; letter-spacing: 0.06em; }
+
+/* label */
+.after-label {
+  position: absolute; top: 14px; left: 28px; z-index: 20;
+  font-family: var(--fs); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--amber-dim); opacity: 0.7;
+}
+
+.after-body {
+  flex: 1; display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 24px 56px 12px; position: relative; overflow: hidden;
+}
+.after-fade {
+  position: absolute; top: 0; left: 0; right: 0; height: 120px;
+  background: linear-gradient(to bottom, #0b0905, transparent);
+  pointer-events: none; z-index: 3;
+}
+.after-lines { display: flex; flex-direction: column; gap: 0; }
+.af-line { font-family: var(--fw); font-size: 20px; line-height: 1.88; position: relative; z-index: 1; }
+.af-line.a3 { color: #141008; }
+.af-line.a2 { color: #1e1408; }
+.af-line.a1 { color: #3a2810; }
+.af-line.bright { color: #c8a060; }
+
+/* animated cursor */
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.after-cursor {
+  display: inline-block; width: 11px; height: 20px;
+  background: #c8a060; vertical-align: middle; margin-left: 2px;
+  animation: blink 0.9s step-end infinite;
+  box-shadow: 0 0 10px rgba(200,130,40,0.4);
+}
+.after-cursor.shaking { animation: shake 0.14s ease-out forwards; }
+#after-curline { font-family: var(--fw); font-size: 20px; line-height: 1.88; color: #c8a060; min-height: 36px; position: relative; z-index: 1; }
+.before-cursor { display: inline-block; width: 2px; height: 18px; background: #1a73e8; vertical-align: middle; margin-left: 1px; animation: blink 1s step-end infinite; }
+.before-cursor.shaking { animation: bshake 0.12s ease-out forwards; }
+
+.after-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 28px 14px; border-top: 1px solid #141414; background: rgba(10,10,10,0.6);
+  flex-shrink: 0;
+}
+.after-hint { font-family: var(--fs); font-size: 9px; color: #1e1e1e; letter-spacing: 0.12em; }
+.after-done { font-family: var(--fs); font-size: 9px; color: #1a1a1a; letter-spacing: 0.1em; border: 1px solid #141414; border-radius: 2px; padding: 5px 14px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
+
+/* ── BEFORE — Google Doc (left, revealed by handle position) ── */
+.before-side {
+  position: absolute; top: 0; left: 0; bottom: 0;
+  width: 50%; /* JS updates this */
+  background: #ffffff;
+  overflow: hidden;
+  z-index: 5;
+}
+.before-content {
+  /* fixed full-slider width so content never reflows as handle moves */
+  position: absolute; top: 0; left: 0; bottom: 0;
+  width: 1080px; /* matches slider max-width */
+  display: flex; flex-direction: column;
+}
+
+/* Google Doc chrome */
+.before-chrome {
+  background: #f8f9fa; border-bottom: 1px solid #e0e0e0;
+  padding: 0; flex-shrink: 0;
+}
+.before-toolbar {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 16px; border-bottom: 1px solid #e8eaed;
+}
+.before-menu { font-family: 'Arial', sans-serif; font-size: 11px; color: #444; padding: 3px 8px; cursor: pointer; border-radius: 3px; }
+.before-menu:hover { background: #f0f0f0; }
+.before-toolbar-icons { display: flex; align-items: center; gap: 1px; padding: 4px 16px; }
+.before-icon { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 3px; cursor: pointer; font-size: 12px; color: #444; }
+.before-icon:hover { background: #f0f0f0; }
+.before-icon-sep { width: 1px; height: 20px; background: #e0e0e0; margin: 0 4px; }
+.before-font { font-family: 'Arial', sans-serif; font-size: 11px; color: #444; border: 1px solid #dadce0; border-radius: 3px; padding: 2px 8px; width: 140px; }
+.before-size { font-family: 'Arial', sans-serif; font-size: 11px; color: #444; border: 1px solid #dadce0; border-radius: 3px; padding: 2px 4px; width: 36px; text-align: center; }
+
+.before-doc-area {
+  flex: 1; overflow: hidden; background: #f0f0f0;
+  display: flex; align-items: flex-start; justify-content: center; padding: 20px;
+}
+.before-doc {
+  background: #ffffff; width: 100%; max-width: 600px;
+  padding: 40px 48px; min-height: 100%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+}
+.before-doc-title { font-family: 'Arial', sans-serif; font-size: 22px; color: #000; margin-bottom: 20px; font-weight: 400; }
+.before-doc-body { font-family: 'Arial', sans-serif; font-size: 14px; line-height: 1.8; color: #000; }
+/* the animated typing with strikethrough deletions */
+#before-text { display: inline; }
+.strikethrough { text-decoration: line-through; color: #999; }
+.before-cursor { display: inline-block; width: 2px; height: 18px; background: #1a73e8; vertical-align: middle; margin-left: 1px; animation: blink 1s step-end infinite; }
+
+/* word count — stuck at low number */
+.before-wc-bar { background: #f8f9fa; border-top: 1px solid #e0e0e0; padding: 5px 16px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.before-wc-txt { font-family: 'Arial', sans-serif; font-size: 11px; color: #444; }
+.before-pages { font-family: 'Arial', sans-serif; font-size: 11px; color: #999; }
+
+/* before label */
+.before-label {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  /* actually absolute left within before-side */
+  left: 24px; transform: none;
+  font-family: var(--fs); font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: #999; z-index: 20;
+}
+
+/* ── SLIDER HANDLE ── */
+@keyframes shake { 0%{transform:translateX(0)} 15%{transform:translateX(-5px)} 30%{transform:translateX(5px)} 45%{transform:translateX(-3px)} 60%{transform:translateX(3px)} 75%{transform:translateX(-1px)} 100%{transform:translateX(0)} }
+@keyframes bshake { 0%{transform:translateX(0)} 15%{transform:translateX(-3px)} 30%{transform:translateX(3px)} 45%{transform:translateX(-2px)} 60%{transform:translateX(2px)} 75%{transform:translateX(-1px)} 100%{transform:translateX(0)} }
+
+.slider-handle {
+  position: absolute; top: 0; bottom: 0; z-index: 50;
+  width: 2px; background: var(--ink);
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: ew-resize;
+}
+.slider-handle::before {
+  content: '';
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 0 0 3px var(--cream);
+  z-index: 1;
+}
+/* arrows rendered as a separate span in HTML — not pseudo-element */
+.handle-arrows {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--fs); font-size: 9px; color: #fff;
+  letter-spacing: 0.04em; white-space: nowrap;
+  z-index: 60; pointer-events: none;
+  line-height: 1;
+}
+
+/* slider caption labels */
+.slider-caption-l {
+  position: absolute; bottom: 16px; left: 20px; z-index: 30;
+  font-family: var(--fs); font-size: 9px; letter-spacing: 0.14em;
+  color: #999; background: rgba(255,255,255,0.85);
+  border-radius: 2px; padding: 4px 10px; border: 1px solid #e0e0e0;
+}
+.slider-caption-r {
+  position: absolute; bottom: 16px; right: 20px; z-index: 15;
+  font-family: var(--fs); font-size: 9px; letter-spacing: 0.14em;
+  color: var(--amber-dim); background: rgba(10,9,5,0.7);
+  border-radius: 2px; padding: 4px 10px; border: 1px solid #2a2010;
+}
+
+/* ── HEADLINE + CTA below slider ── */
+.hero-hed {
+  font-family: var(--fb); font-size: clamp(32px, 3.8vw, 56px);
+  font-weight: 600; line-height: 1.1; letter-spacing: -0.04em;
+  color: var(--ink); margin-bottom: 16px; text-align: center;
+}
+.hero-sub {
+  font-size: 17px; font-weight: 300; color: var(--dim); line-height: 1.7;
+  max-width: 480px; text-align: center; margin-bottom: 32px;
+}
+.hero-ctas { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+
+/* ── ARROW NUDGE — applies to any element with → text ── */
+.arrow-nudge { display: inline-block; transition: transform 0.16s ease-out; }
+.btn-primary:hover .arrow-nudge,
+.btn-ghost:hover .arrow-nudge,
+.final-btn:hover .arrow-nudge,
+.nav-cta:hover .arrow-nudge { transform: translateX(4px); }
+
+.btn-primary {
+  font-family: var(--fs); font-size: 10px; letter-spacing: 0.12em;
+  background: var(--ink); color: var(--cream); border: none; border-radius: 2px;
+  padding: 14px 32px; cursor: pointer; text-decoration: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 0 #000, 0 4px 10px rgba(0,0,0,0.2);
+  transition: background 0.15s, box-shadow 0.08s, transform 0.08s;
+  display: inline-block; position: relative; top: 0;
+}
+.btn-primary:hover { background: #1a1a1a; }
+.btn-primary:active {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 #000, 0 1px 3px rgba(0,0,0,0.2);
+  transform: translateY(2px);
+}
+.btn-ghost {
+  font-family: var(--fs); font-size: 10px; letter-spacing: 0.12em;
+  color: var(--dim); border: 1px solid var(--border-l); border-radius: 2px;
+  padding: 13px 24px; cursor: pointer; text-decoration: none; background: transparent;
+  transition: all 0.15s, transform 0.08s;
+  display: inline-block;
+}
+.btn-ghost:hover { border-color: var(--dim); color: var(--ink); }
+.btn-ghost:active { transform: translateY(1px); }
+.hero-proof { font-family: var(--fs); font-size: 9px; color: var(--dimmer); letter-spacing: 0.08em; text-align: center; }
+
+/* ── DARK SECTION LIGHT-EDGE — recessed panel catching light from above ── */
+.demo-strip,
+.atmo,
+.final {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+/* ════════════════════════════════════
+   INTERACTIVE DEMO STRIP
+════════════════════════════════════ */
+.demo-strip {
+  background: #0a0a0a; padding: 56px 48px;
+  border-top: 1px solid #141414; border-bottom: 1px solid #141414;
+  position: relative; overflow: hidden;
+}
+.demo-glow-bg {
+  position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
+  width: 700px; height: 500px; border-radius: 50%;
+  background: radial-gradient(circle, #b86c14, transparent 65%);
+  filter: blur(100px); opacity: 0.07; pointer-events: none;
+}
+.demo-inner {
+  max-width: 680px; margin: 0 auto; position: relative; z-index: 5;
+  display: flex; flex-direction: column; align-items: center; gap: 24px;
+}
+.demo-copy { text-align: center; }
+.demo-ey { font-family: var(--fs); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #2a2a2a; margin-bottom: 12px; }
+.demo-hed {
+  font-family: var(--fw); font-size: 22px; font-weight: 400; font-style: normal;
+  color: #e0e0e0; line-height: 1.2; margin-bottom: 10px; letter-spacing: -0.01em;
+}
+.demo-sub { font-size: 13px; font-weight: 300; color: #3a3a3a; line-height: 1.6; max-width: 420px; margin: 0 auto; }
+
+/* ── DEMO WINDOW FOCUS — glow expands when user clicks in ── */
+.demo-win-wrap:focus-within::before {
+  background: radial-gradient(ellipse at 50% 40%, rgba(200,130,40,0.2), transparent 70%);
+  filter: blur(16px);
+}
+.demo-win-wrap:focus-within .demo-win {
+  border-color: rgba(255,255,255,0.11);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.09),
+    inset 0 -1px 0 rgba(0,0,0,0.5),
+    0 4px 0 rgba(0,0,0,0.9),
+    0 8px 0 rgba(0,0,0,0.6),
+    0 16px 40px rgba(0,0,0,0.8),
+    0 24px 60px rgba(0,0,0,0.4),
+    0 0 80px rgba(200,130,40,0.14);
+  transition: box-shadow 0.4s ease, border-color 0.4s ease;
+}
+  position: relative;
+}
+/* outer glow radiating onto dark section bg */
+.demo-win-wrap::before {
+  content: '';
+  position: absolute; top: -20px; left: -20px; right: -20px; bottom: -20px;
+  border-radius: 12px;
+  background: radial-gradient(ellipse at 50% 40%, rgba(200,130,40,0.12), transparent 70%);
+  filter: blur(20px);
+  pointer-events: none; z-index: 0;
+}
+.demo-win {
+  background: #0c0a06; border-radius: 6px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.07),   /* glass top edge */
+    inset 0 -1px 0 rgba(0,0,0,0.5),
+    0 1px 0 rgba(255,255,255,0.03),
+    0 4px 0 rgba(0,0,0,0.9),
+    0 8px 0 rgba(0,0,0,0.6),
+    0 16px 40px rgba(0,0,0,0.8),
+    0 24px 60px rgba(0,0,0,0.4),
+    0 0 60px rgba(180,100,20,0.08);          /* amber outer bloom */
+  position: relative; z-index: 1;
+}
+.dw-glow-inner {
+  position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+  width: 340px; height: 300px; border-radius: 50%;
+  background: radial-gradient(circle, #c87c1a, transparent 65%);
+  filter: blur(40px); opacity: 0.22; pointer-events: none; z-index: 0;
+  transition: opacity 0.6s ease;
+}
+@keyframes bloom { 0%{opacity:0.22;transform:translateX(-50%) scale(1)} 30%{opacity:0.45;transform:translateX(-50%) scale(1.25)} 100%{opacity:0.22;transform:translateX(-50%) scale(1)} }
+.dw-glow-inner.blooming { animation: bloom 0.7s ease-out forwards; }
+.dw-sl2 { position: absolute; inset: 0; z-index: 3; pointer-events: none; background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.02) 3px, rgba(0,0,0,0.02) 4px); border-radius: 6px; }
+
+.dw-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px; border-bottom: 1px solid #1e1a12; background: rgba(8,6,2,0.9);
+  position: relative; z-index: 5;
+}
+.dw-wm2 { font-family: var(--fw); font-size: 9px; letter-spacing: 0.22em; color: #3a2a10; }
+.dw-meta { display: flex; align-items: center; gap: 10px; }
+.dw-bar2 { width: 44px; height: 1px; background: #1e1a10; position: relative; }
+.dw-bf2 { position: absolute; top:0; left:0; height:100%; background: #4a3420; transition: width 0.3s; }
+.dw-wc2 { font-family: var(--fs); font-size: 9px; color: #3a2a10; letter-spacing: 0.06em; }
+
+.dw-body2 {
+  padding: 16px 22px 0; min-height: 100px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  position: relative; overflow: hidden; z-index: 5; cursor: text;
+}
+.dw-fade2 { position: absolute; top:0; left:0; right:0; height:55px; background: linear-gradient(to bottom, #0c0a06, transparent); z-index:2; pointer-events:none; }
+.dw-ph {
+  font-family: var(--fw); font-size: 15px; font-style: italic;
+  color: #3a2810; line-height: 1.88;
+  position: absolute; bottom:0; left:22px; right:22px; z-index:1;
+  pointer-events:none; transition: opacity 0.3s;
+}
+#dlines { display: flex; flex-direction: column; position: relative; z-index:1; }
+.dl { font-family: var(--fw); font-size: 15px; line-height: 1.88; transition: color 0.9s; }
+.dl.a1 { color: #5a3c18; }
+.dl.a2 { color: #3a2410; }
+.dl.a3 { color: #221608; }
+.dcl { font-family: var(--fw); font-size: 15px; line-height: 1.88; color: #c8a060; min-height: 28px; position: relative; z-index:1; }
+@keyframes cshake { 0%{transform:translateX(0)} 15%{transform:translateX(-5px)} 30%{transform:translateX(5px)} 45%{transform:translateX(-3px)} 60%{transform:translateX(3px)} 75%{transform:translateX(-1px)} 100%{transform:translateX(0)} }
+@keyframes hintshake { 0%{transform:translateX(0)} 20%{transform:translateX(-4px)} 40%{transform:translateX(4px)} 60%{transform:translateX(-2px)} 80%{transform:translateX(2px)} 100%{transform:translateX(0)} }
+#dcur {
+  display: inline-block; width: 10px; height: 15px;
+  background: #c8a060; vertical-align: middle; margin-left: 1px;
+  animation: blink 0.9s step-end infinite;
+  box-shadow: 0 0 10px rgba(200,130,40,0.5), 0 0 20px rgba(200,130,40,0.2);
+}
+#dcur.shaking { animation: cshake 0.14s ease-out forwards; }
+#dtext-inp { position: absolute; opacity: 0; pointer-events: none; width: 1px; height: 1px; font-size: 16px; top:0; left:0; }
+
+.dw-foot2 {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 20px 14px; border-top: 1px solid #1a1408; background: rgba(8,6,2,0.9);
+  position: relative; z-index:5; margin-top: 8px;
+}
+.dw-hint2 { font-family: var(--fs); font-size: 8px; color: #2e2010; letter-spacing: 0.14em; transition: color 0.2s; display: inline-block; }
+.dw-hint2.flash { color: #c8a060; text-shadow: 0 0 12px rgba(200,130,40,0.4); }
+.dw-hint2.shaking { animation: hintshake 0.18s ease-out forwards; }
+.dw-done2 {
+  font-family: var(--fs); font-size: 9px; color: #2e2010; letter-spacing: 0.1em;
+  border: 1px solid #2a1e0a; border-radius: 2px; padding: 5px 13px;
+  background: rgba(20,14,4,0.8);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.6), inset 0 -1px 0 rgba(255,255,255,0.02);
+}
+
+/* ════════════════════════════════════
+   PROBLEM
+════════════════════════════════════ */
+.problem { max-width: 720px; margin: 0 auto; padding: 96px 48px; border-bottom: 1px solid var(--border-l); }
+.sec-ey { font-family: var(--fs); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dimmer); margin-bottom: 24px; }
+.prob-txt { font-family: var(--fw); font-size: clamp(16px,1.8vw,21px); font-style: italic; color: var(--dim); line-height: 1.65; }
+.prob-txt em { color: var(--ink); }
+.prob-pull { border-left: 2px solid var(--cream3); padding: 14px 22px; margin-top: 28px; background: var(--cream2); }
+.prob-pull-txt { font-family: var(--fw); font-size: 17px; font-style: italic; color: var(--amber-dim); line-height: 1.5; }
+.prob-list { margin-top: 28px; display: flex; flex-direction: column; gap: 8px; }
+.prob-li { display: flex; gap: 12px; }
+.prob-li-d { font-family: var(--fs); font-size: 10px; color: var(--dimmer); flex-shrink: 0; }
+.prob-li-t { font-family: var(--fw); font-size: 14px; color: var(--dim); line-height: 1.5; }
+
+/* ════════════════════════════════════
+   WHO
+════════════════════════════════════ */
+.who { padding: 0 48px 96px; border-bottom: 1px solid var(--border-l); }
+.who-in { max-width: 1040px; margin: 0 auto; }
+.three { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border-l); border: 1px solid var(--border-l); border-radius: 2px; overflow: hidden; }
+.who-c { background: var(--cream); padding: 28px; }
+.who-h { font-family: var(--fw); font-size: 16px; font-style: italic; color: var(--ink); margin-bottom: 10px; line-height: 1.3; }
+.who-b { font-family: var(--fw); font-size: 13px; color: var(--dim); line-height: 1.65; }
+.who-foot { font-family: var(--fs); font-size: 9px; color: var(--dimmer); margin-top: 40px; letter-spacing: 0.08em; }
+
+/* ════════════════════════════════════
+   ATMOSPHERES — dark
+════════════════════════════════════ */
+.atmo { background: #000; padding: 80px 48px; border-top: 1px solid #141414; border-bottom: 1px solid #141414; position: relative; overflow: hidden; }
+.atmo-in { max-width: 1040px; margin: 0 auto; position: relative; z-index: 5; }
+.atmo-top { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; }
+.atmo-h { font-family: var(--fw); font-size: 26px; font-weight: 400; font-style: normal; color: #555; letter-spacing: -0.01em; line-height: 1.2; }
+.atmo-s { font-family: var(--fs); font-size: 9px; color: #282828; letter-spacing: 0.1em; max-width: 260px; line-height: 1.6; text-align: right; }
+.atmo-g { display: grid; grid-template-columns: repeat(6,1fr); gap: 1px; background: #1a1a1a; border: 1px solid #1a1a1a; border-radius: 2px; overflow: hidden; }
+.atmo-c { padding: 28px 20px; display: flex; flex-direction: column; gap: 12px; transition: filter 0.2s; cursor: pointer; }
+.atmo-c:hover { filter: brightness(1.3); }
+.atmo-n { font-family: var(--fs); font-size: 8px; letter-spacing: 0.12em; }
+.atmo-p { font-family: var(--fw); font-size: 12px; font-style: italic; line-height: 1.55; }
+/* ── PRICING CTA PRESS ── */
+.pcta-free, .pcta-paid {
+  transition: all 0.15s, transform 0.08s;
+  position: relative; top: 0;
+}
+.pcta-free:active { transform: translateY(1px); }
+.pcta-paid:active {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 0 0 #6b4020;
+  transform: translateY(2px);
+}
+.atmo-n { font-family: var(--fs); font-size: 8px; letter-spacing: 0.1em; }
+.atmo-p { font-family: var(--fw); font-size: 11px; font-style: italic; line-height: 1.5; }
+
+/* ════════════════════════════════════
+   DEVICE MOCKUPS — cream bg, pops
+════════════════════════════════════ */
+.devices { padding: 96px 48px; border-bottom: 1px solid var(--border-l); }
+.dev-in { max-width: 1040px; margin: 0 auto; }
+.dev-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; align-items: end; margin-top: 40px; }
+.dev-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.dev-lbl { font-family: var(--fs); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dimmer); }
+
+/* browser */
+.browser {
+  width: 100%; background: #fff; border-radius: 6px; overflow: hidden;
+  border: 1px solid #d8d4cc;
+  box-shadow: 0 2px 0 #b8b4ac, 0 4px 16px rgba(0,0,0,0.1), 0 16px 40px rgba(0,0,0,0.06);
+}
+.brow-chrome { background: #f0ede8; padding: 8px 12px; border-bottom: 1px solid #e0dcd6; display: flex; align-items: center; gap: 8px; }
+.brow-dots { display: flex; gap: 5px; }
+.brow-dot { width: 8px; height: 8px; border-radius: 50%; }
+.brow-url { flex: 1; background: #fff; border: 1px solid #e0dcd6; border-radius: 3px; padding: 3px 10px; font-family: var(--fs); font-size: 8px; color: var(--dimmer); }
+.brow-body { background: #0b0905; padding: 20px 24px 0; min-height: 160px; display: flex; flex-direction: column; justify-content: flex-end; position: relative; overflow: hidden; }
+.brow-fade { position: absolute; top:0; left:0; right:0; height:40px; background: linear-gradient(to bottom, #0b0905, transparent); z-index:2; pointer-events:none; }
+.brow-g { position: absolute; top:-30px; left:50%; transform:translateX(-50%); width:160px; height:120px; border-radius:50%; background:radial-gradient(circle, #b86c14, transparent 70%); filter:blur(28px); opacity:0.12; pointer-events:none; }
+.bl { font-family: var(--fw); font-size: 12px; line-height: 1.88; position: relative; z-index:1; }
+.bl.d3 { color: #141414; } .bl.d2 { color: #1e1e1e; } .bl.d1 { color: #444; } .bl.bright { color: #c8a060; }
+.bc { display: inline-block; width: 8px; height: 13px; background: #c8a060; vertical-align: middle; margin-left: 1px; animation: blink 0.9s step-end infinite; box-shadow: 0 0 5px rgba(200,130,40,0.3); }
+.brow-foot { background: #0a0a0a; padding: 8px 16px; border-top: 1px solid #141414; display: flex; align-items: center; justify-content: space-between; }
+.bf-hint { font-family: var(--fs); font-size: 7px; color: #181818; letter-spacing: 0.1em; }
+.bf-done { font-family: var(--fs); font-size: 7px; color: #1e1e1e; letter-spacing: 0.08em; border: 1px solid #141414; border-radius: 1px; padding: 3px 8px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5); }
+
+/* phone sm */
+.phone-sm {
+  width: 190px; border-radius: 34px; overflow: hidden;
+  border: 1px solid #1e1e1e; background: #0b0905;
+  box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.07), 0 3px 0 rgba(0,0,0,0.8), 0 10px 28px rgba(0,0,0,0.5), 0 20px 50px rgba(0,0,0,0.25);
+  position: relative;
+}
+.psm-notch { width: 60px; height: 17px; background: #000; border-radius: 0 0 10px 10px; position: absolute; top:0; left:50%; transform:translateX(-50%); z-index:10; }
+.psm-screen { padding: 26px 14px 16px; min-height: 340px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+.psm-glow { position: absolute; top:-40px; left:50%; transform:translateX(-50%); width:160px; height:140px; border-radius:50%; filter:blur(28px); opacity:0.16; pointer-events:none; z-index:0; }
+.psm-ct { position: relative; z-index:5; flex:1; display:flex; flex-direction:column; }
+
+/* done screen */
+.done-s { background: #0a0a0a; min-height: 340px; display: flex; flex-direction: column; padding: 26px 14px 16px; }
+.dsm-hdr { border-bottom: 1px solid #141414; padding-bottom: 12px; margin-bottom: 0; }
+.dsm-ey { font-family: var(--fs); font-size: 7px; letter-spacing: 0.16em; text-transform: uppercase; color: #1e1e1e; margin-bottom: 4px; }
+.dsm-h { font-family: var(--fw); font-size: 14px; font-style: italic; color: #c8a060; line-height: 1.3; margin-bottom: 2px; }
+.dsm-s { font-family: var(--fs); font-size: 7px; color: #1e1e1e; }
+.dstats { display: flex; border-bottom: 1px solid #141414; }
+.dstat { flex:1; padding: 10px 0 10px 10px; border-right: 1px solid #141414; background: #080808; }
+.dstat:last-child { border-right: none; }
+.dstat-n { font-family: var(--fs); font-size: 18px; font-weight: 300; color: #e0e0e0; letter-spacing: -0.04em; line-height: 1; margin-bottom: 2px; text-shadow: 0 1px 0 rgba(255,255,255,0.07), 0 -1px 0 rgba(0,0,0,0.7); }
+.dstat-l { font-family: var(--fs); font-size: 7px; letter-spacing: 0.12em; text-transform: uppercase; color: #1e1e1e; }
+.dfl { padding: 10px 10px; border-bottom: 1px solid #141414; background: #0c0c0c; }
+.dfl-l { font-family: var(--fs); font-size: 7px; letter-spacing: 0.12em; text-transform: uppercase; color: #1e1e1e; margin-bottom: 4px; }
+.dfl-t { font-family: var(--fw); font-size: 10px; font-style: italic; color: #2e2e2e; line-height: 1.5; }
+.dacts { padding: 10px; display: flex; flex-direction: column; gap: 6px; margin-top: auto; }
+.dkg { background: #e0e0e0; border: none; border-radius: 2px; padding: 10px; font-family: var(--fs); font-size: 8px; letter-spacing: 0.08em; color: #0a0a0a; text-align: center; box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 0 #999, 0 3px 5px rgba(0,0,0,0.3); }
+.drd { border: 1px solid #1a1a1a; border-radius: 2px; padding: 8px; font-family: var(--fs); font-size: 8px; letter-spacing: 0.08em; color: #222; text-align: center; background: #080808; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
+
+/* ════════════════════════════════════
+   PRICING
+════════════════════════════════════ */
+.pricing { padding: 72px 48px; border-bottom: 1px solid var(--border-l); }
+.pricing-in { max-width: 740px; margin: 0 auto; }
+.price-h { font-family: var(--fw); font-size: 22px; font-weight: 400; font-style: normal; color: var(--ink); margin-bottom: 8px; letter-spacing: -0.01em; }
+.price-s { font-size: 13px; font-weight: 300; color: var(--dim); margin-bottom: 24px; }
+.pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border-l); border-radius: 2px; overflow: hidden; }
+.pc { background: var(--cream); padding: 24px 28px; }
+.pc.featured { background: var(--ink); border-left: 1px solid #1a1a1a; }
+.pt { font-family: var(--fs); font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 8px; }
+.pt-free { color: var(--dimmer); }
+.pt-paid { color: var(--amber-dim); }
+.pa { font-family: var(--fs); font-size: 28px; font-weight: 300; letter-spacing: -0.04em; margin-bottom: 4px; }
+.pa-free { color: var(--ink); }
+.pa-paid { color: var(--amber); }
+.pp { font-family: var(--fs); font-size: 9px; margin-bottom: 16px; }
+.pp-free { color: var(--dimmer); }
+.pp-paid { color: #555; }
+.plist { list-style: none; display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+.plist li { font-size: 13px; padding-left: 14px; position: relative; line-height: 1.5; }
+.plist li::before { content: '—'; position: absolute; left: 0; }
+.plist.free li { color: var(--dim); }
+.plist.free li::before { color: var(--dimmer); }
+.plist.free li.hi { color: var(--ink); }
+.plist.paid li { color: #444; }
+.plist.paid li::before { color: #333; }
+.plist.paid li.hi { color: #e0e0e0; }
+.plist.paid li.hi::before { color: var(--amber-dim); }
+.pcta-free { display:block; font-family:var(--fs); font-size:10px; letter-spacing:0.12em; text-align:center; padding:13px; border-radius:2px; text-decoration:none; border:1px solid var(--border-l); color:var(--dim); background:transparent; transition:all 0.15s; }
+.pcta-free:hover { border-color:var(--dim); color:var(--ink); }
+.pcta-paid { display:block; font-family:var(--fs); font-size:10px; letter-spacing:0.12em; text-align:center; padding:13px; border-radius:2px; text-decoration:none; background:var(--amber); color:#0a0808; box-shadow:inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 0 #6b4020, 0 3px 6px rgba(0,0,0,0.3); transition:all 0.15s; }
+.pcta-paid:hover { background: #d4aa6a; }
+
+/* ════════════════════════════════════
+   COMPARE
+════════════════════════════════════ */
+.compare { padding: 0 48px 96px; border-bottom: 1px solid var(--border-l); }
+.cmp-in { max-width: 680px; margin: 0 auto; }
+.cgrid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; background: var(--border-l); border: 1px solid var(--border-l); border-radius: 2px; overflow: hidden; gap: 1px; }
+.ch { background: var(--cream2); padding: 10px 14px; font-family: var(--fs); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dimmer); border-bottom: 1px solid var(--border-l); }
+.ch.ours { color: var(--amber-dim); background: #fdf8f0; }
+.cc { background: var(--cream); padding: 10px 14px; font-size: 12px; color: var(--dim); border-bottom: 1px solid var(--border-l); line-height: 1.4; }
+.cc.ours { color: var(--ink); background: #fdf8f0; }
+.cc.no { color: var(--dimmer); }
+
+/* ════════════════════════════════════
+   FINAL CTA
+════════════════════════════════════ */
+.final { background: var(--ink); padding: 100px 48px; text-align: center; position: relative; overflow: hidden; }
+.final-h { font-family: var(--fw); font-size: clamp(20px,2.2vw,32px); font-weight: 400; color: #e0e0e0; line-height: 1.25; margin-bottom: 12px; letter-spacing: -0.02em; }
+.final-s { font-size: 15px; font-weight: 300; color: #444; margin-bottom: 36px; }
+.final-btn {
+  font-family: var(--fs); font-size: 11px; letter-spacing: 0.12em;
+  background: #e0e0e0; color: var(--ink); border: none; border-radius: 2px;
+  padding: 16px 44px; cursor: pointer; text-decoration: none; display: inline-block;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 0 #777, 0 4px 12px rgba(0,0,0,0.4);
+  transition: background 0.15s, box-shadow 0.08s, transform 0.08s;
+  position: relative; top: 0;
+}
+.final-btn:hover { background: #f5f5f5; }
+.final-btn:active {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 #777, 0 1px 4px rgba(0,0,0,0.3);
+  transform: translateY(2px);
+}
+.final-fw { font-family: var(--fs); font-size: 9px; color: #1e1e1e; letter-spacing: 0.08em; margin-top: 16px; }
+
+/* waitlist form on dark background */
+.final #final-form {
+  box-shadow: none;
+}
+.final #final-form .waitlist-input {
+  background: #111; color: #e0e0e0;
+  border-color: #2a2a2a;
+}
+.final #final-form .waitlist-input::placeholder { color: #333; }
+.final #final-form .waitlist-btn {
+  background: #e0e0e0; color: var(--ink);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+}
+.final #final-form .waitlist-btn:hover { background: #f5f5f5; }
+
+/* footer */
+footer { background: var(--cream); border-top: 1px solid var(--border-l); padding: 22px 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.f-wm { font-family: var(--fw); font-size: 10px; letter-spacing: 0.22em; color: var(--dimmer); }
+.f-links { display: flex; gap: 20px; }
+.f-a { font-family: var(--fs); font-size: 9px; color: var(--dimmer); text-decoration: none; }
+.f-copy { font-family: var(--fs); font-size: 9px; color: var(--dimmer); }
+
+/* ── VIDEO PLACEHOLDER ── */
+.video-wrap {
+  width: 100%; max-width: 1000px; margin-bottom: 48px; position: relative;
+  border-radius: 8px; overflow: hidden;
+  border: 1px solid var(--border-l);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.9),
+    0 2px 0 var(--border-l),
+    0 8px 32px rgba(0,0,0,0.08),
+    0 24px 64px rgba(0,0,0,0.04);
+}
+/* when a real video is dropped in, it fills this */
+.video-wrap video {
+  width: 100%; display: block; border-radius: 7px;
+}
+/* placeholder shown until video is ready */
+.video-placeholder {
+  background: var(--cream2); aspect-ratio: 16/9;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 16px; border-radius: 7px; position: relative; overflow: hidden;
+}
+.video-placeholder::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(135deg, var(--cream2) 0%, #e8e4dc 100%);
+}
+.vp-left {
+  position: absolute; inset: 0; left: 0; width: 50%;
+  background: #fff; border-right: 2px solid var(--border-l);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+}
+.vp-right {
+  position: absolute; inset: 0; left: 50%;
+  background: #0b0905; border-left: 2px solid var(--border-l);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+}
+.vp-label-l { font-family: var(--fs); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #bbb; }
+.vp-label-r { font-family: var(--fs); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #2a1e08; }
+.vp-icon-l { font-size: 28px; opacity: 0.15; }
+.vp-icon-r { font-size: 28px; color: #c8a060; opacity: 0.4; }
+.vp-spec {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(10,10,10,0.85); padding: 14px 20px;
+  display: flex; align-items: flex-start; gap: 14px;
+}
+.vp-spec-lbl { font-family: var(--fs); font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber-dim); flex-shrink: 0; padding-top: 1px; }
+.vp-spec-txt { font-family: var(--fs); font-size: 10px; color: #444; line-height: 1.6; letter-spacing: 0.04em; }
+.vp-spec-txt span { color: #888; display: block; }
+
+/* ── WAITLIST FORM ── */
+.waitlist-form {
+  display: flex; width: 100%; max-width: 480px;
+  border-radius: 3px; overflow: hidden;
+  box-shadow: 0 2px 0 var(--border-l), 0 6px 24px rgba(0,0,0,0.09);
+}
+.waitlist-input {
+  flex: 1; font-family: var(--fs); font-size: 11px; letter-spacing: 0.08em;
+  color: var(--ink); background: #fff; border: 1px solid var(--border-l);
+  border-right: none; outline: none; padding: 16px 20px;
+}
+.waitlist-input::placeholder { color: var(--dimmer); }
+.waitlist-btn {
+  font-family: var(--fs); font-size: 10px; letter-spacing: 0.14em;
+  background: var(--ink); color: var(--cream); border: none;
+  padding: 16px 24px; cursor: pointer; white-space: nowrap;
+  transition: background 0.15s, transform 0.08s;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 0 #000;
+  display: flex; align-items: center; gap: 6px;
+}
+.waitlist-btn:hover { background: #1a1a1a; }
+.waitlist-btn:active { transform: translateY(1px); }
+.waitlist-btn.success { background: var(--amber-dim); color: var(--cream); pointer-events: none; }
+.pcta-coming {
+  display: block; font-family: var(--fs); font-size: 10px; letter-spacing: 0.12em;
+  text-align: center; padding: 12px; border-radius: 2px;
+  border: 1px solid #1e1e1e; color: #2a2a2a; background: #0e0e0e;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+}
+
+@media (max-width: 768px) {
+  nav { padding: 0 24px; }
+  .hero { padding: 40px 24px 56px; }
+  .slider-wrap { height: 360px; }
+  .after-body, .before-doc { padding: 24px; }
+  .af-line, #after-curline { font-size: 16px; }
+  .demo-inner { grid-template-columns: 1fr; gap: 40px; }
+  .dev-row { grid-template-columns: 1fr; }
+  .three { grid-template-columns: 1fr; }
+  .pgrid { grid-template-columns: 1fr; }
+  .atmo-g { grid-template-columns: repeat(3,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-wm">writefwd</span>
+  <div class="nav-r">
+    <a href="#demo" class="nav-a">try it</a>
+    <a href="#pricing" class="nav-a">pricing</a>
+    <a href="#devices" class="nav-a">apps</a>
+    <a href="#waitlist" class="nav-cta">join the waitlist <span class="arrow-nudge">→</span></a>
+  </div>
+</nav>
+
+<!-- ════════════════════════
+     HERO
+════════════════════════ -->
+<section class="hero">
+
+  <div class="hero-eyebrow">the world's best first draft tool</div>
+
+  <!-- VIDEO HERO — drop in autoplay loop video here -->
+  <div class="video-wrap">
+    <!--
+      DROP VIDEO HERE: <video autoplay loop muted playsinline src="writefwd-demo.mp4"></video>
+
+      VIDEO SPEC (for recording/editing):
+      — Duration: 10–14 seconds, loops seamlessly
+      — Aspect ratio: 16:9, minimum 1200×675px, ideally 2x for retina
+      — No audio needed (muted autoplay)
+      — Sequence:
+          0:00–0:05  Google Doc side. Someone types a sentence. Pauses. Selects all. Deletes it.
+                     Tries again. Different opening. Deletes that too. Cursor blinks on empty page.
+                     Word count: 0. Background: #ffffff, sterile, clinical.
+          0:05–0:06  Hard cut or wipe right → writefwd opens in candlewick atmosphere.
+          0:06–0:14  Words flow forward and upward. Amber cursor glowing. Lines fading into the dark.
+                     Word count climbing: 23 → 47 → 84. Someone hits backspace — cursor shakes, nothing
+                     deletes. They keep going. Last frame: bright amber line mid-sentence, cursor blinking.
+    -->
+    <div class="video-placeholder" style="background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="8" width="36" height="24" rx="2" stroke="#222" stroke-width="1.5"/>
+        <path d="M28 8L36 2M12 8L4 2M28 32L36 38M12 32L4 38" stroke="#222" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="10" y1="8" x2="10" y2="32" stroke="#222" stroke-width="1.5"/>
+        <line x1="20" y1="8" x2="20" y2="32" stroke="#222" stroke-width="1.5"/>
+        <line x1="30" y1="8" x2="30" y2="32" stroke="#222" stroke-width="1.5"/>
+      </svg>
+      <span style="font-family:var(--fs); font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:#1a1a1a;">// video</span>
+    </div>
+  </div>
+  <!-- end video -->
+
+  <h1 class="hero-hed">You write a sentence.<br>You delete it.<br>An hour passes.</h1>
+  <p class="hero-sub">writefwd removes the backspace key. The sentence stays. You keep going.</p>
+  <form class="waitlist-form" id="hero-form" onsubmit="handleWaitlist(event,'hero-form')">
+    <input class="waitlist-input" type="email" placeholder="your email address" required autocomplete="email">
+    <button class="waitlist-btn" type="submit">join the waitlist <span class="arrow-nudge">→</span></button>
+  </form>
+  <div class="hero-proof">// free to join · no spam · early access when we launch</div>
+
+</section>
+
+<!-- ════════════════════════
+     INTERACTIVE DEMO
+════════════════════════ -->
+<section class="demo-strip" id="demo">
+  <div class="demo-glow-bg"></div>
+  <div class="grain-dark"></div>
+  <div class="demo-inner">
+
+    <div class="demo-copy">
+      <div class="demo-ey">// try it right now</div>
+      <h2 class="demo-hed">Type something. Then try to delete it.</h2>
+      <p class="demo-sub">Click the window and start writing. Then hit backspace.</p>
+    </div>
+
+    <div class="demo-win-wrap" style="width:100%;">
+      <div class="demo-win" id="demo-win">
+        <div class="dw-glow-inner" id="dw-glow"></div>
+        <div class="dw-sl2"></div>
+        <textarea id="dtext-inp" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+
+        <div class="dw-hdr">
+          <span class="dw-wm2">writefwd</span>
+          <div class="dw-meta">
+            <div class="dw-bar2"><div class="dw-bf2" id="dw-bf2" style="width:72%;"></div></div>
+            <span class="dw-wc2" id="dw-wc2">0 words</span>
+          </div>
+        </div>
+
+        <div class="dw-body2" id="dw-body2">
+          <div class="dw-fade2"></div>
+          <div id="dw-ph" class="dw-ph">Click here and start writing. Backspace won't work.</div>
+          <div id="dlines"></div>
+          <div class="dcl"><span id="dw-ct"></span><span id="dcur"></span></div>
+        </div>
+
+        <div class="dw-foot2">
+          <span class="dw-hint2" id="dw-hint">// no going back</span>
+          <span class="dw-done2">done writing →</span>
+        </div>
+      </div><!-- end demo-win -->
+      <div style="font-family:var(--fs); font-size:8px; color:#252525; letter-spacing:0.1em; margin-top:12px; text-align:center;">// candlewick · writer's edition</div>
+    </div><!-- end demo-win-wrap -->
+
+  </div>
+</section>
+
+<!-- REDDIT QUOTES — cream, readable, feels like found notes -->
+<section style="background:var(--cream); padding: 48px 48px 0; border-top:1px solid var(--border-l);">
+  <div style="max-width:560px; margin:0 auto;">
+    <h2 style="font-family:var(--fw); font-size:18px; font-weight:400; font-style:normal; color:var(--ink); margin-bottom:24px; letter-spacing:-0.01em;">Sound familiar?</h2>
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      <div style="border-left:2px solid var(--border-l); padding-left:18px;">
+        <p style="font-family:var(--fw); font-size:14px; font-style:italic; color:var(--dim); line-height:1.65;">"I write a sentence, immediately hate it, and delete it. An hour passes. The document is still blank."</p>
+      </div>
+      <div style="border-left:2px solid var(--border-l); padding-left:18px;">
+        <p style="font-family:var(--fw); font-size:14px; font-style:italic; color:var(--dim); line-height:1.65;">"I have been sitting on an almost kinda done draft for two weeks."</p>
+      </div>
+      <div style="border-left:2px solid var(--border-l); padding-left:18px;">
+        <p style="font-family:var(--fw); font-size:14px; font-style:italic; color:var(--dim); line-height:1.65;">"The rules are no backspacing, no rereading, no editing. Something happens."</p>
+      </div>
+    </div>
+    <p style="font-family:var(--fs); font-size:9px; color:var(--dimmer); letter-spacing:0.1em; margin-top:16px;">// r/writing · r/Substack · unprompted</p>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="problem">
+  <div class="sec-ey">// the problem</div>
+  <p class="prob-txt">You don't have a writing problem. You have an <em>editing problem.</em><br><br>The internal critic fires before the first sentence is finished. You write it, hate it, delete it. You rewrite it. You hate that too. Nothing exists. The document is still blank.<br><br><em>The editor is in the room. writefwd removes it.</em></p>
+  <div class="prob-pull"><div class="prob-pull-txt">"I focus on saying the thing rather than how I'm saying the thing. I can't hate a sentence that does its job."</div></div>
+  <div class="prob-list">
+    <div class="prob-li"><span class="prob-li-d">—</span><span class="prob-li-t">the newsletter you've rewritten the opening of eleven times</span></div>
+    <div class="prob-li"><span class="prob-li-d">—</span><span class="prob-li-t">the email addressed to "an audience" which is nobody</span></div>
+    <div class="prob-li"><span class="prob-li-d">—</span><span class="prob-li-t">the chapter you've been warming up for long enough</span></div>
+    <div class="prob-li"><span class="prob-li-d">—</span><span class="prob-li-t">the thing sitting in drafts for two weeks that's almost kinda done</span></div>
+    <div class="prob-li"><span class="prob-li-d">—</span><span class="prob-li-t">the hard conversation you keep writing and deleting instead of sending</span></div>
+  </div>
+</section>
+
+<!-- WHO — distilled to one truth -->
+<section style="padding: 0 48px 80px; border-bottom:1px solid var(--border-l);">
+  <div style="max-width:680px; margin:0 auto;">
+    <p style="font-family:var(--fw); font-size:18px; font-style:italic; color:var(--dim); line-height:1.65;">You already know freewriting works. You just can't stop yourself from editing. writefwd enforces the discipline you already believe in.</p>
+    <p style="font-family:var(--fs); font-size:9px; color:var(--dimmer); letter-spacing:0.1em; margin-top:16px;">// no craft advice. no prompts. no AI. just the wall — and what's on the other side of it.</p>
+  </div>
+</section>
+
+<!-- ATMOSPHERES -->
+<section class="atmo">
+  <div class="grain-dark"></div>
+  <div class="atmo-in">
+    <div class="atmo-top">
+      <h2 class="atmo-h">Six rooms.<br>Six prompt voices.</h2>
+      <div class="atmo-s">// not a mood selector — an act of intention before the first word. each room carries its own prompt voice.</div>
+    </div>
+    <div class="atmo-g">
+      <div class="atmo-c" style="background:#0b0905;"><div class="atmo-dot2" style="background:#f5e2b8;box-shadow:inset 0 1px 0 rgba(255,255,255,0.3),0 1px 2px rgba(0,0,0,0.5);"></div><div class="atmo-n" style="color:#8a6028;">candlewick</div><div class="atmo-p" style="color:#c8a060;">The version of this you haven't said out loud yet.</div></div>
+      <div class="atmo-c" style="background:#0d0806;"><div class="atmo-dot2" style="background:#f5c8b0;box-shadow:inset 0 1px 0 rgba(255,255,255,0.3),0 1px 2px rgba(0,0,0,0.5);"></div><div class="atmo-n" style="color:#8a4030;">redline</div><div class="atmo-p" style="color:#c07060;">What you've rewritten in your head a hundred times.</div></div>
+      <div class="atmo-c" style="background:#0a0a0a;"><div class="atmo-dot2" style="background:#888;box-shadow:inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.5);"></div><div class="atmo-n" style="color:#555;">untitled</div><div class="atmo-p" style="color:#777;">Anything. Just don't stop.</div></div>
+      <div class="atmo-c" style="background:#080a07;"><div class="atmo-dot2" style="background:#e8f0c8;box-shadow:inset 0 1px 0 rgba(255,255,255,0.3),0 1px 2px rgba(0,0,0,0.5);"></div><div class="atmo-n" style="color:#4a7028;">green light</div><div class="atmo-p" style="color:#7aaa50;">The thing that's been waiting.</div></div>
+      <div class="atmo-c" style="background:#090810;"><div class="atmo-dot2" style="background:#d4c8f0;box-shadow:inset 0 1px 0 rgba(255,255,255,0.3),0 1px 2px rgba(0,0,0,0.5);"></div><div class="atmo-n" style="color:#5040a0;">ink stain</div><div class="atmo-p" style="color:#9080d0;">Follow the thought you keep abandoning.</div></div>
+      <div class="atmo-c" style="background:#070910;"><div class="atmo-dot2" style="background:#c8daf5;box-shadow:inset 0 1px 0 rgba(255,255,255,0.3),0 1px 2px rgba(0,0,0,0.5);"></div><div class="atmo-n" style="color:#3060a0;">deadline</div><div class="atmo-p" style="color:#7098c8;">Say the thing. You've been warming up long enough.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- DEVICES -->
+<section class="devices" id="devices">
+  <div class="dev-in">
+    <div class="sec-ey">// the apps</div>
+    <h2 style="font-family:var(--fw); font-size:26px; font-weight:400; font-style:normal; color:var(--ink); margin-bottom:8px; letter-spacing:-0.01em;">Desktop and mobile.<br>Same constraint, every device.</h2>
+    <p style="font-size:14px; font-weight:300; color:var(--dim); margin-bottom:0; max-width:440px; line-height:1.6;">The desktop web app is the hero. The mobile app brings the constraint into your pocket.</p>
+    <div class="dev-row" style="align-items:end; grid-template-columns: 1.6fr 1fr 1fr;">
+
+      <!-- desktop browser mockup -->
+      <div class="dev-wrap">
+        <div class="browser">
+          <div class="brow-chrome">
+            <div class="brow-dots"><div class="brow-dot" style="background:#ff5f57;"></div><div class="brow-dot" style="background:#ffbd2e;"></div><div class="brow-dot" style="background:#28c840;"></div></div>
+            <div class="brow-url">writefwd.com/write-b</div>
+          </div>
+          <div class="brow-body">
+            <div class="brow-g"></div><div class="brow-fade"></div>
+            <div class="bl d3">the thing about momentum is that</div>
+            <div class="bl d2">you don't notice it until it's</div>
+            <div class="bl d1">already there. you just start</div>
+            <div class="bl bright">and somewhere in the middle<span class="bc"></span></div>
+          </div>
+          <div class="brow-foot"><span class="bf-hint">// words lock</span><span class="bf-done">done writing →</span></div>
+        </div>
+        <div class="dev-lbl">desktop — free forever</div>
+      </div>
+
+      <!-- mobile start screen — deadline atmosphere -->
+      <div class="dev-wrap">
+        <div class="phone-sm">
+          <div class="psm-notch"></div>
+          <div class="psm-screen" style="background:#070910;">
+            <div class="psm-glow" style="background:radial-gradient(circle,#1a3c6e,transparent 70%);"></div>
+            <div class="psm-ct">
+              <div style="font-family:var(--fw); font-size:9px; letter-spacing:0.22em; color:#141c28; margin-bottom:12px;">writefwd</div>
+              <div style="display:flex; gap:8px; margin-bottom:16px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:#f5e2b8;box-shadow:inset 0 1px 0 rgba(255,255,255,0.3),0 1px 2px rgba(0,0,0,0.5);"></div>
+                <div style="width:8px;height:8px;border-radius:50%;background:#f5c8b0;box-shadow:inset 0 1px 0 rgba(255,255,255,0.3),0 1px 2px rgba(0,0,0,0.5);"></div>
+                <div style="width:8px;height:8px;border-radius:50%;background:#888;box-shadow:inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.5);"></div>
+                <div style="width:8px;height:8px;border-radius:50%;background:#e8f0c8;box-shadow:inset 0 1px 0 rgba(255,255,255,0.3),0 1px 2px rgba(0,0,0,0.5);"></div>
+                <div style="width:8px;height:8px;border-radius:50%;background:#d4c8f0;box-shadow:inset 0 1px 0 rgba(255,255,255,0.3),0 1px 2px rgba(0,0,0,0.5);"></div>
+                <div style="width:8px;height:8px;border-radius:50%;background:#c8daf5;transform:scale(1.45);box-shadow:inset 0 1px 0 rgba(255,255,255,0.3),0 1px 2px rgba(0,0,0,0.5),0 0 6px rgba(200,218,245,0.2);"></div>
+              </div>
+              <span style="font-family:var(--fw); font-size:36px; line-height:0.72; font-style:italic; color:#0e1420; display:block; margin-left:-2px; margin-bottom:10px;">"</span>
+              <div style="font-family:var(--fw); font-size:12px; font-style:italic; color:#7098c8; line-height:1.38; margin-bottom:10px; text-shadow:0 0 20px rgba(100,150,200,0.18);">Say the thing. You've been warming up long enough.</div>
+              <div style="font-family:var(--fs); font-size:7px; letter-spacing:0.1em; color:#141c28; display:flex; align-items:center; gap:4px; margin-bottom:auto;">
+                <div style="width:3px;height:3px;border-radius:50%;background:#3a6090;"></div>// deadline prompt · 3 of 6
+              </div>
+              <div style="border-top:1px solid #0e1520; padding-top:10px; margin-top:14px; display:flex; align-items:baseline; justify-content:space-between;">
+                <span style="font-family:var(--fw); font-size:12px; color:#1e2838;">¶ start writing</span>
+                <span style="font-family:var(--fs); font-size:9px; color:#141c28;">→</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dev-lbl">mobile — writer's edition</div>
+      </div>
+
+      <!-- done screen -->
+      <div class="dev-wrap">
+        <div class="phone-sm">
+          <div class="psm-notch"></div>
+          <div class="done-s">
+            <div class="dsm-hdr"><div class="dsm-ey">// session complete</div><div class="dsm-h">something came out.</div><div class="dsm-s">candlewick · 11 min</div></div>
+            <div class="dstats">
+              <div class="dstat"><div class="dstat-n">147</div><div class="dstat-l">words</div></div>
+              <div class="dstat"><div class="dstat-n">11</div><div class="dstat-l">min</div></div>
+              <div class="dstat" style="border-right:none;"><div class="dstat-n">4</div><div class="dstat-l">streak</div></div>
+            </div>
+            <div class="dfl"><div class="dfl-l">first line</div><div class="dfl-t">"the thing about momentum is that you don't notice it until..."</div></div>
+            <div class="dacts"><div class="dkg">keep going →</div><div class="drd">read draft</div></div>
+          </div>
+        </div>
+        <div class="dev-lbl">done screen — all devices</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="pricing-in">
+    <div class="sec-ey">// pricing</div>
+    <h2 class="price-h">Free to start.<br>Deeper if you stay.</h2>
+    <p class="price-s">The core constraint is free forever. Writer's Edition deepens the practice.</p>
+    <div class="pgrid">
+      <div class="pc">
+        <div class="pt pt-free">the og</div>
+        <div class="pa pa-free">$0</div>
+        <div class="pp pp-free">forever · no account required</div>
+        <ul class="plist free">
+          <li class="hi">no backspace. ever.</li>
+          <li class="hi">fading text as you write</li>
+          <li class="hi">copy or email your draft</li>
+          <li>desktop web app</li>
+          <li>three atmospheres</li>
+        </ul>
+        <a href="https://writefwd.com/write-b/" class="pcta-free" style="opacity:0.4;pointer-events:none;cursor:default;">coming soon</a>
+      </div>
+      <div class="pc featured">
+        <div class="pt pt-paid">writer's edition</div>
+        <div class="pa pa-paid">$9<span style="font-size:16px;color:#333;">/mo</span></div>
+        <div class="pp pp-paid">or $40/year · cancel anytime</div>
+        <ul class="plist paid">
+          <li class="hi">everything in the og</li>
+          <li class="hi">all six atmospheres + prompts</li>
+          <li class="hi">mobile app (iOS + Android)</li>
+          <li class="hi">session history + streaks</li>
+          <li class="hi">light mode (untitled)</li>
+          <li class="hi">share cards</li>
+        </ul>
+        <div class="pcta-coming">coming soon</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final" id="waitlist">
+  <div class="grain-dark"></div>
+  <h2 class="final-h">You have something to write.<br>You've been putting it off long enough.</h2>
+  <p class="final-s">No backspace. No editor. No going back. Just the thing you've been sitting on.</p>
+  <form class="waitlist-form" id="final-form" onsubmit="handleWaitlist(event,'final-form')" style="margin:0 auto 14px;">
+    <input class="waitlist-input" type="email" placeholder="your email address" required autocomplete="email">
+    <button class="waitlist-btn" type="submit">join the waitlist <span class="arrow-nudge">→</span></button>
+  </form>
+  <div class="final-fw">// free to join · no spam · early access when we launch</div>
+</section>
+
+<footer>
+  <span class="f-wm">writefwd</span>
+  <div class="f-links"><a href="#" class="f-a">privacy</a><a href="#" class="f-a">terms</a><a href="mailto:hello@writefwd.com" class="f-a">hello@writefwd.com</a></div>
+  <span class="f-copy">© 2026 writefwd</span>
+</footer>
+
+<script>
+(function(){ 'use strict';
+
+/* ════════════════════════════════
+   INTERACTIVE DEMO
+════════════════════════════════ */
+var allTxt = '', lastLen = 0, hasStarted = false, wc = 0;
+var inp = document.getElementById('dtext-inp');
+var ct = document.getElementById('dw-ct');
+var cur = document.getElementById('dcur');
+var lns = document.getElementById('dlines');
+var ph = document.getElementById('dw-ph');
+var hint = document.getElementById('dw-hint');
+var wcDisp = document.getElementById('dw-wc2');
+var bf2 = document.getElementById('dw-bf2');
+var glw = document.getElementById('dw-glow');
+
+document.getElementById('demo-win').addEventListener('click', function(){ inp.style.pointerEvents='auto'; inp.focus(); });
+document.getElementById('dw-body2').addEventListener('click', function(){ inp.style.pointerEvents='auto'; inp.focus(); });
+inp.addEventListener('focus', function(){ if(ph) ph.style.opacity='0'; });
+inp.addEventListener('blur', function(){ if(!allTxt && ph) ph.style.opacity='1'; });
+
+function wcCount(t){ return t.trim().split(/\s+/).filter(function(w){ return w.length>0; }).length; }
+
+function wrapText(text){
+  var W=40, words=text.split(' '), res=[], cur2='';
+  for(var i=0;i<words.length;i++){
+    var word=words[i];
+    if(word.indexOf('\n')>=0){
+      var pts=word.split('\n');
+      for(var j=0;j<pts.length;j++){
+        var p=pts[j], t2=cur2?(cur2+(cur2&&p?' ':'')+p):p;
+        if(t2.length>W&&cur2){ res.push(cur2); cur2=p; } else { cur2=t2; }
+        if(j<pts.length-1){ res.push(cur2); cur2=''; }
+      }
+    } else {
+      var t3=cur2?cur2+' '+word:word;
+      if(t3.length>W&&cur2){ res.push(cur2); cur2=word; } else { cur2=t3; }
+    }
+  }
+  return { result:res, cur:cur2 };
+}
+
+function renderDemo(){
+  var val=inp.value;
+  if(val.length<lastLen){ inp.value=allTxt; return; }
+  allTxt+=val.slice(lastLen); lastLen=allTxt.length; inp.value=allTxt;
+  var w=wrapText(allTxt);
+  ct.textContent=w.cur; lns.innerHTML='';
+  var S=4, start=Math.max(0,w.result.length-S);
+  for(var i=start;i<w.result.length;i++){
+    var age=w.result.length-i, d=document.createElement('div');
+    d.className='dl a'+Math.min(age,3); d.textContent=w.result[i]||'\u00A0';
+    lns.appendChild(d);
+  }
+  wc=wcCount(allTxt); wcDisp.textContent=wc+(wc===1?' word':' words');
+  bf2.style.width=Math.max(0,Math.round((1-wc/100)*100))+'%';
+}
+
+inp.addEventListener('input', renderDemo);
+inp.addEventListener('keydown', function(e){
+  if(e.key==='Backspace'||e.key==='Delete'){
+    e.preventDefault();
+    /* cursor shakes */
+    cur.classList.remove('shaking'); void cur.offsetWidth; cur.classList.add('shaking');
+    setTimeout(function(){ cur.classList.remove('shaking'); },160);
+    /* hint text flips AND shakes in sync */
+    hint.textContent='← nope.'; hint.classList.add('flash');
+    hint.classList.remove('shaking'); void hint.offsetWidth; hint.classList.add('shaking');
+    setTimeout(function(){
+      hint.classList.remove('shaking');
+      hint.textContent='// no going back'; hint.classList.remove('flash');
+    },1400);
+    return;
+  }
+  if(!hasStarted&&e.key.length===1){
+    hasStarted=true;
+    glw.classList.remove('blooming'); void glw.offsetWidth; glw.classList.add('blooming');
+    setTimeout(function(){ glw.classList.remove('blooming'); },750);
+  }
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp'||e.key==='Home'){
+    setTimeout(function(){ inp.setSelectionRange(allTxt.length,allTxt.length); },0);
+  }
+});
+inp.addEventListener('select',function(){ setTimeout(function(){ inp.setSelectionRange(allTxt.length,allTxt.length); },0); });
+inp.addEventListener('cut',function(e){ e.preventDefault(); });
+inp.addEventListener('paste',function(e){ e.preventDefault(); var p=(e.clipboardData||window.clipboardData).getData('text'); inp.value=allTxt+p; renderDemo(); });
+
+/* ── WAITLIST FORMS ── */
+function handleWaitlist(e, formId) {
+  e.preventDefault();
+  var form = document.getElementById(formId);
+  var btn  = form.querySelector('.waitlist-btn');
+  var inp  = form.querySelector('input[type="email"]');
+  /* TODO: POST to Buttondown API here */
+  btn.textContent = 'you\'re on the list ✓';
+  btn.classList.add('success');
+  inp.disabled = true;
+  btn.disabled = true;
+}
+
+})();
+</script>
+</body>
+</html>
