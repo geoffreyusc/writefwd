@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="A distraction-free writing tool. No editing. No going back. Just write.">
+<meta name="robots" content="noindex">
+<title>writefwd — write (c)</title>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* paper world (FREE) — exact write-b light values */
+  --paper:   #f0ede8;   /* write-b --bg light */
+  --paper2:  #e7e3dd;
+  --paper3:  #ddd9d2;
+  --ink:     #2c2a27;   /* write-b --text-bright light */
+  --ink2:    #4a4640;
+  --dim:     #888078;   /* --text-dim1 */
+  --dimmer:  #aaa89f;   /* --text-dim2 */
+  --border-l:#d0ccc6;   /* --border light */
+  --accent:  #888078;
+  --accent-d:#4a4640;
+
+  /* warm cream — now reserved as a PAID candlewick skin reference */
+  --cream: #f5f2ed;
+  --amber: #c8a060;
+  --amber-dim: #8a6028;
+
+  --fw: 'Courier Prime','Courier New',monospace;  /* writer / ritual voice */
+  --fs: 'DM Mono',monospace;                        /* system / label voice */
+  --fb: 'DM Sans',sans-serif;                       /* human / body voice  */
+}
+
+html, body { height: 100%; }
+body {
+  font-family: var(--fb);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.8s ease, color 0.8s ease;
+  overflow: hidden;
+}
+
+/* grain — shared texture cue */
+.grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 1; opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* ════════════════════════════════════════════════
+   DEMO HARNESS (not part of the product — your controls)
+════════════════════════════════════════════════ */
+#harness {
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+  z-index: 100; display: flex; gap: 6px; align-items: center;
+  font-family: var(--fs); font-size: 9px; letter-spacing: 0.1em;
+  background: rgba(20,20,20,0.82); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 100px;
+  padding: 5px 6px;
+}
+.h-group { display: flex; gap: 2px; }
+.h-btn {
+  font-family: var(--fs); font-size: 9px; letter-spacing: 0.08em;
+  color: #888; background: transparent; border: none; cursor: pointer;
+  padding: 5px 11px; border-radius: 100px; transition: all 0.15s; text-transform: uppercase;
+}
+.h-btn:hover { color: #ddd; }
+.h-btn.on { background: rgba(255,255,255,0.14); color: #fff; }
+.h-sep { width: 1px; height: 14px; background: rgba(255,255,255,0.1); margin: 0 3px; }
+.h-lbl { color: #555; padding: 0 4px 0 8px; text-transform: uppercase; }
+
+/* ════════════════════════════════════════════════
+   THE THRESHOLD
+════════════════════════════════════════════════ */
+#stage {
+  position: relative; z-index: 5;
+  width: 100%; max-width: 600px;
+  padding: 40px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+
+/* atmospheric glow — only paid lights it up strongly */
+#room-glow {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 900px; height: 900px; border-radius: 50%;
+  pointer-events: none; z-index: 0;
+  filter: blur(90px);
+  transition: background 0.8s ease, opacity 0.8s ease;
+  opacity: 0;
+}
+
+/* ── mark ── */
+#mark {
+  font-family: var(--fw); font-weight: 700;
+  margin-bottom: 26px; line-height: 1;
+  transition: color 0.8s, opacity 0.8s;
+}
+#mark .para { font-size: 30px; }
+
+/* ── prompt: the hero line ── */
+#prompt {
+  font-family: var(--fw); font-style: italic;
+  font-size: 25px; line-height: 1.42; letter-spacing: -0.01em;
+  max-width: 480px; margin-bottom: 10px;
+  transition: color 0.8s, text-shadow 0.8s;
+  min-height: 72px; display: flex; align-items: center; justify-content: center;
+}
+@keyframes promptIn { from{opacity:0; transform:translateY(7px);} to{opacity:1; transform:translateY(0);} }
+#prompt.rot { animation: promptIn 0.34s ease-out; }
+
+/* prompt source line + reroll */
+#prompt-meta {
+  display: flex; align-items: center; gap: 9px;
+  font-family: var(--fs); font-size: 9px; letter-spacing: 0.14em;
+  margin-bottom: 34px; transition: color 0.8s;
+}
+#prompt-dot { width: 5px; height: 5px; border-radius: 50%; transition: background 0.8s; }
+#reroll {
+  font-family: var(--fs); font-size: 11px; background: none; border: none;
+  cursor: pointer; padding: 2px 4px; transition: color 0.2s, transform 0.25s;
+}
+#reroll:hover { transform: rotate(180deg); }
+
+/* ── returner thread (adaptive) ── */
+#thread {
+  display: none; flex-direction: column; gap: 5px;
+  margin-bottom: 32px; max-width: 440px;
+}
+#thread.show { display: flex; }
+#thread-lbl {
+  font-family: var(--fs); font-size: 9px; letter-spacing: 0.18em;
+  text-transform: uppercase; transition: color 0.8s;
+}
+#thread-line {
+  font-family: var(--fw); font-style: italic; font-size: 13px; line-height: 1.6;
+  transition: color 0.8s;
+}
+
+/* ── rules (first-timer only) ── */
+#rules {
+  display: none; flex-direction: column; gap: 11px;
+  margin-bottom: 36px; text-align: left;
+  padding: 26px 30px; border-radius: 4px;
+  transition: background 0.8s, border-color 0.8s;
+}
+#rules.show { display: flex; }
+#outcome {
+  font-family: var(--fw); font-style: italic;
+  font-size: 15px; line-height: 1.5; letter-spacing: -0.01em;
+  padding-bottom: 14px; margin-bottom: 4px;
+  border-bottom: 1px solid; transition: color 0.8s, border-color 0.8s;
+}
+body.hide-outcome #outcome { display: none; }
+.rule {
+  font-family: var(--fw); font-size: 14px; letter-spacing: -0.01em;
+  display: flex; align-items: baseline; gap: 11px;
+  transition: color 0.8s;
+}
+.rule .rk { transition: color 0.8s; }       /* known half */
+.rule .rd { transition: color 0.8s; }       /* dim half  */
+.rule::before {
+  content: '·'; font-family: var(--fs); flex-shrink: 0;
+  transition: color 0.8s;
+}
+
+/* ── atmosphere selector ── */
+#atmo-label {
+  font-family: var(--fs); font-size: 9px; letter-spacing: 0.2em;
+  text-transform: uppercase; margin-bottom: 16px; transition: color 0.8s;
+}
+#atmo-row {
+  display: flex; align-items: flex-start; justify-content: center;
+  gap: 14px; margin-bottom: 38px; flex-wrap: wrap;
+}
+.atmo {
+  position: relative; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
+  transition: opacity 0.3s;
+}
+/* PAPER tile (free): small swatch chip */
+.atmo .chip {
+  width: 38px; height: 38px; border-radius: 7px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 5px rgba(0,0,0,0.18);
+  transition: transform 0.2s, box-shadow 0.3s, width 0.4s, height 0.4s, border-radius 0.4s;
+  position: relative; overflow: hidden;
+}
+.atmo .chip::after {  /* radial lamp core, revealed in paid */
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  opacity: 0; transition: opacity 0.5s;
+  background: radial-gradient(circle at 50% 55%, var(--lamp, #fff) 0%, transparent 62%);
+}
+.atmo:hover .chip { transform: translateY(-2px); }
+.atmo.sel .chip { box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 0 0 2px var(--ring, #888), 0 4px 12px rgba(0,0,0,0.25); }
+.atmo .nm {
+  font-family: var(--fs); font-size: 8px; letter-spacing: 0.1em;
+  text-transform: lowercase; white-space: nowrap;
+  transition: color 0.3s, opacity 0.3s; opacity: 0.55;
+}
+.atmo.sel .nm { opacity: 1; }
+.atmo:hover .nm { opacity: 0.9; }
+/* locked atmospheres in free */
+.atmo.locked { cursor: default; }
+.atmo.locked .chip { opacity: 0.42; }
+.atmo.locked:hover .chip { transform: none; }
+.atmo .lock {
+  position: absolute; top: -3px; right: 2px;
+  font-size: 9px; opacity: 0.45; transition: opacity 0.2s;
+  font-family: var(--fs);
+}
+.atmo.locked:hover .lock { opacity: 0.85; }
+.atmo .demo-badge {
+  position: absolute; top: -6px; right: -8px;
+  font-family: var(--fs); font-size: 7px; letter-spacing: 0.08em;
+  text-transform: lowercase; padding: 1px 5px; border-radius: 100px;
+  background: #c8a060; color: #1a0f04; font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25); pointer-events: none;
+}
+body:not(.tier-free) .atmo .demo-badge { display: none; } /* only in free/demo tier */
+
+/* ── duration ── */
+#dur-label {
+  font-family: var(--fs); font-size: 9px; letter-spacing: 0.2em;
+  text-transform: uppercase; margin-bottom: 13px; transition: color 0.8s;
+}
+#dur-row { display: flex; gap: 7px; margin-bottom: 40px; flex-wrap: wrap; justify-content: center; }
+.dur {
+  font-family: var(--fs); font-size: 11px; letter-spacing: 0.06em;
+  padding: 9px 17px; border-radius: 3px; cursor: pointer;
+  background: transparent; border: 1px solid;
+  transition: all 0.18s;
+}
+
+/* ── BEGIN: the physical key ── */
+#begin {
+  font-family: var(--fs); font-size: 12px; letter-spacing: 0.16em;
+  text-transform: uppercase; cursor: pointer; border: none; border-radius: 3px;
+  padding: 16px 52px; transition: transform 0.08s, background 0.2s, box-shadow 0.2s;
+}
+#begin:active { transform: translateY(2px); }
+#begin .arr {
+  display: inline-block; width: 11px; height: 14px;
+  margin-left: 11px; vertical-align: -1px;
+  color: currentColor; /* inherits the begin button's text color = room-aware */
+  transition: transform 0.16s;
+}
+#begin:hover .arr { transform: translateX(4px); }
+
+#whisper {
+  font-family: var(--fs); font-size: 9px; letter-spacing: 0.13em;
+  margin-top: 22px; transition: color 0.8s; min-height: 13px;
+}
+
+/* ════════════════════════════════════════════════
+   PAPER THEME (free)  — applied to <body class="paper ...">
+════════════════════════════════════════════════ */
+body.paper {
+  background:
+    radial-gradient(ellipse at 50% 0%, var(--paper) 0%, var(--paper2) 60%, var(--paper3) 100%);
+  color: var(--ink);
+}
+body.paper #mark { color: var(--ink2); }
+body.paper #prompt { color: var(--ink2); }
+body.paper #prompt-meta { color: var(--dim); }
+body.paper #prompt-dot { background: var(--accent); }
+body.paper #reroll { color: var(--dim); }
+body.paper #thread-lbl { color: var(--dimmer); }
+body.paper #thread-line { color: var(--dim); }
+body.paper #rules {
+  background: var(--paper2);
+  border: 1px solid var(--border-l);
+  border-left: 2px solid var(--accent); /* lp-v3 pull-quote device, neutral */
+}
+body.paper .rule { color: var(--ink2); }
+body.paper #outcome { color: var(--ink); border-color: var(--border-l); }
+body.paper .rule .rd { color: var(--dim); }
+body.paper .rule::before { color: var(--dimmer); }
+body.paper #atmo-label,
+body.paper #dur-label { color: var(--dimmer); }
+body.paper .atmo .nm { color: var(--dim); }
+body.paper .dur { border-color: var(--border-l); color: var(--dim); }
+body.paper .dur:hover { border-color: var(--dim); color: var(--ink2); }
+body.paper .dur.sel { border-color: var(--ink); color: var(--ink); background: var(--paper3); }
+body.paper #begin {
+  background: var(--ink); color: var(--paper);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 0 #000, 0 4px 12px rgba(0,0,0,0.22);
+}
+body.paper #begin:hover { background: #1a1a1c; }
+body.paper #begin:active { box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 #000, 0 1px 4px rgba(0,0,0,0.3); }
+body.paper #whisper { color: var(--dimmer); }
+body.paper #room-glow { opacity: 0; }
+
+/* dark-paper variant (free dark) — exact write-b dark values */
+body.paper.night {
+  background: radial-gradient(ellipse at 50% 0%, #1f1f1f 0%, #1a1a1a 60%, #161616 100%);
+  color: #eeeeee;
+}
+body.paper.night #mark { color: #5e5e64; }
+body.paper.night #prompt { color: #b2b2b8; }
+body.paper.night #prompt-meta { color: #5e5e64; }
+body.paper.night #prompt-dot { background: #8a8a90; }
+body.paper.night #reroll { color: #5e5e64; }
+body.paper.night #thread-lbl { color: #44444a; }
+body.paper.night #thread-line { color: #5e5e64; }
+body.paper.night #rules { background: #18181a; border-color: #28282c; border-left-color: #6a6a70; }
+body.paper.night .rule { color: #b2b2b8; }
+body.paper.night #outcome { color: #e4e4e8; border-color: #28282c; }
+body.paper.night .rule .rd { color: #5e5e64; }
+body.paper.night .rule::before { color: #44444a; }
+body.paper.night #atmo-label,
+body.paper.night #dur-label { color: #44444a; }
+body.paper.night .atmo .nm { color: #5e5e64; }
+body.paper.night .dur { border-color: #28282c; color: #5e5e64; }
+body.paper.night .dur:hover { border-color: #5e5e64; color: #b2b2b8; }
+body.paper.night .dur.sel { border-color: #b2b2b8; color: #e4e4e8; background: #1f1f22; }
+body.paper.night #begin { background: #e4e4e8; color: #141415; box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 0 #7a7a80, 0 4px 12px rgba(0,0,0,0.4); }
+body.paper.night #begin:hover { background: #fff; }
+body.paper.night #whisper { color: #44444a; }
+
+/* ════════════════════════════════════════════════
+   GALLERY THEME (paid) — the Cognition lamps
+════════════════════════════════════════════════ */
+body.gallery {
+  background: #060607;
+  color: #e8e8ea;
+}
+body.gallery .grain { opacity: 0.05; }
+body.gallery #room-glow { opacity: 0.9; }
+body.gallery #mark { color: #5a5a60; }
+body.gallery #prompt {
+  color: var(--g-prompt, var(--g-bright, #e8e8ea));
+  text-shadow: var(--g-prompt-glow, 0 0 30px var(--g-shadow, transparent));
+}
+body.gallery #prompt-meta { color: var(--g-meta, #56565c); }
+body.gallery #prompt-dot { background: var(--g-bright, #888); box-shadow: 0 0 8px var(--g-bright); }
+body.gallery #reroll { color: var(--g-meta, #56565c); }
+body.gallery #thread-lbl { color: var(--g-meta, #44444a); opacity: 0.7; }
+body.gallery #thread-line { color: var(--g-dim, #6a6a70); }
+body.gallery #rules {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-left: 2px solid var(--g-bright, #888);
+  backdrop-filter: blur(4px);
+}
+body.gallery .rule { color: #c8c8ce; }
+body.gallery #outcome { color: #f0f0f2; border-color: rgba(255,255,255,0.08); }
+body.gallery .rule .rd { color: var(--g-text, #8a8a90); }
+body.gallery .rule::before { color: var(--g-bright, #888); }
+body.gallery #atmo-label,
+body.gallery #dur-label { color: var(--g-meta, #44444a); opacity: 1; }
+/* gallery turns chips into glowing lamps */
+body.gallery .atmo .chip {
+  width: 60px; height: 60px; border-radius: 14px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.06), 0 6px 18px rgba(0,0,0,0.55);
+  background: #121214 !important;
+  overflow: hidden;
+}
+/* the lit core — contained, smaller bloom so it reads as a deliberate light source, not a free orb */
+body.gallery .atmo .chip::after {
+  opacity: 0.7;
+  background: radial-gradient(circle at 50% 52%, var(--lamp, #fff) 0%, transparent 48%) !important;
+}
+body.gallery .atmo:hover .chip { transform: translateY(-3px); }
+body.gallery .atmo:hover .chip::after { opacity: 0.92; }
+body.gallery .atmo.sel .chip {
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18), inset 0 1px 0 rgba(255,255,255,0.1), 0 10px 30px rgba(0,0,0,0.6);
+}
+body.gallery .atmo.sel .chip::after { opacity: 1; transform: scale(1.04); }
+body.gallery .atmo .nm { color: var(--g-text, #8a8a90); }
+body.gallery .dur { border-color: rgba(255,255,255,0.12); color: var(--g-text, #8a8a90); }
+body.gallery .dur:hover { border-color: rgba(255,255,255,0.25); color: #c8c8ce; }
+body.gallery .dur.sel { border-color: var(--g-bright,#888); color: var(--g-bright,#e8e8ea); background: rgba(255,255,255,0.04); }
+body.gallery #begin {
+  background: rgba(255,255,255,0.95); color: #0a0a0c;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 0 rgba(0,0,0,0.35), 0 6px 22px var(--g-shadow, rgba(0,0,0,0.3));
+}
+body.gallery #begin:hover { background: #fff; }
+body.gallery #whisper { color: #44444a; }
+/* no swatch ring meaning in gallery (the lamp glows instead) */
+body.gallery .atmo.sel .chip { --ring: transparent; }
+
+/* ════════════════════════════════════════════════
+   THE WRITING SCREEN  + CROSSOVER CHOREOGRAPHY
+════════════════════════════════════════════════ */
+#writescreen {
+  position: fixed; inset: 0; z-index: 4;   /* behind stage (z5), above glow */
+  display: flex; flex-direction: column;
+  max-width: 780px; margin: 0 auto;        /* write-b width */
+  opacity: 0; pointer-events: none;
+  transform: scale(1.015);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+  --ws-fs: 20px;                           /* font-size, set by A A A */
+}
+#writescreen.live { opacity: 1; transform: scale(1); pointer-events: auto; }
+
+/* HEADER — write-b: back+status left, ring timer + wordcount right */
+#ws-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 32px 14px; flex-shrink: 0;
+  border-bottom: 1px solid; transition: border-color 0.7s;
+}
+#ws-header-left { display: flex; align-items: center; gap: 26px; }
+#ws-back-link { font-family: var(--fs); font-size: 12px; letter-spacing: 0.18em; cursor: pointer; transition: color 0.2s; }
+#ws-status { font-family: var(--fs); font-size: 12px; letter-spacing: 0.22em; transition: color 0.7s; }
+#ws-header-right { display: flex; align-items: center; gap: 20px; }
+
+/* circular timer ring */
+#ws-timer-wrap { display: flex; align-items: center; gap: 9px; }
+#ws-ring { transition: color 0.7s; }
+#ws-ring-fill { transition: stroke-dashoffset 1s linear; }
+#ws-tlabel { font-family: var(--fs); font-size: 13px; letter-spacing: 0.04em; transition: color 0.7s; }
+#ws-wc { font-family: var(--fs); font-size: 13px; letter-spacing: 0.04em; transition: color 0.7s; }
+
+/* font control A A A — now in footer, always visible */
+#ws-font-ctrl { display: flex; align-items: baseline; gap: 8px; }
+.ws-fs { background: none; border: none; cursor: pointer; font-family: var(--fs); padding: 0 1px; line-height: 1; transition: color 0.15s; }
+.ws-fs.s { font-size: 11px; } .ws-fs.m { font-size: 13px; } .ws-fs.l { font-size: 16px; }
+.ws-divider { font-family: var(--fs); font-size: 13px; opacity: 0.4; }
+.ws-icon { background: none; border: none; cursor: pointer; padding: 2px; display: flex; align-items: center; transition: color 0.2s; }
+
+/* WRITING AREA — write-b: text flows from the TOP down */
+#ws-body {
+  flex: 1; display: flex; flex-direction: column; justify-content: flex-start;
+  padding: 40px 32px 0; position: relative; overflow: hidden;
+}
+#ws-fadetop { display: none; }
+#ws-lines { display: flex; flex-direction: column; }
+.ws-line { font-family: var(--fw); font-size: var(--ws-fs); line-height: 1.9; min-height: 1.9em; white-space: pre-wrap; word-break: break-word; transition: color 0.6s cubic-bezier(0.25,0,0.5,1), opacity 0.6s cubic-bezier(0.25,0,0.5,1); }
+#ws-curline { font-family: var(--fw); font-size: var(--ws-fs); line-height: 1.9; min-height: 38px; position: relative; z-index: 1; white-space: pre-wrap; word-break: break-word; transition: color 0.7s; }
+#ws-ghost { transition: color 0.7s; }
+#ws-cursor {
+  display: inline-block; width: 11px; height: 20px; vertical-align: middle; margin-left: 1px;
+  opacity: 0; animation: wsblink 0.9s step-end infinite; transition: background 0.7s, box-shadow 0.7s;
+}
+#writescreen.live #ws-cursor { opacity: 1; }
+@keyframes wsblink { 0%,100%{opacity:1} 50%{opacity:0} }
+@keyframes ws-curshake {
+  0%{transform:translateX(0)} 15%{transform:translateX(-5px)} 30%{transform:translateX(5px)}
+  45%{transform:translateX(-3px)} 60%{transform:translateX(3px)}
+  75%{transform:translateX(-1px)} 100%{transform:translateX(0)}
+}
+#ws-cursor.shaking { animation: ws-curshake 0.14s ease-out forwards; }
+@keyframes ws-flinch {
+  0%{transform:translateX(0)} 40%{transform:translateX(-2px)} 100%{transform:translateX(0)}
+}
+.xw.crossed.flinch { animation: ws-flinch 0.18s ease-out; display: inline-block; }
+
+#ws-footer {
+  flex-shrink: 0; padding: 12px 32px 16px; min-height: 52px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid; transition: border-color 0.7s;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.025);
+}
+#ws-footer-right { display: flex; align-items: center; gap: 14px; }
+#ws-done {
+  font-family: var(--fs); font-size: 10px; letter-spacing: 0.1em;
+  background: none; border: 1px solid; border-radius: 3px; padding: 5px 14px;
+  cursor: pointer; transition: all 0.2s;
+}
+#ws-hint { font-family: var(--fs); font-size: 9px; letter-spacing: 0.14em; transition: color 0.7s; }
+#ws-back {
+  font-family: var(--fs); font-size: 9px; letter-spacing: 0.1em;
+  background: none; border: 1px solid; border-radius: 3px; padding: 5px 12px;
+  cursor: pointer; transition: all 0.2s;
+}
+
+/* writing screen — PAPER palettes */
+body.paper #writescreen { background: transparent; }
+body.paper #ws-header, body.paper #ws-footer { border-color: var(--border-l); }
+body.paper #ws-back-link, body.paper #ws-status { color: var(--dim); }
+body.paper #ws-back-link:hover { color: var(--ink); }
+body.paper #ws-hint { color: var(--dimmer); }
+body.paper #ws-wc, body.paper #ws-tlabel { color: var(--dim); }
+body.paper #ws-ring { color: var(--dim); }
+body.paper .ws-line { color: #888078; }
+body.paper .ws-line.a1 { color: #888078; opacity: 0.85; }
+body.paper .ws-line.a2 { color: #aaa89f; opacity: 0.55; }
+body.paper .ws-line.a3 { color: #c8c4be; opacity: 0.25; }
+body.paper #ws-curline { color: #2c2a27; }
+body.paper #ws-ghost { color: #2c2a27; }
+body.paper #ws-cursor { background: #2c2a27; }
+body.paper .ws-line .xw.crossed, body.paper #ws-curline .xw.crossed { text-decoration: line-through; text-decoration-color: #888078; color: #888078; }
+body.paper #ws-done { color: var(--dim); border: 1px solid var(--border-l); border-radius: 3px; padding: 5px 14px; }
+body.paper #ws-done:hover { color: var(--ink); border-color: var(--dim); }
+body.paper .ws-fs, body.paper .ws-divider { color: var(--dimmer); }
+body.paper .ws-fs:hover, body.paper .ws-fs.active { color: var(--ink); }
+body.paper .ws-icon { color: var(--dimmer); }
+body.paper .ws-icon:hover, body.paper .ws-icon.on { color: var(--ink); }
+
+body.paper.night #ws-header, body.paper.night #ws-footer { border-color: #28282c; }
+body.paper.night #ws-back-link, body.paper.night #ws-status, body.paper.night #ws-hint { color: #5e5e64; }
+body.paper.night #ws-back-link:hover { color: #e4e4e8; }
+body.paper.night #ws-wc, body.paper.night #ws-tlabel, body.paper.night #ws-ring { color: #5e5e64; }
+body.paper.night .ws-line { color: #909090; }
+body.paper.night .ws-line.a1 { color: #909090; opacity: 0.85; }
+body.paper.night .ws-line.a2 { color: #505050; opacity: 0.55; }
+body.paper.night .ws-line.a3 { color: #282828; opacity: 0.25; }
+body.paper.night #ws-curline { color: #eeeeee; }
+body.paper.night #ws-ghost { color: #eeeeee; }
+body.paper.night #ws-cursor { background: #eeeeee; }
+body.paper.night .ws-line .xw.crossed, body.paper.night #ws-curline .xw.crossed { text-decoration: line-through; text-decoration-color: #909090; color: #909090; }
+body.paper.night #ws-done { color: #5e5e64; border: 1px solid #28282c; border-radius: 3px; padding: 5px 14px; }
+body.paper.night #ws-done:hover { color: #e4e4e8; border-color: #5e5e64; }
+body.paper.night .ws-fs, body.paper.night .ws-divider { color: #44444a; }
+body.paper.night .ws-fs:hover, body.paper.night .ws-fs.active { color: #e4e4e8; }
+body.paper.night .ws-icon { color: #44444a; }
+body.paper.night .ws-icon:hover, body.paper.night .ws-icon.on { color: #e4e4e8; }
+
+/* writing screen — GALLERY: lit by atmosphere */
+body.gallery #writescreen { background: transparent; }
+body.gallery #ws-header, body.gallery #ws-footer { border-color: rgba(255,255,255,0.07); }
+body.gallery #ws-back-link, body.gallery #ws-status { color: var(--g-dim, #6a6a70); }
+body.gallery #ws-back-link:hover { color: var(--g-bright, #e8e8ea); }
+body.gallery #ws-hint { color: #44444a; }
+body.gallery #ws-wc, body.gallery #ws-tlabel { color: var(--g-dim, #6a6a70); }
+body.gallery #ws-ring { color: var(--g-bright, #888); }
+body.gallery .ws-line { color: var(--g-dim, #6a6a70); }
+body.gallery .ws-line.a1 { color: var(--g-dim, #6a6a70); opacity: 0.85; }
+body.gallery .ws-line.a2 { color: var(--g-dim, #6a6a70); opacity: 0.5; }
+body.gallery .ws-line.a3 { color: var(--g-dim, #6a6a70); opacity: 0.25; }
+body.gallery #ws-curline { color: var(--g-bright, #e8e8ea); }
+body.gallery #ws-ghost { color: var(--g-bright, #e8e8ea); }
+body.gallery #ws-cursor { background: var(--g-bright, #e8e8ea); box-shadow: 0 0 10px var(--g-shadow, transparent); }
+body.gallery .ws-line .xw.crossed, body.gallery #ws-curline .xw.crossed { text-decoration: line-through; text-decoration-color: var(--g-dim, #555); color: var(--g-dim, #555); }
+body.gallery #ws-done { color: var(--g-dim, #6a6a70); border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; padding: 5px 14px; }
+body.gallery #ws-done:hover { color: var(--g-bright, #e8e8ea); border-color: rgba(255,255,255,0.25); }
+body.gallery .ws-fs, body.gallery .ws-divider { color: #44444a; }
+body.gallery .ws-fs:hover, body.gallery .ws-fs.active { color: var(--g-bright, #e8e8ea); }
+body.gallery .ws-icon { color: #44444a; }
+body.gallery .ws-icon:hover, body.gallery .ws-icon.on { color: var(--g-bright, #e8e8ea); }
+
+/* ── crossout switch ── */
+.ws-switch { display: flex; align-items: center; gap: 7px; background: none; border: none; cursor: pointer; padding: 0; }
+.ws-sw-track {
+  width: 26px; height: 14px; border-radius: 8px; position: relative;
+  border: 1px solid; transition: background 0.2s, border-color 0.2s;
+}
+.ws-sw-thumb {
+  position: absolute; top: 1px; left: 1px; width: 10px; height: 10px; border-radius: 50%;
+  transition: transform 0.2s, background 0.2s;
+}
+.ws-switch.on .ws-sw-thumb { transform: translateX(12px); }
+.ws-sw-label { font-family: var(--fs); font-size: 10px; letter-spacing: 0.08em; transition: color 0.2s; min-width: 48px; text-align: left; }
+
+/* ── completion + draft overlays ── */
+.ws-overlay {
+  position: fixed; inset: 0; z-index: 6;
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  max-width: 780px; margin: 0 auto; padding: 40px; text-align: center;
+  opacity: 0; transition: opacity 0.5s ease;
+}
+.ws-overlay.visible { display: flex; opacity: 1; }
+
+#cpl-head { font-family: var(--fw); font-size: 30px; font-style: italic; letter-spacing: -0.01em; margin-bottom: 6px; transition: color 0.7s; }
+#cpl-sub { font-family: var(--fs); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 40px; transition: color 0.7s; }
+#cpl-stats { display: flex; gap: 56px; margin-bottom: 40px; }
+.cs { display: flex; flex-direction: column; gap: 4px; }
+.csn { font-family: var(--fs); font-size: 30px; letter-spacing: -0.02em; transition: color 0.7s; }
+.csl { font-family: var(--fs); font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; transition: color 0.7s; }
+#cpl-first { margin-bottom: 44px; max-width: 440px; }
+#cpl-fl { font-family: var(--fs); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 8px; transition: color 0.7s; }
+#cpl-ft { font-family: var(--fw); font-size: 15px; font-style: italic; line-height: 1.6; transition: color 0.7s; }
+#cpl-acts { display: flex; gap: 14px; }
+#kg-btn, #rd-btn, .act-btn {
+  font-family: var(--fs); font-size: 11px; letter-spacing: 0.1em;
+  background: none; border: 1px solid; border-radius: 3px; padding: 11px 22px; cursor: pointer;
+  transition: all 0.2s;
+}
+
+#dh { display: flex; flex-direction: column; gap: 6px; margin-bottom: 26px; }
+#dt { font-family: var(--fs); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; transition: color 0.7s; }
+#dm { font-family: var(--fs); font-size: 11px; letter-spacing: 0.06em; transition: color 0.7s; }
+#db {
+  font-family: var(--fw); font-size: 15px; line-height: 1.9; white-space: pre-wrap; word-break: break-word;
+  max-width: 600px; max-height: 50vh; overflow-y: auto; text-align: left; margin-bottom: 30px;
+  padding: 24px; border-radius: 4px; transition: color 0.7s, background 0.7s;
+}
+#da { display: flex; gap: 14px; }
+
+#toast {
+  position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px);
+  font-family: var(--fs); font-size: 11px; letter-spacing: 0.1em; padding: 10px 22px;
+  border: 1px solid; border-radius: 3px; opacity: 0; pointer-events: none; z-index: 50;
+  transition: opacity 0.3s, transform 0.3s;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* overlay theming */
+body.paper .ws-overlay { background: var(--paper); }
+body.paper.night .ws-overlay { background: #141415; }
+body.gallery .ws-overlay { background: #060607; }
+body.paper #cpl-head, body.paper .csn, body.paper #cpl-ft, body.paper #dt { color: var(--ink); }
+body.paper #cpl-sub, body.paper .csl, body.paper #cpl-fl, body.paper #dm { color: var(--dim); }
+body.paper #kg-btn, body.paper #rd-btn, body.paper .act-btn { color: var(--ink2); border-color: var(--border-l); }
+body.paper #kg-btn:hover, body.paper #rd-btn:hover, body.paper .act-btn:hover { border-color: var(--ink2); }
+body.paper #db { color: var(--ink2); background: var(--paper2); }
+body.paper #toast { color: var(--ink2); border-color: var(--border-l); background: var(--paper); }
+body.paper .ws-sw-track { border-color: var(--dim); }
+body.paper .ws-sw-thumb { background: var(--dim); }
+body.paper .ws-switch.on .ws-sw-track { background: var(--accent); border-color: var(--accent); }
+body.paper .ws-switch.on .ws-sw-thumb { background: var(--paper); }
+body.paper .ws-sw-label { color: var(--dim); }
+
+body.paper.night #cpl-head, body.paper.night .csn, body.paper.night #cpl-ft, body.paper.night #dt { color: #e4e4e8; }
+body.paper.night #cpl-sub, body.paper.night .csl, body.paper.night #cpl-fl, body.paper.night #dm { color: #6a6a70; }
+body.paper.night #kg-btn, body.paper.night #rd-btn, body.paper.night .act-btn { color: #c8c8ce; border-color: #28282c; }
+body.paper.night #kg-btn:hover, body.paper.night #rd-btn:hover, body.paper.night .act-btn:hover { border-color: #6a6a70; }
+body.paper.night #db { color: #c8c8ce; background: #1a1a1c; }
+body.paper.night #toast { color: #c8c8ce; border-color: #28282c; background: #141415; }
+body.paper.night .ws-sw-track { border-color: #5e5e64; }
+body.paper.night .ws-sw-thumb { background: #5e5e64; }
+body.paper.night .ws-switch.on .ws-sw-track { background: #6a6a70; border-color: #6a6a70; }
+body.paper.night .ws-switch.on .ws-sw-thumb { background: #141415; }
+body.paper.night .ws-sw-label { color: #6a6a70; }
+
+body.gallery #cpl-head, body.gallery .csn, body.gallery #cpl-ft, body.gallery #dt { color: var(--g-bright, #e8e8ea); }
+body.gallery #cpl-sub, body.gallery .csl, body.gallery #cpl-fl, body.gallery #dm { color: var(--g-dim, #6a6a70); }
+body.gallery #kg-btn, body.gallery #rd-btn, body.gallery .act-btn { color: var(--g-bright, #c8c8ce); border-color: rgba(255,255,255,0.12); }
+body.gallery #kg-btn:hover, body.gallery #rd-btn:hover, body.gallery .act-btn:hover { border-color: rgba(255,255,255,0.3); }
+body.gallery #db { color: var(--g-bright, #c8c8ce); background: rgba(255,255,255,0.03); }
+body.gallery #toast { color: var(--g-bright, #c8c8ce); border-color: rgba(255,255,255,0.12); background: #0a0a0c; }
+body.gallery .ws-sw-track { border-color: var(--g-dim, #6a6a70); }
+body.gallery .ws-sw-thumb { background: var(--g-dim, #6a6a70); }
+body.gallery .ws-switch.on .ws-sw-track { background: var(--g-bright, #888); border-color: var(--g-bright, #888); }
+body.gallery .ws-switch.on .ws-sw-thumb { background: #0a0a0c; }
+body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
+
+/* ── crossover: staggered exit of the threshold ── */
+#stage { transition: opacity 0.5s ease, transform 0.5s ease; }
+#stage.dissolving > * {
+  animation: pieceOut 0.5s ease forwards;
+}
+@keyframes pieceOut { to { opacity: 0; transform: translateY(-10px); } }
+/* stagger: outer pieces leave first, prompt lingers */
+#stage.dissolving #atmo-label,
+#stage.dissolving #atmo-row,
+#stage.dissolving #dur-label,
+#stage.dissolving #dur-row,
+#stage.dissolving #rules,
+#stage.dissolving #thread { animation-delay: 0s; }
+#stage.dissolving #begin,
+#stage.dissolving #whisper { animation-delay: 0.08s; }
+#stage.dissolving #prompt,
+#stage.dissolving #prompt-meta { animation-delay: 0.22s; animation-duration: 0.6s; }
+#stage.gone { opacity: 0; pointer-events: none; }
+
+/* ── flying chevron ── */
+#fly-chevron {
+  position: fixed; z-index: 30; width: 16px; height: 20px;
+  opacity: 0; pointer-events: none;
+  color: var(--fly-color, #fff);
+  filter: drop-shadow(0 0 10px var(--fly-glow, transparent));
+}
+#fly-chevron.fire { animation: flyFwd 0.62s cubic-bezier(.5,0,.2,1) forwards; }
+@keyframes flyFwd {
+  0%   { opacity: 0; transform: translate(0,0) scale(1); }
+  18%  { opacity: 1; transform: translate(6px,0) scale(1.05); }
+  100% { opacity: 0; transform: translate(140px,0) scale(2.4); }
+}
+
+/* haptic tick — tiny visual flash where native haptic fires */
+#haptic-tick {
+  position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+  font-family: var(--fs); font-size: 8px; letter-spacing: 0.16em;
+  color: #888; opacity: 0; pointer-events: none; z-index: 40;
+  text-transform: uppercase;
+}
+#haptic-tick.show { animation: tickFlash 0.5s ease forwards; }
+@keyframes tickFlash { 0%{opacity:0} 25%{opacity:0.7} 100%{opacity:0} }
+
+/* responsive */
+@media (max-width: 540px) {
+  #stage { padding: 28px 20px; }
+  #prompt { font-size: 21px; }
+  body.gallery .atmo .chip { width: 50px; height: 50px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body class="paper tier-free">
+
+<div class="grain"></div>
+<div id="room-glow"></div>
+
+<!-- DEMO HARNESS — your controls, not part of the product -->
+<div id="harness" style="display:none;">
+  <span class="h-lbl">version</span>
+  <div class="h-group">
+    <button class="h-btn on" id="t-free" onclick="setTier('free')">free · paper</button>
+    <button class="h-btn" id="t-paid" onclick="setTier('paid')">paid · gallery</button>
+  </div>
+  <div class="h-sep"></div>
+  <span class="h-lbl">writer</span>
+  <div class="h-group">
+    <button class="h-btn on" id="w-first" onclick="setWriter('first')">first time</button>
+    <button class="h-btn" id="w-return" onclick="setWriter('return')">returning</button>
+  </div>
+  <div class="h-sep" id="mode-sep"></div>
+  <span class="h-lbl" id="mode-lbl">paper</span>
+  <div class="h-group" id="mode-group">
+    <button class="h-btn on" id="m-light" onclick="setMode('light')">light</button>
+    <button class="h-btn" id="m-dark" onclick="setMode('dark')">dark</button>
+  </div>
+  <div class="h-sep"></div>
+  <span class="h-lbl">rules</span>
+  <div class="h-group">
+    <button class="h-btn on" id="o-on" onclick="setOutcome(true)">+ outcome</button>
+    <button class="h-btn" id="o-off" onclick="setOutcome(false)">mechanics only</button>
+  </div>
+</div>
+
+<!-- THE THRESHOLD -->
+<div id="stage">
+
+  <div id="prompt" class="rot">Anything. Just don't stop.</div>
+
+  <div id="prompt-meta">
+    <span id="prompt-dot"></span>
+    <span id="prompt-src">untitled · prompt 1 of 6</span>
+    <button id="reroll" onclick="reroll()" title="another prompt">&#8635;</button>
+  </div>
+
+  <!-- returner thread (adaptive) -->
+  <div id="thread">
+    <span id="thread-lbl">you were here yesterday</span>
+    <span id="thread-line">"I keep coming back to the same intersection, the one where I almost said it…"</span>
+  </div>
+
+  <!-- first-timer rules -->
+  <div id="rules">
+    <div id="outcome">You're about to write the thing you haven't been able to start.</div>
+    <div class="rule"><span class="rk">no backspace</span><span class="rd">— words lock as you go</span></div>
+    <div class="rule"><span class="rk">text fades behind you</span><span class="rd">— keep your eyes ahead</span></div>
+    <div class="rule"><span class="rk">when you're done</span><span class="rd">— copy or email your draft</span></div>
+  </div>
+
+  <!-- atmosphere -->
+  <div id="atmo-label">choose your atmosphere</div>
+  <div id="atmo-row"></div>
+
+  <!-- duration -->
+  <div id="dur-label">how long?</div>
+  <div id="dur-row">
+    <button class="dur sel" data-min="0">no limit</button>
+    <button class="dur" data-min="0.5">30s</button>
+    <button class="dur" data-min="1">1m</button>
+    <button class="dur" data-min="5">5m</button>
+    <button class="dur" data-min="10">10m</button>
+  </div>
+
+  <button id="begin">begin<svg class="arr" viewBox="0 0 24 30" fill="none" aria-hidden="true"><path d="M 5 4 L 18 15 L 5 26" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <div id="whisper">press enter to cross over</div>
+
+</div>
+
+<!-- THE WRITING SCREEN (revealed on crossover) — write-b layout -->
+<div id="writescreen">
+  <div id="ws-header">
+    <div id="ws-header-left">
+      <span id="ws-back-link" onclick="recross()">← writefwd</span>
+      <span id="ws-status">DRAFTING...</span>
+    </div>
+    <div id="ws-header-right">
+      <div id="ws-timer-wrap">
+        <svg id="ws-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7.5" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"/><circle id="ws-ring-fill" cx="9" cy="9" r="7.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" transform="rotate(-90 9 9)" stroke-dasharray="47.1" stroke-dashoffset="0"/></svg>
+        <span id="ws-tlabel">0:30</span>
+      </div>
+      <span id="ws-wc">0 words</span>
+    </div>
+  </div>
+  <div id="ws-body">
+    <div id="ws-lines"></div>
+    <div id="ws-curline"><span id="ws-ghost"></span><span id="ws-cursor"></span></div>
+  </div>
+  <div id="ws-footer">
+    <span id="ws-hint">// keep your eyes ahead</span>
+    <div id="ws-footer-right">
+      <button id="ws-crossout" class="ws-switch" onclick="wsToggleCrossout()" title="backspace behavior">
+        <span class="ws-sw-track"><span class="ws-sw-thumb"></span></span>
+        <span class="ws-sw-label">lock</span>
+      </button>
+      <span class="ws-divider">|</span>
+      <div id="ws-font-ctrl">
+        <button class="ws-fs s" onclick="wsSetFs(17)">A</button>
+        <button class="ws-fs m active" onclick="wsSetFs(20)">A</button>
+        <button class="ws-fs l" onclick="wsSetFs(24)">A</button>
+      </div>
+      <span class="ws-divider">|</span>
+      <button class="ws-icon" id="ws-sound" title="Typewriter sound" onclick="wsToggleSound(this)">
+        <svg class="snd-off" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+        <svg class="snd-on" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+      </button>
+      <button class="ws-icon" id="ws-theme" title="Theme" onclick="wsToggleTheme()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+      </button>
+      <span class="ws-divider">|</span>
+      <button id="ws-done" onclick="finishSession()">done →</button>
+    </div>
+  </div>
+</div>
+
+<!-- flying chevron used during the crossover -->
+<svg id="fly-chevron" viewBox="0 0 24 30" fill="none" aria-hidden="true"><path d="M 5 4 L 18 15 L 5 26" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<div id="haptic-tick">• haptic</div>
+
+<!-- COMPLETION SCREEN -->
+<div id="complete-screen" class="ws-overlay">
+  <div id="cpl-head">you wrote.</div>
+  <div id="cpl-sub">session complete</div>
+  <div id="cpl-stats">
+    <div class="cs"><div class="csn" id="cpl-words">0</div><div class="csl">words</div></div>
+    <div class="cs"><div class="csn" id="cpl-time">0:00</div><div class="csl">time</div></div>
+  </div>
+  <div id="cpl-first">
+    <div id="cpl-fl">first line</div>
+    <div id="cpl-ft"></div>
+  </div>
+  <div id="cpl-acts">
+    <button id="kg-btn" onclick="keepGoing()">keep going →</button>
+    <button id="rd-btn" onclick="showDraft()">read my draft</button>
+  </div>
+</div>
+
+<!-- DRAFT SCREEN -->
+<div id="draft-screen" class="ws-overlay">
+  <div id="dh"><div id="dt">your draft</div><div id="dm"></div></div>
+  <div id="db"></div>
+  <div id="da">
+    <button class="act-btn" onclick="newSession()">new session</button>
+    <button class="act-btn" onclick="copyDraft()">copy draft</button>
+    <button class="act-btn" onclick="emailDraft()">email draft</button>
+  </div>
+</div>
+
+<div id="toast">copied</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ── atmosphere data (faithful to writefwd-desktop) ── */
+var ATMOS = [
+  { name:'candlewick', free:true, chip:'#f5e2b8', ring:'#c8a060',
+    lamp:'#f5b840', bright:'#f5e2b8', dim:'#8a6830', glow:'#7a4a10', shadow:'rgba(200,130,40,0.4)',
+    pc:'#c8a060', ps:'0 0 32px rgba(200,130,40,0.22),0 0 64px rgba(160,90,20,0.10)',
+    bg:'radial-gradient(ellipse at 50% 35%, #1a0f04 0%, #0c0805 55%, #060403 100%)',
+    prompts:[
+      "The version of this you haven't said out loud yet.",
+      "What you've been carrying without telling anyone.",
+      "The thing you keep meaning to write and never do.",
+      "Something that happened that you still haven't processed.",
+      "The letter you'd send if you knew they'd understand.",
+      "What you'd say if you weren't trying to say it right."
+    ]},
+  { name:'redline', free:false, chip:'#f5c8b0', ring:'#c07060',
+    lamp:'#f56040', bright:'#f5c8b0', dim:'#8a5040', glow:'#7a1c0c', shadow:'rgba(200,90,60,0.4)',
+    pc:'#c07060', ps:"0 0 26px rgba(200,90,60,0.2),0 0 52px rgba(160,60,30,0.09)",
+    bg:'radial-gradient(ellipse at 50% 40%, #1c0a06 0%, #0d0604 55%, #060302 100%)',
+    prompts:[
+      "What you've rewritten in your head a hundred times.",
+      "The thing that's been overdue for longer than you'll admit.",
+      "Say what happened. Don't soften it.",
+      "What you're pretending is fine.",
+      "The conversation you've been avoiding.",
+      "What you'd write if you weren't trying to be fair about it."
+    ]},
+  { name:'untitled', free:true, chip:'#bcbcbc', ring:'#888',
+    lamp:'#e0e0e0', bright:'#e0e0e0', dim:'#777', glow:'#303030', shadow:'rgba(180,180,180,0.3)',
+    pc:'#bcbcbc', ps:"none",
+    bg:'radial-gradient(ellipse at 50% 40%, #181818 0%, #0d0d0d 55%, #060606 100%)',
+    prompts:[
+      "Anything. Just don't stop.",
+      "Start with the first thing that comes. Keep going.",
+      "No agenda. No destination. Just write.",
+      "Wherever this goes is where it needs to go.",
+      "Begin. That's the whole instruction.",
+      "Write until you find out what you're writing about."
+    ]},
+  { name:'green light', free:false, chip:'#e8f0c8', ring:'#7aaa50',
+    lamp:'#9ad84a', bright:'#e8f0c8', dim:'#7aaa50', glow:'#1a4818', shadow:'rgba(100,160,60,0.4)',
+    pc:'#7aaa50', ps:"0 0 26px rgba(100,160,60,0.18),0 0 52px rgba(70,120,30,0.09)",
+    bg:'radial-gradient(ellipse at 50% 40%, #0c1606 0%, #080c05 55%, #040603 100%)',
+    prompts:[
+      "The thing that's been waiting.",
+      "What would you write if no one was going to read it?",
+      "Something you're ready to say.",
+      "The version of yourself you're moving toward.",
+      "What's been opening up lately.",
+      "Write from the place just after the doubt lifts."
+    ]},
+  { name:'ink stain', free:false, chip:'#d4c8f0', ring:'#9080d0',
+    lamp:'#9a6cf0', bright:'#d4c8f0', dim:'#9080d0', glow:'#3a1878', shadow:'rgba(140,100,210,0.4)',
+    pc:'#9080d0', ps:"0 0 26px rgba(140,100,210,0.2),0 0 52px rgba(100,60,170,0.09)",
+    bg:'radial-gradient(ellipse at 50% 40%, #120a22 0%, #0a0712 55%, #050409 100%)',
+    prompts:[
+      "Follow the thought you keep abandoning.",
+      "The idea that arrives at 2am and is gone by morning.",
+      "What you're obsessed with that you haven't admitted to.",
+      "Start in the middle of the thought. Work outward.",
+      "The thing you circle without landing.",
+      "Write into the part that doesn't make sense yet."
+    ]},
+  { name:'deadline', free:false, chip:'#c8daf5', ring:'#7098c8',
+    lamp:'#5c9cf5', bright:'#c8daf5', dim:'#7098c8', glow:'#1a3c6e', shadow:'rgba(100,150,200,0.4)',
+    pc:'#7098c8', ps:"0 0 28px rgba(100,150,200,0.2),0 0 56px rgba(60,100,160,0.1)",
+    bg:'radial-gradient(ellipse at 50% 40%, #08121e 0%, #060c14 55%, #040609 100%)',
+    prompts:[
+      "What you'd write if you were running out of time to write it.",
+      "Say the thing. You've been warming up long enough.",
+      "The version of this that doesn't wait for conditions.",
+      "Write as if this is the only session you get.",
+      "The words that need to exist before anything else can.",
+      "What you'd put on the page if there was no tomorrow to finish it."
+    ]}
+];
+
+var DEFAULT_IDX = ATMOS.findIndex(function(a){ return a.name === 'untitled'; }); // landing selection
+var FREE_IDX = DEFAULT_IDX; // snap-back target when dropping to free
+function isUnlocked(a){ return a.free; } // untitled + candlewick (demo) are unlocked
+var tier = 'free';     // free | paid
+var writer = 'first';  // first | return
+var sel = DEFAULT_IDX;    // selected atmosphere index (lands on untitled)
+var promptIdx = 0;
+var nightMode = false; // free paper light/dark
+
+var body = document.body;
+var glow = document.getElementById('room-glow');
+var atmoRow = document.getElementById('atmo-row');
+var promptEl = document.getElementById('prompt');
+var promptSrc = document.getElementById('prompt-src');
+var rulesEl = document.getElementById('rules');
+var threadEl = document.getElementById('thread');
+var whisperEl = document.getElementById('whisper');
+
+/* ── build atmosphere row ── */
+function buildAtmos(){
+  atmoRow.innerHTML = '';
+  ATMOS.forEach(function(a, i){
+    var locked = (tier === 'free' && !a.free);
+    var isDemo = (tier === 'free' && a.name === 'candlewick'); // unlocked taste of paid
+    var el = document.createElement('div');
+    el.className = 'atmo' + (i===sel?' sel':'') + (locked?' locked':'') + (isDemo?' demo':'');
+    el.style.setProperty('--ring', a.ring);
+    el.innerHTML =
+      '<div class="chip" style="background:'+a.chip+'; --lamp:'+a.lamp+';"></div>' +
+      '<span class="nm">'+a.name+'</span>' +
+      (locked ? '<span class="lock">&#128274;</span>' : '') +
+      (isDemo ? '<span class="demo-badge">demo</span>' : '');
+    el.onclick = function(){
+      if(locked){
+        whisperEl.textContent = a.name + ' is part of the writer\u2019s edition';
+        clearTimeout(window._wt);
+        window._wt = setTimeout(function(){ resetWhisper(); }, 2400);
+      } else {
+        selectAtmo(i);
+      }
+    };
+    atmoRow.appendChild(el);
+  });
+}
+
+function selectAtmo(i){
+  sel = i; promptIdx = 0;
+  document.querySelectorAll('.atmo').forEach(function(e,idx){ e.classList.toggle('sel', idx===i); });
+  applyAtmo();
+}
+
+/* ── apply the selected atmosphere's room ── */
+function applyAtmo(){
+  var a = ATMOS[sel];
+  // prompt
+  promptEl.textContent = a.prompts[promptIdx];
+  promptEl.classList.remove('rot'); void promptEl.offsetWidth; promptEl.classList.add('rot');
+  promptSrc.textContent = a.name + ' · prompt ' + (promptIdx+1) + ' of ' + a.prompts.length;
+
+  // mirror atmosphere label into writing screen
+  var wsAtmo = document.getElementById('ws-atmo');
+  if(wsAtmo) wsAtmo.textContent = a.name;
+
+  // DEMO: candlewick lights its real room even in free tier (taste of paid).
+  // Otherwise free = paper, paid = gallery.
+  var litRoom = (tier === 'paid') || (tier === 'free' && a.name === 'candlewick' && !nightMode);
+
+  body.style.setProperty('--fly-color', litRoom ? a.bright : (nightMode ? '#e8e8e8' : '#2c2a27'));
+  body.style.setProperty('--fly-glow', litRoom ? a.shadow : 'transparent');
+
+  if(litRoom){
+    // render as the gallery room (dark, atmosphere-lit)
+    body.classList.add('gallery');
+    body.classList.remove('paper','night');
+    body.style.background = a.bg;
+    glow.style.background = 'radial-gradient(circle, '+a.glow+' 0%, transparent 60%)';
+    glow.style.opacity = '0.55';
+    body.style.setProperty('--g-bright', a.bright);
+    body.style.setProperty('--g-dim', a.dim);
+    body.style.setProperty('--g-shadow', a.shadow);
+    // exact write-b prompt color + glow, and a warm meta tone so labels/timer
+    // don't stay disconnected gray
+    body.style.setProperty('--g-prompt', a.pc || a.bright);
+    body.style.setProperty('--g-prompt-glow', a.ps && a.ps!=='none' ? a.ps : 'none');
+    body.style.setProperty('--g-meta', a.dim);
+    body.style.setProperty('--g-text', a.pc || a.bright);  // readable warm tone for names/durations/rules
+  } else if(tier === 'paid'){
+    body.style.background = a.bg;
+    glow.style.background = 'radial-gradient(circle, '+a.glow+' 0%, transparent 60%)';
+    glow.style.opacity = '0.55';
+    body.style.setProperty('--g-bright', a.bright);
+    body.style.setProperty('--g-dim', a.dim);
+    body.style.setProperty('--g-shadow', a.shadow);
+    body.style.setProperty('--g-prompt', a.pc || a.bright);
+    body.style.setProperty('--g-prompt-glow', a.ps && a.ps!=='none' ? a.ps : 'none');
+    body.style.setProperty('--g-meta', a.dim);
+    body.style.setProperty('--g-text', a.pc || a.bright);
+  } else {
+    // free paper (untitled, or candlewick in dark mode = neutral paper)
+    body.classList.add('paper');
+    body.classList.remove('gallery');
+    body.classList.toggle('night', nightMode);
+    body.style.background = '';
+    glow.style.opacity = '0';
+  }
+}
+
+/* ── reroll prompt ── */
+window.reroll = function(){
+  var a = ATMOS[sel];
+  promptIdx = (promptIdx + 1) % a.prompts.length;
+  applyAtmo();
+};
+
+function resetWhisper(){
+  whisperEl.textContent = (writer==='first')
+    ? 'press enter to cross over'
+    : 'enter to begin where you left off';
+}
+
+/* ── adaptive: first-timer vs returner ── */
+function applyWriter(){
+  if(writer === 'first'){
+    rulesEl.classList.add('show');
+    threadEl.classList.remove('show');
+    whisperEl.textContent = 'press enter to cross over';
+  } else {
+    rulesEl.classList.remove('show');
+    threadEl.classList.add('show');
+    whisperEl.textContent = 'enter to begin where you left off';
+    // returners land on their last atmosphere
+    sel = (tier==='free') ? FREE_IDX : sel;
+    document.querySelectorAll('.atmo').forEach(function(e,idx){ e.classList.toggle('sel', idx===sel); });
+  }
+  applyAtmo();
+}
+
+/* ── harness controls ── */
+window.setTier = function(t){
+  tier = t;
+  document.getElementById('t-free').classList.toggle('on', t==='free');
+  document.getElementById('t-paid').classList.toggle('on', t==='paid');
+  body.classList.toggle('tier-free', t==='free'); // tracks ACTUAL tier (for demo badge)
+  // light/dark toggle is meaningless in gallery (atmosphere lights the room)
+  var dim = (t==='paid');
+  ['mode-sep','mode-lbl','mode-group'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el){ el.style.opacity = dim ? '0.3' : '1'; el.style.pointerEvents = dim ? 'none' : 'auto'; }
+  });
+  // if a locked atmosphere was selected and we drop to free, snap to default
+  if(t==='free' && !ATMOS[sel].free){ sel = FREE_IDX; }
+  buildAtmos();
+  applyAtmo(); // applyAtmo sets paper/gallery/night render classes
+};
+
+window.setMode = function(m){
+  nightMode = (m==='dark');
+  document.getElementById('m-light').classList.toggle('on', m==='light');
+  document.getElementById('m-dark').classList.toggle('on', m==='dark');
+  applyAtmo(); // re-render with new mode
+};
+
+window.setOutcome = function(on){
+  document.getElementById('o-on').classList.toggle('on', on);
+  document.getElementById('o-off').classList.toggle('on', !on);
+  body.classList.toggle('hide-outcome', !on);
+};
+
+window.setWriter = function(w){
+  writer = w;
+  document.getElementById('w-first').classList.toggle('on', w==='first');
+  document.getElementById('w-return').classList.toggle('on', w==='return');
+  applyWriter();
+};
+
+/* ── duration ── */
+document.querySelectorAll('.dur').forEach(function(d){
+  d.onclick = function(){
+    document.querySelectorAll('.dur').forEach(function(x){ x.classList.remove('sel'); });
+    d.classList.add('sel');
+  };
+});
+
+/* ── begin / enter ── */
+/* ── writing-screen toolbar (write-b parity) ── */
+window.wsSetFs = function(px){
+  document.getElementById('writescreen').style.setProperty('--ws-fs', px + 'px');
+  document.querySelectorAll('.ws-fs').forEach(function(b){ b.classList.remove('active'); });
+  var cls = px<=17 ? '.ws-fs.s' : px>=24 ? '.ws-fs.l' : '.ws-fs.m';
+  document.querySelector(cls).classList.add('active');
+  haptic('light');
+};
+window.wsToggleSound = function(btn){
+  btn.classList.toggle('on');
+  var on = btn.classList.contains('on');
+  btn.querySelector('.snd-off').style.display = on ? 'none' : 'block';
+  btn.querySelector('.snd-on').style.display = on ? 'block' : 'none';
+  haptic('light');
+};
+
+/* ── HINT POOLS (locked, outcome-based, per atmosphere) ── */
+var HINTS = {
+  'candlewick': ['// no one is reading yet','// say it the way you\u2019d say it at 2am','// the lamp is on. that\u2019s enough.','// you don\u2019t have to get it right','// just keep the pen moving'],
+  'redline':    ['// the only way out is through','// you\u2019ve put this off long enough','// don\u2019t make it fair. make it true.','// stop circling. go in.','// say the part you keep skipping'],
+  'untitled':   ['// forward is the only direction','// keep your eyes ahead','// wherever this goes is fine','// don\u2019t stop to read it back','// just begin'],
+  'green light':['// you\u2019re ready. go.','// nothing\u2019s stopping you now','// the doubt already lifted','// you have permission','// keep your eyes ahead'],
+  'ink stain':  ['// follow it. don\u2019t lose the thread.','// the mess is the work','// let the traces stay','// chase the thought, not the sentence','// keep going. it\u2019s getting somewhere.'],
+  'deadline':   ['// there\u2019s no time to look back','// bring it home','// done beats perfect','// keep moving. the clock is.','// forward. only forward.']
+};
+var hintIdx = 0, hintTimer = null, lastTypeTs = Date.now();
+function setHint(txt){
+  var h = document.getElementById('ws-hint');
+  h.style.transition = 'opacity 0.5s'; h.style.opacity = '0';
+  setTimeout(function(){ h.textContent = txt; h.style.opacity = '1'; }, 500);
+}
+function startHintRotation(){
+  var pool = HINTS[ATMOS[sel].name] || HINTS['untitled'];
+  hintIdx = 0;
+  document.getElementById('ws-hint').textContent = pool[0];
+  clearInterval(hintTimer);
+  // check every 4s; rotate only if idle >18s (you've stalled)
+  hintTimer = setInterval(function(){
+    if(Date.now() - lastTypeTs > 18000){
+      hintIdx = (hintIdx + 1) % pool.length;
+      setHint(pool[hintIdx]);
+      lastTypeTs = Date.now(); // don't rotate again immediately
+    }
+  }, 4000);
+}
+
+/* ── CROSSOUT SWITCH (default: lock / no backspace) ── */
+var crossout = false; // false = lock, true = cross out
+window.wsToggleCrossout = function(){
+  crossout = !crossout;
+  var sw = document.getElementById('ws-crossout');
+  sw.classList.toggle('on', crossout);
+  sw.querySelector('.ws-sw-label').textContent = crossout ? 'cross out' : 'lock';
+  haptic('light');
+};
+
+/* ── PERSISTENT THEME (light/dark) ── */
+window.wsToggleTheme = function(){
+  nightMode = !nightMode;
+  document.getElementById('m-light').classList.toggle('on', !nightMode);
+  document.getElementById('m-dark').classList.toggle('on', nightMode);
+  if(tier==='free') body.classList.toggle('night', nightMode);
+  haptic('light');
+};
+
+/* ── TYPING ENGINE (write-b parity: 54-char wrap, >=4-line fade gate) ── */
+var wsText = '', wsSecs = 0, wsTimerInt = null, wsCountInt = null, wsActive = false;
+var wsLimit = 0, wsRemaining = 0; // countdown: total + seconds left
+var struck = {}; // map of global wordIndex -> true (crossed out, still visible)
+
+function splitWords(t){
+  var out = [], re = /\S+/g, m, i = 0;
+  while((m = re.exec(t)) !== null){ out.push({w: m[0], start: m.index, idx: i++}); }
+  return out;
+}
+function wcCount(t){
+  var words = splitWords(t), n = 0;
+  words.forEach(function(tok){ if(!struck[tok.idx]) n++; });
+  return n;
+}
+function strikeLastWord(){
+  var words = splitWords(wsText);
+  for(var k = words.length - 1; k >= 0; k--){
+    if(!struck[words[k].idx]){ struck[words[k].idx] = true; break; }
+  }
+  renderWriting();
+}
+function escapeHTML(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* wrap() — write-b: split allText into committed lines (result) + live line (cur), wrap at 54 */
+function wsWrap(text){
+  var WIDTH = 54;
+  var words = text.split(' ');
+  var result = [], cur = '';
+  for(var i=0;i<words.length;i++){
+    var word = words[i];
+    if(word.indexOf('\n') >= 0){
+      var parts = word.split('\n');
+      for(var j=0;j<parts.length;j++){
+        var p = parts[j];
+        var test = cur ? (cur + (cur && p ? ' ' : '') + p) : p;
+        if(test.length > WIDTH && cur){ result.push(cur); cur = p; }
+        else { cur = test; }
+        if(j < parts.length - 1){ result.push(cur); cur = ''; }
+      }
+    } else {
+      var test2 = cur ? cur + ' ' + word : word;
+      if(test2.length > WIDTH && cur){ result.push(cur); cur = word; }
+      else { cur = test2; }
+    }
+  }
+  return { result: result, cur: cur };
+}
+
+/* render a line's HTML, marking struck words (global word index via running offset) */
+function buildLineHTML(lineText, wordOffset){
+  var words = splitWords(lineText);
+  if(words.length === 0) return lineText ? escapeHTML(lineText) : '\u00a0';
+  var html = '', cursor = 0;
+  words.forEach(function(tok){
+    html += escapeHTML(lineText.slice(cursor, tok.start));
+    var gi = wordOffset + tok.idx;
+    if(struck[gi]) html += '<span class="xw crossed">' + escapeHTML(tok.w) + '</span>';
+    else html += escapeHTML(tok.w);
+    cursor = tok.start + tok.w.length;
+  });
+  html += escapeHTML(lineText.slice(cursor));
+  return html;
+}
+
+/* paint() — write-b fade: >=4 committed lines gate; age = len-i; a{min(age,3)}; SHOW last 4 */
+var wsLineEls = {}; // persistent map: line index -> DOM node (write-b parity)
+function renderWriting(){
+  var w = wsWrap(wsText);
+  var linesEl = document.getElementById('ws-lines');
+  var curtext = document.getElementById('ws-ghost');
+  var SHOW = 4;
+  var start = Math.max(0, w.result.length - SHOW);
+
+  // running word offset up to `start` so struck indices map correctly
+  var offsets = [], wordOffset = 0;
+  for(var s=0;s<w.result.length;s++){ offsets[s] = wordOffset; wordOffset += splitWords(w.result[s]).length; }
+
+  // 1) drop nodes that scrolled out of the visible window
+  for(var key in wsLineEls){
+    var ki = +key;
+    if(ki < start || ki >= w.result.length){
+      linesEl.removeChild(wsLineEls[key]);
+      delete wsLineEls[key];
+    }
+  }
+
+  // 2) reconcile in place — REUSE the same node per index, only change class/content.
+  //    This is what makes the CSS color+opacity transition fire as a line recedes.
+  for(var i=start;i<w.result.length;i++){
+    var cls;
+    if(w.result.length < 4){
+      cls = 'ws-line';
+    } else {
+      var age = w.result.length - i;
+      cls = 'ws-line a' + Math.min(age, 3);
+    }
+    var html = buildLineHTML(w.result[i], offsets[i]);
+    var el = wsLineEls[i];
+    if(!el){
+      el = document.createElement('div');
+      el.innerHTML = html;
+      el.dataset.raw = w.result[i];
+      wsLineEls[i] = el;
+      linesEl.appendChild(el);
+      // a brand-new line enters at its bright state, THEN gets its faded class
+      // next frame, so even the first fade animates rather than snapping.
+      el.className = 'ws-line';
+      (function(node, klass){ requestAnimationFrame(function(){ requestAnimationFrame(function(){ if(node.className !== klass) node.className = klass; }); }); })(el, cls);
+    } else {
+      if(el.dataset.raw !== w.result[i]){ el.innerHTML = html; el.dataset.raw = w.result[i]; }
+      if(el.className !== cls) el.className = cls; // class change → transition fires
+    }
+  }
+
+  // active line never fades
+  curtext.innerHTML = buildLineHTML(w.cur, wordOffset);
+  var n = wcCount(wsText);
+  document.getElementById('ws-wc').textContent = n + (n===1?' word':' words');
+}
+function wsKeystroke(e){
+  if(!wsActive) return;
+  if(e.key === 'Backspace'){
+    e.preventDefault();
+    lastTypeTs = Date.now();
+    if(crossout){
+      // REMOVAL — a word gets struck. soft, resolved. no cursor shake;
+      // the struck word itself flinches as the line draws across it.
+      strikeLastWord();
+      haptic('soft'); // lighter, cushioned — "removed"
+      var marks = document.querySelectorAll('#ws-lines .xw.crossed, #ws-ghost .xw.crossed');
+      var last = marks[marks.length - 1];
+      if(last){ last.classList.remove('flinch'); void last.offsetWidth; last.classList.add('flinch'); }
+    } else {
+      // REFUSAL — backspace is gone. firm wall + cursor shake. "no."
+      var cur = document.getElementById('ws-cursor');
+      cur.classList.remove('shaking'); void cur.offsetWidth; cur.classList.add('shaking');
+      setTimeout(function(){ cur.classList.remove('shaking'); }, 160);
+      haptic('rigid'); // hard, blunt — "you can't go back"
+    }
+    return;
+  }
+  if(e.key === 'Enter'){ e.preventDefault(); wsText += '\n'; renderWriting(); haptic('light'); return; }
+  if(e.key.length === 1){
+    e.preventDefault();
+    wsText += e.key;
+    lastTypeTs = Date.now();
+    renderWriting();
+    if(document.getElementById('ws-sound').classList.contains('on')) {/* typewriter click would play */}
+  }
+}
+
+/* ── COUNTDOWN TIMER ── */
+function updateTimerDisplay(){
+  var m = Math.floor(wsRemaining/60), s = wsRemaining%60;
+  document.getElementById('ws-tlabel').textContent = m + ':' + (s<10?'0':'') + s;
+  // ring depletes: dashoffset 0 (full) → 47.1 (empty) as time runs out
+  var frac = wsLimit > 0 ? (1 - wsRemaining/wsLimit) : 0;
+  document.getElementById('ws-ring-fill').style.strokeDashoffset = (47.1 * frac).toFixed(2);
+}
+function timeUp(){
+  haptic('heavy');
+  document.getElementById('ws-status').textContent = "TIME'S UP";
+  // brief beat, then finish into the completion screen
+  setTimeout(function(){ finishSession(); }, 900);
+}
+
+/* ── COMPLETION + DRAFT FLOW ── */
+window.finishSession = function(){
+  haptic('medium');
+  wsActive = false;
+  if(wsTimerInt) clearInterval(wsTimerInt);
+  if(wsCountInt) clearInterval(wsCountInt);
+  clearInterval(hintTimer);
+  var n = wcCount(wsText);
+  var m = Math.floor(wsSecs/60), s = wsSecs%60;
+  document.getElementById('cpl-words').textContent = n;
+  document.getElementById('cpl-time').textContent = m + ':' + (s<10?'0':'') + s;
+  var first = (wsText.trim().split('\n')[0] || '').slice(0,90);
+  document.getElementById('cpl-ft').textContent = first ? '\u201c' + first + '\u201d' : '(a quiet start)';
+  document.getElementById('writescreen').classList.remove('live');
+  document.getElementById('complete-screen').classList.add('visible');
+};
+window.keepGoing = function(){
+  document.getElementById('complete-screen').classList.remove('visible');
+  document.getElementById('writescreen').classList.add('live');
+  wsActive = true; lastTypeTs = Date.now(); startHintRotation();
+  haptic('light');
+};
+window.showDraft = function(){
+  var n = wcCount(wsText), m = Math.floor(wsSecs/60), s = wsSecs%60;
+  document.getElementById('dm').textContent = n + ' words \u2014 ' + m + ':' + (s<10?'0':'') + s;
+  document.getElementById('db').textContent = wsText.trim() || '(nothing written)';
+  document.getElementById('complete-screen').classList.remove('visible');
+  document.getElementById('draft-screen').classList.add('visible');
+};
+window.copyDraft = function(){
+  try { navigator.clipboard.writeText(wsText.trim()); } catch(e){}
+  var t = document.getElementById('toast'); t.textContent = 'copied';
+  t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, 1800);
+  haptic('light');
+};
+window.emailDraft = function(){
+  var subj = encodeURIComponent('My writefwd draft');
+  var body2 = encodeURIComponent(wsText.trim());
+  window.location.href = 'mailto:?subject=' + subj + '&body=' + body2;
+  haptic('light');
+};
+window.newSession = function(){
+  wsText=''; wsSecs=0; wsActive=false; struck={};
+  document.getElementById('ws-lines').innerHTML=''; wsLineEls={};
+  document.getElementById('ws-ghost').textContent='';
+  document.getElementById('ws-wc').textContent='0 words';
+  document.getElementById('draft-screen').classList.remove('visible');
+  document.getElementById('complete-screen').classList.remove('visible');
+  recross();
+  haptic('light');
+};
+
+/* ── HAPTIC STUB ──
+   In the native app these map to UIImpactFeedbackGenerator (iOS) /
+   HapticGenerator (Android). On web we use navigator.vibrate where allowed.
+   The on-screen tick is a dev affordance so you can SEE where a haptic fires. */
+function haptic(weight){
+  // weight: 'light' | 'medium' | 'heavy' | 'rigid' (refusal) | 'soft' (removal)
+  // native: rigid -> UIImpactFeedbackGenerator(.rigid) heavy; soft -> double .soft tick
+  var pattern;
+  switch(weight){
+    case 'heavy': pattern = 18; break;
+    case 'medium': pattern = 10; break;
+    case 'rigid': pattern = 22; break;         // one hard blunt thud — "no"
+    case 'soft':  pattern = [5, 35, 7]; break; // soft two-beat "tk-tk" — "removed"
+    default: pattern = 5;                        // light
+  }
+  try { if(navigator.vibrate) navigator.vibrate(pattern); } catch(e){}
+  var tick = document.getElementById('haptic-tick');
+  tick.textContent = '• haptic · ' + weight;
+  tick.classList.remove('show'); void tick.offsetWidth; tick.classList.add('show');
+  if(window.console) console.log('[haptic]', weight);
+}
+
+/* ── THE CROSSOVER ── */
+var crossing = false;
+var stage = document.getElementById('stage');
+var writescreen = document.getElementById('writescreen');
+var flyChevron = document.getElementById('fly-chevron');
+
+function cross(){
+  if(crossing) return;
+  crossing = true;
+
+  // 0ms — commit. heavy haptic: the "ka-chunk" of crossing over.
+  haptic('heavy');
+  whisperEl.textContent = '— crossing over —';
+
+  // ghost line clears once you're "in" (write-b shows bare text)
+  var a = ATMOS[sel];
+  var ghost = document.getElementById('ws-ghost');
+
+  // duration → circular countdown timer (only show if a limit was picked)
+  var durSel = document.querySelector('.dur.sel');
+  var mins = durSel ? parseFloat(durSel.getAttribute('data-min')) : 0;
+  var tw = document.getElementById('ws-timer-wrap');
+  wsLimit = Math.round(mins * 60);   // total seconds, 0 = no limit
+  wsRemaining = wsLimit;
+  document.getElementById('ws-status').textContent = 'DRAFTING...';
+  if(wsLimit > 0){
+    updateTimerDisplay();
+    tw.style.display = 'flex';
+  } else {
+    tw.style.display = 'none';
+  }
+
+  // position the flying chevron where the begin arrow sits
+  var arr = document.querySelector('#begin .arr');
+  if(arr){
+    var r = arr.getBoundingClientRect();
+    flyChevron.style.left = r.left + 'px';
+    flyChevron.style.top  = (r.top - 2) + 'px';
+  }
+
+  // 1) staggered dissolve of the threshold pieces
+  stage.classList.add('dissolving');
+
+  // 2) the chevron shoots forward (slight delay so it leads the motion)
+  setTimeout(function(){
+    flyChevron.classList.remove('fire'); void flyChevron.offsetWidth; flyChevron.classList.add('fire');
+    haptic('light'); // the chevron releasing
+  }, 180);
+
+  // 3) writing screen rises through as the stage clears
+  setTimeout(function(){
+    stage.classList.add('gone');
+    writescreen.classList.add('live');
+  }, 560);
+
+  // 4) cursor arrives last — a soft tick when it begins blinking, engine goes live
+  setTimeout(function(){
+    haptic('light');
+    wsText=''; wsSecs=0; wsActive=true; lastTypeTs=Date.now(); struck={};
+    document.getElementById('ws-lines').innerHTML=''; wsLineEls={};
+    document.getElementById('ws-ghost').textContent='';
+    document.getElementById('ws-wc').textContent='0 words';
+    // reset crossout to lock default each session
+    crossout=false;
+    var sw=document.getElementById('ws-crossout');
+    sw.classList.remove('on'); sw.querySelector('.ws-sw-label').textContent='lock';
+    startHintRotation();
+    // elapsed-time counter (for completion stats)
+    if(wsCountInt) clearInterval(wsCountInt);
+    wsCountInt = setInterval(function(){ if(wsActive) wsSecs++; }, 1000);
+    // countdown timer (if a limit was chosen)
+    if(wsTimerInt) clearInterval(wsTimerInt);
+    if(wsLimit > 0){
+      wsTimerInt = setInterval(function(){
+        if(!wsActive) return;
+        wsRemaining--;
+        updateTimerDisplay();
+        if(wsRemaining <= 0){
+          clearInterval(wsTimerInt);
+          timeUp();
+        }
+      }, 1000);
+    }
+  }, 1150);
+}
+
+function recross(){
+  crossing = false;
+  wsActive = false;
+  if(wsCountInt) clearInterval(wsCountInt);
+  if(wsTimerInt) clearInterval(wsTimerInt);
+  clearInterval(hintTimer);
+  writescreen.classList.remove('live');
+  stage.classList.remove('gone');
+  // let the dissolve classes clear, then reset pieces
+  setTimeout(function(){
+    stage.classList.remove('dissolving');
+    flyChevron.classList.remove('fire');
+    resetWhisper();
+  }, 400);
+  haptic('light');
+}
+window.recross = recross;
+
+document.getElementById('begin').onclick = cross;
+document.addEventListener('keydown', function(e){
+  // ` (backtick) toggles the state-preview harness — for testing only
+  if(e.key === '`' && !wsActive){
+    var h = document.getElementById('harness');
+    h.style.display = (h.style.display === 'none') ? 'flex' : 'none';
+    return;
+  }
+  // writing engine active → capture typing
+  if(wsActive){ wsKeystroke(e); return; }
+  if(e.key === 'Enter' && !crossing){ e.preventDefault(); cross(); }
+  if(e.key === 'Escape' && crossing){ recross(); }
+});
+
+/* ── init ── */
+buildAtmos();
+applyWriter();
+
+})();
+</script>
+</body>
+</html>
