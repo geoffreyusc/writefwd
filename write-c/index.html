@@ -793,7 +793,8 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
         <svg class="snd-on" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
       </button>
       <button class="ws-icon" id="ws-theme" title="Theme" onclick="wsToggleTheme()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="ws-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="ws-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
       </button>
       <span class="ws-divider">|</span>
       <button id="ws-done" onclick="finishSession()">done →</button>
@@ -1075,6 +1076,7 @@ window.setMode = function(m){
   nightMode = (m==='dark');
   document.getElementById('m-light').classList.toggle('on', m==='light');
   document.getElementById('m-dark').classList.toggle('on', m==='dark');
+  wsUpdateThemeIcon();
   applyAtmo(); // re-render with new mode
 };
 
@@ -1157,11 +1159,23 @@ window.wsToggleCrossout = function(){
 };
 
 /* ── PERSISTENT THEME (light/dark) ── */
+// Show the sun in light mode, the crescent moon in dark mode.
+function wsUpdateThemeIcon(){
+  var btn = document.getElementById('ws-theme');
+  if(!btn) return;
+  var sun = btn.querySelector('.ws-sun');
+  var moon = btn.querySelector('.ws-moon');
+  if(sun)  sun.style.display  = nightMode ? 'none' : 'block';
+  if(moon) moon.style.display = nightMode ? 'block' : 'none';
+  btn.title = nightMode ? 'Light mode' : 'Dark mode';
+}
+
 window.wsToggleTheme = function(){
   nightMode = !nightMode;
   document.getElementById('m-light').classList.toggle('on', !nightMode);
   document.getElementById('m-dark').classList.toggle('on', nightMode);
   if(tier==='free') body.classList.toggle('night', nightMode);
+  wsUpdateThemeIcon();
   haptic('light');
 };
 
