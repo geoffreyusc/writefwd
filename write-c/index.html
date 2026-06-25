@@ -577,8 +577,23 @@ body.gallery .ws-icon:hover, body.gallery .ws-icon.on { color: var(--g-bright, #
 }
 #kg-btn:active, #rd-btn:active, .act-btn:active { transform: scale(0.97); }
 .act-save .sd-lock { font-size: 9px; opacity: 0.55; margin-left: 5px; }
-.act-save.saved { cursor: default; opacity: 0.7; }
+.act-save.saved { cursor: default; background: var(--ink); color: var(--paper); border-color: var(--ink); pointer-events: none; }
 .act-save.saved:active { transform: none; }
+#save-btn { position: relative; }
+#save-badge {
+  position: absolute;
+  top: -7px; right: -4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 6px; letter-spacing: 0.06em;
+  color: var(--dimmer);
+  background: var(--paper);
+  border: 1px solid var(--border-l);
+  border-radius: 2px;
+  padding: 1px 4px;
+  pointer-events: none;
+  line-height: 1;
+}
+#save-badge.full { color: var(--accent); border-color: var(--accent); opacity: 0.7; }
 
 #dh { display: flex; flex-direction: column; gap: 6px; margin-bottom: 26px; }
 #dt { font-family: var(--fs); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; transition: color 0.7s; }
@@ -602,6 +617,19 @@ body.gallery .ws-icon:hover, body.gallery .ws-icon.on { color: var(--g-bright, #
   transition: opacity 0.3s, transform 0.3s;
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* edit-attempt nudge — the draft is done, edit it elsewhere */
+#edit-toast {
+  position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%);
+  z-index: 50;
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 12px; font-style: italic; line-height: 1.5;
+  color: var(--paper); background: var(--ink);
+  border-radius: 2px; padding: 10px 16px;
+  max-width: 280px; text-align: left;
+  opacity: 0; transition: opacity 0.25s ease; pointer-events: none;
+}
+#edit-toast.show { opacity: 1; }
 
 /* overlay theming */
 body.paper .ws-overlay { background: var(--paper); }
@@ -937,7 +965,7 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
   <div id="da">
     <button class="act-btn" onclick="copyDraft()">copy</button>
     <button class="act-btn" onclick="shareDraft()">share</button>
-    <button class="act-btn act-save" onclick="saveDraftLocked()">save <span class="sd-lock">&#128274;</span></button>
+    <button class="act-btn act-save" id="save-btn" onclick="saveDraftLocked()">save <span id="save-badge">0/3</span></button>
   </div>
   <button id="da-new" onclick="newSession()">new session &rarr;</button>
 </div>
@@ -974,6 +1002,7 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
 </div>
 
 <div id="toast">copied</div>
+<div id="edit-toast"></div>
 
 <script>
 (function(){
@@ -1328,7 +1357,11 @@ var sessionUnlocked = {}; // atmosphere index -> true (99¢ session-only unlock;
 var pwMode = 'time';      // active paywall mode: 'time' | 'atmosphere'
 var pwAtmoIdx = -1;       // atmosphere index the modal is offering (atmosphere mode)
 var pwArmed = false;      // scrim-click dismiss only arms after the entrance settles
-var savedThisSession = false; // draft saved via the 99¢/sub paywall this session
+var savedThisSession = false; // draft saved this session (slot used or paid)
+var saveCount = 0;            // free draft saves used this page-load (persists across sessions)
+var SAVE_LIMIT = 3;          // free slots before the shared paywall takes over
+var saveBadge = null;        // resolved on init (the slot counter inside #save-btn)
+var editToast = null, editToastTimer = null;
 
 function splitWords(t){
   var out = [], re = /\S+/g, m, i = 0;
@@ -1632,10 +1665,31 @@ window.shareDraft = function(){
     window.location.href = 'mailto:?subject=' + subj + '&body=' + body2;
   }
 };
-/* save draft — paid. opens the shared paywall in 'save' mode. no-op if already saved. */
+/* slot counter shown inside #save-btn */
+function updateSaveBadge(){
+  if(!saveBadge) return;
+  saveBadge.textContent = saveCount + '/' + SAVE_LIMIT;
+  if(saveCount >= SAVE_LIMIT){ saveBadge.classList.add('full'); }
+  else { saveBadge.classList.remove('full'); }
+}
+
+/* nudge shown when a finished draft is tapped (it's read-only on purpose) */
+function showEditToast(){
+  if(!editToast || editToast.classList.contains('show')) return;
+  editToast.textContent = 'this draft is done. copy it and edit it somewhere else — that’s the next step.';
+  editToast.classList.add('show');
+  editToastTimer = setTimeout(function(){ editToast.classList.remove('show'); }, 2800);
+}
+
+/* save draft — 3 free slots per page-load, then the shared paywall takes over.
+   no-op if this session's draft is already saved. */
 window.saveDraftLocked = function(){
   if(savedThisSession) return;
-  openPaywall('save');
+  if(saveCount >= SAVE_LIMIT){ openPaywall('save'); return; }  // out of free slots
+  saveCount++;
+  updateSaveBadge();
+  markDraftSaved();
+  haptic('light');
 };
 /* mark the save button kept — shared by the 99¢ and subscription success paths */
 function markDraftSaved(){
@@ -1650,7 +1704,12 @@ window.newSession = function(){
   keepGoingCount=0; sessionUnlocked={};   // fresh session: free extends reset, atmospheres re-lock
   savedThisSession=false;                 // draft save re-locks next session
   var sd=document.querySelector('.act-save');
-  if(sd){ sd.innerHTML='save <span class="sd-lock">&#128274;</span>'; sd.classList.remove('saved'); sd.disabled=false; }
+  if(sd){
+    sd.innerHTML='save <span id="save-badge">' + saveCount + '/' + SAVE_LIMIT + '</span>';
+    saveBadge = document.getElementById('save-badge');   // re-grab the fresh span
+    sd.classList.remove('saved'); sd.disabled=false;
+    updateSaveBadge();
+  }
   document.getElementById('ws-lines').innerHTML=''; wsLineEls={};
   document.getElementById('ws-ghost').textContent='';
   document.getElementById('ws-wc').textContent='0 words';
@@ -1970,6 +2029,13 @@ document.addEventListener('keydown', function(e){
 /* ── init ── */
 buildAtmos();
 applyWriter();
+
+// save-slot badge + read-only draft nudge
+saveBadge = document.getElementById('save-badge');
+editToast = document.getElementById('edit-toast');
+updateSaveBadge();
+// #db is a read-only, scrollable div — tapping the text nudges; scrolling still works
+document.getElementById('db').addEventListener('click', showEditToast);
 
 })();
 </script>
