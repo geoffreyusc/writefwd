@@ -665,6 +665,101 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
   #prompt { font-size: 21px; }
   body.gallery .atmo .chip { width: 50px; height: 50px; }
 }
+/* ── SHARED PAYWALL MODAL (free-tier paper styling; one component, two modes) ── */
+.pw-overlay{
+  position: fixed; inset: 0; z-index: 8;
+  display: none; align-items: center; justify-content: center;
+  padding: 32px;
+  background: rgba(28,26,24,0);
+  transition: background 0.18s ease;
+}
+.pw-overlay.visible{ display: flex; }
+.pw-overlay.lit{ background: rgba(28,26,24,0.34); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+
+.pw-card{
+  position: relative;
+  width: 100%; max-width: 360px;
+  background: var(--paper);
+  border: 1px solid var(--border-l);
+  border-radius: 8px;
+  padding: 30px 26px 22px;
+  text-align: center;
+  box-shadow: 0 24px 70px rgba(28,26,24,0.22);
+  opacity: 0; transform: scale(0.96);
+  transition: opacity 0.42s ease, transform 0.42s cubic-bezier(.2,.8,.2,1);
+}
+.pw-overlay.card-in .pw-card{ opacity: 1; transform: scale(1); }
+
+.pw-head{ display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; }
+.pw-dot{ width: 9px; height: 9px; border-radius: 50%; }
+.pw-eyebrow{ font-family: var(--fs); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--dim); }
+
+.pw-headline{ font-family: var(--fw); font-style: italic; font-size: 20px; color: var(--ink); letter-spacing: -0.01em; margin-bottom: 8px; }
+.pw-subline{ font-family: var(--fw); font-style: italic; font-size: 14px; color: var(--ink2); line-height: 1.5; margin-bottom: 18px; }
+
+.pw-opt{
+  position: relative;
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  width: 100%; text-align: left; cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+  border-radius: 5px; padding: 14px 16px; margin-top: 10px;
+  opacity: 0; transform: translateY(7px);
+  transition: opacity 0.34s ease, transform 0.34s ease, border-color 0.2s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+.pw-overlay.rows-in .pw-opt{ opacity: 1; transform: translateY(0); }
+.pw-overlay.rows-in .pw-opt-b{ transition-delay: 0.08s, 0.08s, 0s, 0s, 0s; }   /* stagger after Option A */
+
+.pw-opt-a{ background: transparent; border: 1px solid var(--border-l); }
+.pw-opt-a:hover{ border-color: var(--ink2); }
+.pw-opt-b{ background: var(--ink); border: 1px solid var(--ink); margin-top: 12px; }
+
+.pw-opt-l{ display: flex; flex-direction: column; gap: 3px; }
+.pw-opt-label{ font-family: var(--fw); font-size: 15px; font-weight: 700; line-height: 1.15; }
+.pw-opt-sub{ font-family: var(--fs); font-size: 11px; letter-spacing: 0.02em; }
+.pw-opt-price{ font-family: var(--fs); font-size: 16px; white-space: nowrap; flex-shrink: 0; }
+
+.pw-opt-a .pw-opt-label{ color: var(--ink); }
+.pw-opt-a .pw-opt-sub{ color: var(--dim); }
+.pw-opt-a .pw-opt-price{ color: var(--ink); }
+
+.pw-opt-b .pw-opt-label{ color: var(--paper); }
+.pw-opt-b .pw-opt-sub{ color: #c4c0b6; }
+.pw-opt-b .pw-opt-price{ color: var(--paper); }
+.pw-price-big{ font-size: 16px; }
+.pw-price-unit{ font-size: 11px; opacity: 0.85; margin-left: 1px; }
+
+.pw-badge{
+  position: absolute; top: -9px; left: 14px;
+  font-family: var(--fs); font-size: 10px; letter-spacing: 0.14em;
+  background: var(--paper); color: var(--ink);
+  border: 1px solid var(--ink); border-radius: 3px;
+  padding: 2px 8px;
+}
+
+.pw-dismiss{
+  margin-top: 20px;
+  font-family: var(--fs); font-size: 11px; letter-spacing: 0.06em;
+  color: var(--dim); background: none; border: none; cursor: pointer;
+  border-bottom: 1px solid var(--border-l); padding: 2px 1px 3px;
+  transition: color 0.2s, border-color 0.2s;
+}
+.pw-dismiss:hover{ color: var(--ink2); border-color: var(--ink2); }
+
+/* selection feedback — chosen gains weight, the other recedes (higher specificity
+   than .rows-in so it wins over the entrance transform) */
+.pw-overlay.rows-in .pw-opt.chosen{ transform: translateY(0) scale(0.98); }
+.pw-opt-a.chosen{ background: var(--paper3); border-color: var(--ink2); }
+.pw-opt-b.chosen{ box-shadow: 0 6px 22px rgba(28,26,24,0.32); }
+.pw-overlay.rows-in .pw-opt.receded{ opacity: 0.4; }
+
+/* atmosphere unlock payoff — surge #room-glow as the room lights up */
+@keyframes roomBloom{
+  0%{ transform: translate(-50%,-50%) scale(0.82); }
+  55%{ transform: translate(-50%,-50%) scale(1.07); }
+  100%{ transform: translate(-50%,-50%) scale(1); }
+}
+#room-glow.blooming{ animation: roomBloom 1.1s cubic-bezier(.2,.7,.2,1); }
+
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
@@ -825,6 +920,37 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
   </div>
 </div>
 
+<!-- SHARED PAYWALL MODAL (time + atmosphere modes) -->
+<div id="paywall" class="pw-overlay">
+  <div class="pw-card">
+    <div class="pw-head">
+      <span class="pw-dot" id="pw-dot"></span>
+      <span class="pw-eyebrow">writer's edition</span>
+    </div>
+    <div class="pw-headline" id="pw-headline"></div>
+    <div class="pw-subline" id="pw-subline"></div>
+
+    <button type="button" class="pw-opt pw-opt-a" id="pw-opt-a" onclick="pwChooseA()">
+      <span class="pw-opt-l">
+        <span class="pw-opt-label" id="pw-a-label"></span>
+        <span class="pw-opt-sub" id="pw-a-sub"></span>
+      </span>
+      <span class="pw-opt-price">99¢</span>
+    </button>
+
+    <button type="button" class="pw-opt pw-opt-b" id="pw-opt-b" onclick="pwChooseB()">
+      <span class="pw-badge">writer's edition</span>
+      <span class="pw-opt-l">
+        <span class="pw-opt-label">every room, always</span>
+        <span class="pw-opt-sub">all atmospheres · unlimited time · saved drafts</span>
+      </span>
+      <span class="pw-opt-price"><span class="pw-price-big">$9</span><span class="pw-price-unit">/mo</span></span>
+    </button>
+
+    <button type="button" class="pw-dismiss" id="pw-dismiss" onclick="pwDismiss()"></button>
+  </div>
+</div>
+
 <div id="toast">copied</div>
 
 <script>
@@ -929,7 +1055,7 @@ var whisperEl = document.getElementById('whisper');
 function buildAtmos(){
   atmoRow.innerHTML = '';
   ATMOS.forEach(function(a, i){
-    var locked = (tier === 'free' && !a.free);
+    var locked = (tier === 'free' && !a.free && !sessionUnlocked[i]);
     var isDemo = (tier === 'free' && a.name === 'candlewick'); // unlocked taste of paid
     var el = document.createElement('div');
     el.className = 'atmo' + (i===sel?' sel':'') + (locked?' locked':'') + (isDemo?' demo':'');
@@ -941,9 +1067,8 @@ function buildAtmos(){
       (isDemo ? '<span class="demo-badge">demo</span>' : '');
     el.onclick = function(){
       if(locked){
-        whisperEl.textContent = a.name + ' is part of the writer\u2019s edition';
-        clearTimeout(window._wt);
-        window._wt = setTimeout(function(){ resetWhisper(); }, 2400);
+        // locked atmosphere \u2192 the shared paywall modal, mode B (atmosphere)
+        openPaywall('atmosphere', i);
       } else {
         selectAtmo(i);
       }
@@ -972,7 +1097,7 @@ function applyAtmo(){
 
   // DEMO: candlewick lights its real room even in free tier (taste of paid).
   // Otherwise free = paper, paid = gallery.
-  var litRoom = (tier === 'paid') || (tier === 'free' && a.name === 'candlewick' && !nightMode);
+  var litRoom = (tier === 'paid') || (tier === 'free' && a.name === 'candlewick' && !nightMode) || (tier === 'free' && sessionUnlocked[sel]);
 
   body.style.setProperty('--fly-color', litRoom ? a.bright : (nightMode ? '#e8e8e8' : '#2c2a27'));
   body.style.setProperty('--fly-glow', litRoom ? a.shadow : 'transparent');
@@ -1173,6 +1298,10 @@ window.wsToggleTheme = function(){
 var wsText = '', wsSecs = 0, wsTimerInt = null, wsCountInt = null, wsActive = false;
 var wsLimit = 0, wsRemaining = 0; // countdown: total + seconds left
 var struck = {}; // map of global wordIndex -> true (crossed out, still visible)
+var keepGoingCount = 0;   // "keep going" presses this session (2 free, then 99¢)
+var sessionUnlocked = {}; // atmosphere index -> true (99¢ session-only unlock; re-locks next session)
+var pwMode = 'time';      // active paywall mode: 'time' | 'atmosphere'
+var pwAtmoIdx = -1;       // atmosphere index the modal is offering (atmosphere mode)
 
 function splitWords(t){
   var out = [], re = /\S+/g, m, i = 0;
@@ -1180,9 +1309,9 @@ function splitWords(t){
   return out;
 }
 function wcCount(t){
-  var words = splitWords(t), n = 0;
-  words.forEach(function(tok){ if(!struck[tok.idx]) n++; });
-  return n;
+  // Striking is purely visual — the count reflects every word typed and only
+  // ever rises until session reset. (Struck words still render line-through.)
+  return splitWords(t).length;
 }
 function strikeLastWord(){
   var words = splitWords(wsText);
@@ -1352,11 +1481,59 @@ window.finishSession = function(){
   document.getElementById('writescreen').classList.remove('live');
   document.getElementById('complete-screen').classList.add('visible');
 };
-window.keepGoing = function(){
+/* arm the elapsed counter + (if a limit is set) the countdown — shared by
+   startWriting (cross) and every extension path so the logic isn't duplicated */
+function armTimers(){
+  if(wsCountInt) clearInterval(wsCountInt);
+  wsCountInt = setInterval(function(){ if(wsActive) wsSecs++; }, 1000);
+  if(wsTimerInt) clearInterval(wsTimerInt);
+  if(wsLimit > 0){
+    wsTimerInt = setInterval(function(){
+      if(!wsActive) return;
+      wsRemaining--;
+      updateTimerDisplay();
+      if(wsRemaining <= 0){ clearInterval(wsTimerInt); timeUp(); }
+    }, 1000);
+  }
+}
+
+/* resume the writing screen from the completion screen (no timer changes here) */
+function resumeWriting(){
   document.getElementById('complete-screen').classList.remove('visible');
   document.getElementById('writescreen').classList.add('live');
   wsActive = true; lastTypeTs = Date.now(); startHintRotation();
+}
+
+/* grant a flat 30s extension and resume — same code path for free + 99¢ extends */
+function grantExtension(){
+  wsLimit = 30; wsRemaining = 30;          // ring math starts full (47.1 * (1 - 30/30) = 0)
+  document.getElementById('ws-timer-wrap').style.display = 'flex';
+  document.getElementById('ws-status').textContent = 'DRAFTING...';
+  updateTimerDisplay();
+  resumeWriting();
+  armTimers();
   haptic('light');
+}
+
+/* $9/mo resume: no timer wall — drop the countdown, keep the elapsed counter */
+function resumeWritingNoTimer(){
+  wsLimit = 0; wsRemaining = 0;
+  if(wsTimerInt) clearInterval(wsTimerInt);
+  document.getElementById('ws-timer-wrap').style.display = 'none';
+  document.getElementById('ws-status').textContent = 'DRAFTING...';
+  resumeWriting();
+  armTimers();
+}
+
+window.keepGoing = function(){
+  // unlimited-duration session: resume as before — no extension, no paywall
+  if(wsLimit === 0){ resumeWriting(); haptic('light'); return; }
+  keepGoingCount++;
+  if(keepGoingCount <= 2){
+    grantExtension();           // 1st & 2nd presses: free 30s
+  } else {
+    openPaywall('time');        // 3rd+ press: paywall; writing stays paused
+  }
 };
 window.showDraft = function(){
   var n = wcCount(wsText), m = Math.floor(wsSecs/60), s = wsSecs%60;
@@ -1379,6 +1556,7 @@ window.emailDraft = function(){
 };
 window.newSession = function(){
   wsText=''; wsSecs=0; wsActive=false; struck={};
+  keepGoingCount=0; sessionUnlocked={};   // fresh session: free extends reset, atmospheres re-lock
   document.getElementById('ws-lines').innerHTML=''; wsLineEls={};
   document.getElementById('ws-ghost').textContent='';
   document.getElementById('ws-wc').textContent='0 words';
@@ -1405,6 +1583,145 @@ function haptic(weight){
   }
   try { if(navigator.vibrate) navigator.vibrate(pattern); } catch(e){}
 }
+
+/* ── SHARED PAYWALL MODAL (one component, two modes) ──
+   Mode 'time'        → opened past the 2 free "keep going" extensions (FIX 2).
+   Mode 'atmosphere'  → opened by clicking a locked atmosphere light (FIX 4).
+   Only the accent, headline, subline, and Option A label differ between modes;
+   Option B ($9/mo hero), layout, choreography, haptics are identical. */
+
+// short line drawn from each locked atmosphere's character (fallback below)
+var ATMO_SUBLINE = {
+  'green light': 'a room for when the doubt has already lifted.',
+  'redline':     "a room for the thing that's overdue.",
+  'ink stain':   'a room for the thought you keep circling.',
+  'deadline':    "a room for when there's no time left to wait."
+};
+
+function hexToRgba(hex, al){
+  var h = hex.replace('#','');
+  if(h.length === 3){ h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2]; }
+  var r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+  return 'rgba(' + r + ',' + g + ',' + b + ',' + al + ')';
+}
+
+function pwReduced(){ try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } }
+
+function openPaywall(mode, atmoIdx){
+  pwMode = mode;
+  pwAtmoIdx = (typeof atmoIdx === 'number') ? atmoIdx : -1;
+  var dot   = document.getElementById('pw-dot');
+  var hl    = document.getElementById('pw-headline');
+  var sl    = document.getElementById('pw-subline');
+  var aLab  = document.getElementById('pw-a-label');
+  var aSub  = document.getElementById('pw-a-sub');
+  var dis   = document.getElementById('pw-dismiss');
+
+  if(mode === 'time'){
+    dot.style.display = 'none';                       // eyebrow only
+    hl.textContent  = "you're in it.";
+    sl.textContent  = 'another stretch, or stop waiting on the clock at all.';
+    aLab.textContent = '+ 30 seconds';
+    aSub.textContent = 'just this once';
+    dis.textContent  = "i'm done for now →";
+  } else {
+    var a = ATMOS[pwAtmoIdx];
+    dot.style.display   = 'inline-block';             // glowing dot in this atmosphere's palette
+    dot.style.background = a.chip;
+    dot.style.boxShadow  = '0 0 14px 1px ' + hexToRgba(a.lamp, 0.6) + ', 0 0 0 2px ' + a.ring;
+    hl.textContent  = a.name + '.';
+    sl.textContent  = ATMO_SUBLINE[a.name] || "a room for the writer's edition.";
+    aLab.textContent = 'light this room';
+    aSub.textContent = 'this session';
+    dis.textContent  = 'not now →';
+  }
+
+  var ov = document.getElementById('paywall');
+  ov.classList.remove('lit','card-in','rows-in');
+  document.getElementById('pw-opt-a').classList.remove('chosen','receded');
+  document.getElementById('pw-opt-b').classList.remove('chosen','receded');
+  ov.classList.add('visible');     // display:flex, still transparent
+  haptic('heavy');                 // the wall ARRIVES (mirrors timeUp)
+
+  if(pwReduced()){
+    ov.classList.add('lit','card-in','rows-in');   // no scale/stagger — just present
+    return;
+  }
+  // sequence: backdrop dims → card settles a beat later → rows stagger in
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){
+    ov.classList.add('lit');
+    setTimeout(function(){ ov.classList.add('card-in'); }, 150);
+    setTimeout(function(){ ov.classList.add('rows-in'); }, 230);
+  }); });
+}
+
+// brief "you chose this" beat: chosen card gains weight, the other recedes
+function pwChosenBeat(chosenEl, otherEl, cb){
+  chosenEl.classList.add('chosen');
+  if(otherEl) otherEl.classList.add('receded');
+  setTimeout(cb, pwReduced() ? 0 : 320);
+}
+
+function pwClose(){
+  var ov = document.getElementById('paywall');
+  ov.classList.remove('lit','card-in','rows-in');
+  setTimeout(function(){
+    ov.classList.remove('visible');
+    document.getElementById('pw-opt-a').classList.remove('chosen','receded');
+    document.getElementById('pw-opt-b').classList.remove('chosen','receded');
+  }, pwReduced() ? 0 : 320);
+}
+
+// atmosphere unlock payoff — reuse #room-glow as the bloom surface
+function roomBloom(){
+  if(pwReduced()) return;
+  glow.classList.remove('blooming'); void glow.offsetWidth; glow.classList.add('blooming');
+}
+
+// Option A (99¢) — effortless "yes, more"
+window.pwChooseA = function(){
+  haptic('light');
+  var a = document.getElementById('pw-opt-a'), b = document.getElementById('pw-opt-b');
+  pwChosenBeat(a, b, function(){
+    if(pwMode === 'time'){
+      // TODO: real 99¢ checkout
+      pwClose();
+      grantExtension();                 // session-only 30s; does NOT touch keepGoingCount
+    } else {
+      // TODO: real 99¢ checkout
+      var idx = pwAtmoIdx;
+      sessionUnlocked[idx] = true;       // session-only unlock (re-locks next session)
+      buildAtmos();                      // re-render so it's no longer locked
+      selectAtmo(idx);                   // apply → the room lights
+      pwClose();
+      roomBloom();
+    }
+  });
+};
+
+// Option B ($9/mo) — "this is real → it's done" (two-stage confirm)
+window.pwChooseB = function(){
+  haptic('medium');
+  var a = document.getElementById('pw-opt-a'), b = document.getElementById('pw-opt-b');
+  pwChosenBeat(b, a, function(){
+    setTimeout(function(){ haptic('light'); }, 250);   // confirmation beat
+    // TODO: real subscription checkout
+    if(pwMode === 'atmosphere' && pwAtmoIdx >= 0){ sel = pwAtmoIdx; }
+    pwClose();
+    setTier('paid');                     // demo: full unlock (buildAtmos + applyAtmo light the room)
+    if(pwMode === 'time'){
+      resumeWritingNoTimer();            // resume with no timer wall
+    } else {
+      roomBloom();
+    }
+  });
+};
+
+// Dismiss — never punish walking away (no haptic). Stay where we are.
+window.pwDismiss = function(){
+  pwClose();   // time mode: stays on completion screen, timer NOT restarted.
+               // atmosphere mode: closes, atmosphere unchanged.
+};
 
 /* ── THE CROSSOVER ── */
 var crossing = false;
@@ -1465,6 +1782,7 @@ function cross(){
   setTimeout(function(){
     haptic('light');
     wsText=''; wsSecs=0; wsActive=true; lastTypeTs=Date.now(); struck={};
+    keepGoingCount=0; sessionUnlocked={};   // fresh session: free extends reset, atmospheres re-lock
     document.getElementById('ws-lines').innerHTML=''; wsLineEls={};
     document.getElementById('ws-ghost').textContent='';
     document.getElementById('ws-wc').textContent='0 words';
@@ -1473,22 +1791,8 @@ function cross(){
     var sw=document.getElementById('ws-crossout');
     sw.classList.remove('on'); sw.querySelector('.ws-sw-label').textContent='lock';
     startHintRotation();
-    // elapsed-time counter (for completion stats)
-    if(wsCountInt) clearInterval(wsCountInt);
-    wsCountInt = setInterval(function(){ if(wsActive) wsSecs++; }, 1000);
-    // countdown timer (if a limit was chosen)
-    if(wsTimerInt) clearInterval(wsTimerInt);
-    if(wsLimit > 0){
-      wsTimerInt = setInterval(function(){
-        if(!wsActive) return;
-        wsRemaining--;
-        updateTimerDisplay();
-        if(wsRemaining <= 0){
-          clearInterval(wsTimerInt);
-          timeUp();
-        }
-      }, 1000);
-    }
+    // elapsed-time counter + countdown (shared helper)
+    armTimers();
   }, 1150);
 }
 
