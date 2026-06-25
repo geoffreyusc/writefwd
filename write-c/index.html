@@ -579,10 +579,9 @@ body.gallery .ws-icon:hover, body.gallery .ws-icon.on { color: var(--g-bright, #
 .act-save .sd-lock { font-size: 9px; opacity: 0.55; margin-left: 5px; }
 .act-save.saved { cursor: default; background: var(--paper3); border-color: var(--ink2); color: var(--ink); pointer-events: none; }
 .act-save.saved:active { transform: none; }
-#save-btn { position: relative; }
 #save-badge {
-  position: absolute;
-  top: -7px; right: -4px;
+  display: inline;
+  margin-left: 5px;
   font-family: 'DM Mono', monospace;
   font-size: 8px; letter-spacing: 0.06em;
   color: var(--dim);
