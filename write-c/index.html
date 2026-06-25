@@ -577,15 +577,15 @@ body.gallery .ws-icon:hover, body.gallery .ws-icon.on { color: var(--g-bright, #
 }
 #kg-btn:active, #rd-btn:active, .act-btn:active { transform: scale(0.97); }
 .act-save .sd-lock { font-size: 9px; opacity: 0.55; margin-left: 5px; }
-.act-save.saved { cursor: default; background: var(--ink); color: var(--paper); border-color: var(--ink); pointer-events: none; }
+.act-save.saved { cursor: default; background: var(--paper3); border-color: var(--ink2); color: var(--ink); pointer-events: none; }
 .act-save.saved:active { transform: none; }
 #save-btn { position: relative; }
 #save-badge {
   position: absolute;
   top: -7px; right: -4px;
   font-family: 'DM Mono', monospace;
-  font-size: 6px; letter-spacing: 0.06em;
-  color: var(--dimmer);
+  font-size: 8px; letter-spacing: 0.06em;
+  color: var(--dim);
   background: var(--paper);
   border: 1px solid var(--border-l);
   border-radius: 2px;
@@ -1695,7 +1695,8 @@ window.saveDraftLocked = function(){
 function markDraftSaved(){
   savedThisSession = true;
   var sd = document.querySelector('.act-save');
-  if(sd){ sd.innerHTML = 'saved ✓'; sd.classList.add('saved'); sd.disabled = true; }
+  if(sd){ sd.classList.add('saved'); sd.disabled = true; }  // keep "save" + slot count, no checkmark
+  updateSaveBadge();                                         // reflect current count (paywall-paid path)
   var t = document.getElementById('toast'); t.textContent = 'saved · here when you return';
   t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, 2000);
 }
