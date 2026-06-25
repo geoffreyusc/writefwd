@@ -182,7 +182,7 @@ body.hide-outcome #outcome { display: none; }
 .atmo .chip {
   width: 38px; height: 38px; border-radius: 7px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 5px rgba(0,0,0,0.18);
-  transition: transform 0.2s, box-shadow 0.3s, width 0.4s, height 0.4s, border-radius 0.4s;
+  transition: transform 0.2s, box-shadow 0.3s;
   position: relative; overflow: hidden;
 }
 .atmo .chip::after {  /* radial lamp core, revealed in paid */
@@ -217,6 +217,13 @@ body.hide-outcome #outcome { display: none; }
   box-shadow: 0 1px 3px rgba(0,0,0,0.25); pointer-events: none;
 }
 body:not(.tier-free) .atmo .demo-badge { display: none; } /* only in free/demo tier */
+.atmo .default-badge {  /* same pill as demo-badge, neutral (not amber) — paper only */
+  position: absolute; top: -6px; right: -8px;
+  font-family: var(--fs); font-size: 7px; letter-spacing: 0.08em;
+  text-transform: lowercase; padding: 1px 5px; border-radius: 100px;
+  background: #c4c0b6; color: #2c2a27; font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25); pointer-events: none;
+}
 
 /* ── duration ── */
 #dur-label {
@@ -350,22 +357,23 @@ body.gallery #atmo-label,
 body.gallery #dur-label { color: var(--g-meta, #44444a); opacity: 1; }
 /* gallery turns chips into glowing lamps */
 body.gallery .atmo .chip {
-  width: 60px; height: 60px; border-radius: 14px;
+  /* REV 3: keep the base 38px/7px dot — no balloon to 60px */
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.06), 0 6px 18px rgba(0,0,0,0.55);
   background: #121214 !important;
   overflow: hidden;
 }
 /* the lit core — contained, smaller bloom so it reads as a deliberate light source, not a free orb */
 body.gallery .atmo .chip::after {
-  opacity: 0.7;
+  opacity: 0.16;   /* unselected: a whisper, not a glow */
   background: radial-gradient(circle at 50% 52%, var(--lamp, #fff) 0%, transparent 48%) !important;
 }
 body.gallery .atmo:hover .chip { transform: translateY(-3px); }
-body.gallery .atmo:hover .chip::after { opacity: 0.92; }
+body.gallery .atmo:hover .chip::after { opacity: 0.3; }
+/* lit/selected dot: halo ring + soft lamp core, NO size change (REV 3) */
 body.gallery .atmo.sel .chip {
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18), inset 0 1px 0 rgba(255,255,255,0.1), 0 10px 30px rgba(0,0,0,0.6);
+  box-shadow: 0 0 0 2px var(--ring, #888), 0 0 16px 2px var(--halo, rgba(255,255,255,0.4)), inset 0 1px 0 rgba(255,255,255,0.12);
 }
-body.gallery .atmo.sel .chip::after { opacity: 1; transform: scale(1.04); }
+body.gallery .atmo.sel .chip::after { opacity: 0.85; }
 body.gallery .atmo .nm { color: var(--g-text, #8a8a90); }
 body.gallery .dur { border-color: rgba(255,255,255,0.12); color: var(--g-text, #8a8a90); }
 body.gallery .dur:hover { border-color: rgba(255,255,255,0.25); color: #c8c8ce; }
@@ -376,8 +384,6 @@ body.gallery #begin {
 }
 body.gallery #begin:hover { background: #fff; }
 body.gallery #whisper { color: #44444a; }
-/* no swatch ring meaning in gallery (the lamp glows instead) */
-body.gallery .atmo.sel .chip { --ring: transparent; }
 
 /* ════════════════════════════════════════════════
    THE WRITING SCREEN  + CROSSOVER CHOREOGRAPHY
@@ -663,7 +669,6 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
 @media (max-width: 540px) {
   #stage { padding: 28px 20px; }
   #prompt { font-size: 21px; }
-  body.gallery .atmo .chip { width: 50px; height: 50px; }
 }
 /* ── SHARED PAYWALL MODAL (free-tier paper styling; one component, two modes) ── */
 .pw-overlay{
@@ -694,7 +699,7 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
 .pw-dot{ width: 9px; height: 9px; border-radius: 50%; }
 .pw-eyebrow{ font-family: var(--fs); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--dim); }
 
-.pw-headline{ font-family: var(--fw); font-style: italic; font-size: 20px; color: var(--ink); letter-spacing: -0.01em; margin-bottom: 8px; }
+.pw-headline{ font-family: var(--fw); font-style: italic; font-weight: 400; font-size: 20px; color: var(--ink); letter-spacing: -0.01em; margin-bottom: 8px; }
 .pw-subline{ font-family: var(--fw); font-style: italic; font-size: 14px; color: var(--ink2); line-height: 1.5; margin-bottom: 18px; }
 
 .pw-opt{
@@ -714,7 +719,7 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
 .pw-opt-b{ background: var(--ink); border: 1px solid var(--ink); margin-top: 12px; }
 
 .pw-opt-l{ display: flex; flex-direction: column; gap: 3px; }
-.pw-opt-label{ font-family: var(--fw); font-size: 15px; font-weight: 700; line-height: 1.15; }
+.pw-opt-label{ font-family: var(--fs); font-size: 14px; font-weight: 400; line-height: 1.15; }
 .pw-opt-sub{ font-family: var(--fs); font-size: 11px; letter-spacing: 0.02em; }
 .pw-opt-price{ font-family: var(--fs); font-size: 16px; white-space: nowrap; flex-shrink: 0; }
 
@@ -804,7 +809,7 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
 
   <div id="prompt-meta">
     <span id="prompt-dot"></span>
-    <span id="prompt-src">untitled · prompt 1 of 6</span>
+    <span id="prompt-src">paper · prompt 1 of 6</span>
     <button id="reroll" onclick="reroll()" title="another prompt">&#8635;</button>
   </div>
 
@@ -925,7 +930,7 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
   <div class="pw-card">
     <div class="pw-head">
       <span class="pw-dot" id="pw-dot"></span>
-      <span class="pw-eyebrow">writer's edition</span>
+      <span class="pw-eyebrow" id="pw-eyebrow"></span>
     </div>
     <div class="pw-headline" id="pw-headline"></div>
     <div class="pw-subline" id="pw-subline"></div>
@@ -959,6 +964,18 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
 
 /* ── atmosphere data (faithful to writefwd-desktop) ── */
 var ATMOS = [
+  { name:'paper', free:true, chip:'#bcbcbc', ring:'#888',
+    lamp:'#e0e0e0', bright:'#e0e0e0', dim:'#777', glow:'#303030', shadow:'rgba(180,180,180,0.3)',
+    pc:'#bcbcbc', ps:"none",
+    bg:'radial-gradient(ellipse at 50% 40%, #181818 0%, #0d0d0d 55%, #060606 100%)',
+    prompts:[
+      "Anything. Just don't stop.",
+      "Start with the first thing that comes. Keep going.",
+      "No agenda. No destination. Just write.",
+      "Wherever this goes is where it needs to go.",
+      "Begin. That's the whole instruction.",
+      "Write until you find out what you're writing about."
+    ]},
   { name:'candlewick', free:true, chip:'#f5e2b8', ring:'#c8a060',
     lamp:'#f5b840', bright:'#f5e2b8', dim:'#8a6830', glow:'#7a4a10', shadow:'rgba(200,130,40,0.4)',
     pc:'#c8a060', ps:'0 0 32px rgba(200,130,40,0.22),0 0 64px rgba(160,90,20,0.10)',
@@ -982,18 +999,6 @@ var ATMOS = [
       "What you're pretending is fine.",
       "The conversation you've been avoiding.",
       "What you'd write if you weren't trying to be fair about it."
-    ]},
-  { name:'untitled', free:true, chip:'#bcbcbc', ring:'#888',
-    lamp:'#e0e0e0', bright:'#e0e0e0', dim:'#777', glow:'#303030', shadow:'rgba(180,180,180,0.3)',
-    pc:'#bcbcbc', ps:"none",
-    bg:'radial-gradient(ellipse at 50% 40%, #181818 0%, #0d0d0d 55%, #060606 100%)',
-    prompts:[
-      "Anything. Just don't stop.",
-      "Start with the first thing that comes. Keep going.",
-      "No agenda. No destination. Just write.",
-      "Wherever this goes is where it needs to go.",
-      "Begin. That's the whole instruction.",
-      "Write until you find out what you're writing about."
     ]},
   { name:'green light', free:false, chip:'#e8f0c8', ring:'#7aaa50',
     lamp:'#9ad84a', bright:'#e8f0c8', dim:'#7aaa50', glow:'#1a4818', shadow:'rgba(100,160,60,0.4)',
@@ -1033,12 +1038,12 @@ var ATMOS = [
     ]}
 ];
 
-var DEFAULT_IDX = ATMOS.findIndex(function(a){ return a.name === 'untitled'; }); // landing selection
+var DEFAULT_IDX = ATMOS.findIndex(function(a){ return a.name === 'paper'; }); // landing selection
 var FREE_IDX = DEFAULT_IDX; // snap-back target when dropping to free
-function isUnlocked(a){ return a.free; } // untitled + candlewick (demo) are unlocked
+function isUnlocked(a){ return a.free; } // paper + candlewick (demo) are unlocked
 var tier = 'free';     // free | paid
 var writer = 'first';  // first | return
-var sel = DEFAULT_IDX;    // selected atmosphere index (lands on untitled)
+var sel = DEFAULT_IDX;    // selected atmosphere index (lands on paper)
 var promptIdx = 0;
 var nightMode = false; // free paper light/dark
 
@@ -1057,14 +1062,17 @@ function buildAtmos(){
   ATMOS.forEach(function(a, i){
     var locked = (tier === 'free' && !a.free && !sessionUnlocked[i]);
     var isDemo = (tier === 'free' && a.name === 'candlewick'); // unlocked taste of paid
+    var isDefault = (a.name === 'paper');                       // the free default room
     var el = document.createElement('div');
     el.className = 'atmo' + (i===sel?' sel':'') + (locked?' locked':'') + (isDemo?' demo':'');
     el.style.setProperty('--ring', a.ring);
+    el.style.setProperty('--halo', a.shadow);   // lit-dot halo color (REV 3)
     el.innerHTML =
       '<div class="chip" style="background:'+a.chip+'; --lamp:'+a.lamp+';"></div>' +
       '<span class="nm">'+a.name+'</span>' +
       (locked ? '<span class="lock">&#128274;</span>' : '') +
-      (isDemo ? '<span class="demo-badge">demo</span>' : '');
+      (isDemo ? '<span class="demo-badge">demo</span>' : '') +
+      (isDefault ? '<span class="default-badge">default</span>' : '');
     el.onclick = function(){
       if(locked){
         // locked atmosphere \u2192 the shared paywall modal, mode B (atmosphere)
@@ -1130,7 +1138,7 @@ function applyAtmo(){
     body.style.setProperty('--g-meta', a.dim);
     body.style.setProperty('--g-text', a.pc || a.bright);
   } else {
-    // free paper (untitled, or candlewick in dark mode = neutral paper)
+    // free paper (paper room, or candlewick in dark mode = neutral paper)
     body.classList.add('paper');
     body.classList.remove('gallery');
     body.classList.toggle('night', nightMode);
@@ -1237,7 +1245,7 @@ window.wsToggleSound = function(btn){
 var HINTS = {
   'candlewick': ['// no one is reading yet','// say it the way you\u2019d say it at 2am','// the lamp is on. that\u2019s enough.','// you don\u2019t have to get it right','// just keep the pen moving'],
   'redline':    ['// the only way out is through','// you\u2019ve put this off long enough','// don\u2019t make it fair. make it true.','// stop circling. go in.','// say the part you keep skipping'],
-  'untitled':   ['// forward is the only direction','// keep your eyes ahead','// wherever this goes is fine','// don\u2019t stop to read it back','// just begin'],
+  'paper':      ['// forward is the only direction','// keep your eyes ahead','// wherever this goes is fine','// don\u2019t stop to read it back','// just begin'],
   'green light':['// you\u2019re ready. go.','// nothing\u2019s stopping you now','// the doubt already lifted','// you have permission','// keep your eyes ahead'],
   'ink stain':  ['// follow it. don\u2019t lose the thread.','// the mess is the work','// let the traces stay','// chase the thought, not the sentence','// keep going. it\u2019s getting somewhere.'],
   'deadline':   ['// there\u2019s no time to look back','// bring it home','// done beats perfect','// keep moving. the clock is.','// forward. only forward.']
@@ -1249,7 +1257,7 @@ function setHint(txt){
   setTimeout(function(){ h.textContent = txt; h.style.opacity = '1'; }, 500);
 }
 function startHintRotation(){
-  var pool = HINTS[ATMOS[sel].name] || HINTS['untitled'];
+  var pool = HINTS[ATMOS[sel].name] || HINTS['paper'];
   hintIdx = 0;
   document.getElementById('ws-hint').textContent = pool[0];
   clearInterval(hintTimer);
@@ -1302,6 +1310,7 @@ var keepGoingCount = 0;   // "keep going" presses this session (2 free, then 99�
 var sessionUnlocked = {}; // atmosphere index -> true (99¢ session-only unlock; re-locks next session)
 var pwMode = 'time';      // active paywall mode: 'time' | 'atmosphere'
 var pwAtmoIdx = -1;       // atmosphere index the modal is offering (atmosphere mode)
+var pwArmed = false;      // scrim-click dismiss only arms after the entrance settles
 
 function splitWords(t){
   var out = [], re = /\S+/g, m, i = 0;
@@ -1607,6 +1616,15 @@ function hexToRgba(hex, al){
 
 function pwReduced(){ try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } }
 
+// REV 2: a FAINT hint of the room behind the scrim (atmosphere mode only).
+// We do NOT switch body→gallery or recolor text here — purchasing delivers the
+// full "room lights up" bloom, and that faint→full jump is the payoff.
+function pwPreviewAtmo(a){
+  if(pwReduced()) return;   // reduced motion: skip the glow fade entirely
+  glow.style.background = 'radial-gradient(circle, ' + a.glow + ' 0%, transparent 60%)';
+  glow.style.opacity = '0.14';
+}
+
 function openPaywall(mode, atmoIdx){
   pwMode = mode;
   pwAtmoIdx = (typeof atmoIdx === 'number') ? atmoIdx : -1;
@@ -1616,8 +1634,10 @@ function openPaywall(mode, atmoIdx){
   var aLab  = document.getElementById('pw-a-label');
   var aSub  = document.getElementById('pw-a-sub');
   var dis   = document.getElementById('pw-dismiss');
+  var eb    = document.getElementById('pw-eyebrow');
 
   if(mode === 'time'){
+    eb.textContent  = 'keep going';                   // NOT "writer's edition"
     dot.style.display = 'none';                       // eyebrow only
     hl.textContent  = "you're in it.";
     sl.textContent  = 'another stretch, or stop waiting on the clock at all.';
@@ -1626,6 +1646,7 @@ function openPaywall(mode, atmoIdx){
     dis.textContent  = "i'm done for now →";
   } else {
     var a = ATMOS[pwAtmoIdx];
+    eb.textContent  = 'a locked room';                // "writer's edition" lives ONLY on the $9 badge
     dot.style.display   = 'inline-block';             // glowing dot in this atmosphere's palette
     dot.style.background = a.chip;
     dot.style.boxShadow  = '0 0 14px 1px ' + hexToRgba(a.lamp, 0.6) + ', 0 0 0 2px ' + a.ring;
@@ -1634,17 +1655,20 @@ function openPaywall(mode, atmoIdx){
     aLab.textContent = 'light this room';
     aSub.textContent = 'this session';
     dis.textContent  = 'not now →';
+    pwPreviewAtmo(a);                                 // faint hint of the room behind the scrim (REV 2)
   }
 
   var ov = document.getElementById('paywall');
   ov.classList.remove('lit','card-in','rows-in');
   document.getElementById('pw-opt-a').classList.remove('chosen','receded');
   document.getElementById('pw-opt-b').classList.remove('chosen','receded');
+  pwArmed = false;                 // scrim-dismiss is dead until the entrance settles
   ov.classList.add('visible');     // display:flex, still transparent
   haptic('heavy');                 // the wall ARRIVES (mirrors timeUp)
 
   if(pwReduced()){
     ov.classList.add('lit','card-in','rows-in');   // no scale/stagger — just present
+    pwArmed = true;
     return;
   }
   // sequence: backdrop dims → card settles a beat later → rows stagger in
@@ -1652,6 +1676,7 @@ function openPaywall(mode, atmoIdx){
     ov.classList.add('lit');
     setTimeout(function(){ ov.classList.add('card-in'); }, 150);
     setTimeout(function(){ ov.classList.add('rows-in'); }, 230);
+    setTimeout(function(){ pwArmed = true; }, 520);   // arm scrim-dismiss only after entrance
   }); });
 }
 
@@ -1720,8 +1745,22 @@ window.pwChooseB = function(){
 // Dismiss — never punish walking away (no haptic). Stay where we are.
 window.pwDismiss = function(){
   pwClose();   // time mode: stays on completion screen, timer NOT restarted.
-               // atmosphere mode: closes, atmosphere unchanged.
+  if(pwMode === 'atmosphere'){
+    applyAtmo();   // clear the faint preview, restore the prior room — no lingering tint
+  }
 };
+
+// Click-outside (scrim) dismisses = "not now", but only after the entrance
+// settles (pwArmed). Clicks inside the card never bubble out to dismiss.
+(function(){
+  var ov = document.getElementById('paywall');
+  if(!ov) return;
+  var card = ov.querySelector('.pw-card');
+  if(card){ card.addEventListener('click', function(e){ e.stopPropagation(); }); }
+  ov.addEventListener('click', function(e){
+    if(e.target === ov && pwArmed){ pwDismiss(); }
+  });
+})();
 
 /* ── THE CROSSOVER ── */
 var crossing = false;
