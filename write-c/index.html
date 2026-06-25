@@ -561,7 +561,10 @@ body.gallery .ws-icon:hover, body.gallery .ws-icon.on { color: var(--g-bright, #
 #cpl-sub { font-family: var(--fs); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 40px; transition: color 0.7s; }
 #cpl-stats { display: flex; gap: 56px; margin-bottom: 40px; }
 .cs { display: flex; flex-direction: column; gap: 4px; }
-.csn { font-family: var(--fs); font-size: 30px; letter-spacing: -0.02em; transition: color 0.7s; }
+.csn { font-family: var(--fs); font-size: 30px; letter-spacing: -0.02em; transition: color 0.7s; will-change: transform, opacity; }
+  @keyframes cpl-land { 0%{ transform: translateY(-2px) scale(1.06); } 55%{ transform: translateY(0) scale(0.985); } 100%{ transform: translateY(0) scale(1); } }
+  .csn.landed { animation: cpl-land 0.34s cubic-bezier(0.2,0.8,0.3,1); }
+  @media (prefers-reduced-motion: reduce){ .csn.landed { animation: none; } }
 .csl { font-family: var(--fs); font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; transition: color 0.7s; }
 #cpl-first { margin-bottom: 44px; max-width: 440px; }
 #cpl-fl { font-family: var(--fs); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 8px; transition: color 0.7s; }
@@ -570,8 +573,12 @@ body.gallery .ws-icon:hover, body.gallery .ws-icon.on { color: var(--g-bright, #
 #kg-btn, #rd-btn, .act-btn {
   font-family: var(--fs); font-size: 11px; letter-spacing: 0.1em;
   background: none; border: 1px solid; border-radius: 3px; padding: 11px 22px; cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.2s, color 0.2s, transform 0.08s ease-out;
 }
+#kg-btn:active, #rd-btn:active, .act-btn:active { transform: scale(0.97); }
+.act-save .sd-lock { font-size: 9px; opacity: 0.55; margin-left: 5px; }
+.act-save.saved { cursor: default; opacity: 0.7; }
+.act-save.saved:active { transform: none; }
 
 #dh { display: flex; flex-direction: column; gap: 6px; margin-bottom: 26px; }
 #dt { font-family: var(--fs); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; transition: color 0.7s; }
@@ -582,6 +589,11 @@ body.gallery .ws-icon:hover, body.gallery .ws-icon.on { color: var(--g-bright, #
   padding: 24px; border-radius: 4px; transition: color 0.7s, background 0.7s;
 }
 #da { display: flex; gap: 14px; }
+#da-new {
+  display: block; margin: 18px auto 0; background: none; border: none; cursor: pointer;
+  font-family: var(--fs); font-size: 10px; letter-spacing: 0.1em;
+  padding: 4px 2px; border-bottom: 1px solid transparent; transition: color 0.2s, border-color 0.2s;
+}
 
 #toast {
   position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px);
@@ -598,6 +610,8 @@ body.gallery .ws-overlay { background: #060607; }
 body.paper #cpl-head, body.paper .csn, body.paper #cpl-ft, body.paper #dt { color: var(--ink); }
 body.paper #cpl-sub, body.paper .csl, body.paper #cpl-fl, body.paper #dm { color: var(--dim); }
 body.paper #kg-btn, body.paper #rd-btn, body.paper .act-btn { color: var(--ink2); border-color: var(--border-l); }
+body.paper #da-new { color: var(--dim); }
+body.paper #da-new:hover { color: var(--ink2); border-color: var(--border-l); }
 body.paper #kg-btn:hover, body.paper #rd-btn:hover, body.paper .act-btn:hover { border-color: var(--ink2); }
 body.paper #db { color: var(--ink2); background: var(--paper2); }
 body.paper #toast { color: var(--ink2); border-color: var(--border-l); background: var(--paper); }
@@ -610,6 +624,8 @@ body.paper .ws-sw-label { color: var(--dim); }
 body.paper.night #cpl-head, body.paper.night .csn, body.paper.night #cpl-ft, body.paper.night #dt { color: #e4e4e8; }
 body.paper.night #cpl-sub, body.paper.night .csl, body.paper.night #cpl-fl, body.paper.night #dm { color: #6a6a70; }
 body.paper.night #kg-btn, body.paper.night #rd-btn, body.paper.night .act-btn { color: #c8c8ce; border-color: #28282c; }
+body.paper.night #da-new { color: #6a6a70; }
+body.paper.night #da-new:hover { color: #c8c8ce; border-color: #28282c; }
 body.paper.night #kg-btn:hover, body.paper.night #rd-btn:hover, body.paper.night .act-btn:hover { border-color: #6a6a70; }
 body.paper.night #db { color: #c8c8ce; background: #1a1a1c; }
 body.paper.night #toast { color: #c8c8ce; border-color: #28282c; background: #141415; }
@@ -622,6 +638,8 @@ body.paper.night .ws-sw-label { color: #6a6a70; }
 body.gallery #cpl-head, body.gallery .csn, body.gallery #cpl-ft, body.gallery #dt { color: var(--g-bright, #e8e8ea); }
 body.gallery #cpl-sub, body.gallery .csl, body.gallery #cpl-fl, body.gallery #dm { color: var(--g-dim, #6a6a70); }
 body.gallery #kg-btn, body.gallery #rd-btn, body.gallery .act-btn { color: var(--g-bright, #c8c8ce); border-color: rgba(255,255,255,0.12); }
+body.gallery #da-new { color: var(--g-dim, #6a6a70); }
+body.gallery #da-new:hover { color: var(--g-bright, #c8c8ce); border-color: rgba(255,255,255,0.12); }
 body.gallery #kg-btn:hover, body.gallery #rd-btn:hover, body.gallery .act-btn:hover { border-color: rgba(255,255,255,0.3); }
 body.gallery #db { color: var(--g-bright, #c8c8ce); background: rgba(255,255,255,0.03); }
 body.gallery #toast { color: var(--g-bright, #c8c8ce); border-color: rgba(255,255,255,0.12); background: #0a0a0c; }
@@ -834,11 +852,9 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
   <!-- duration -->
   <div id="dur-label">how long?</div>
   <div id="dur-row">
-    <button class="dur sel" data-min="0">no limit</button>
     <button class="dur" data-min="0.5">30s</button>
     <button class="dur" data-min="1">1m</button>
-    <button class="dur" data-min="5">5m</button>
-    <button class="dur" data-min="10">10m</button>
+    <button class="dur sel" data-min="5">5m</button>
   </div>
 
   <button id="begin">begin<svg class="arr" viewBox="0 0 24 30" fill="none" aria-hidden="true"><path d="M 5 4 L 18 15 L 5 26" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -919,10 +935,11 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
   <div id="dh"><div id="dt">your draft</div><div id="dm"></div></div>
   <div id="db"></div>
   <div id="da">
-    <button class="act-btn" onclick="newSession()">new session</button>
-    <button class="act-btn" onclick="copyDraft()">copy draft</button>
-    <button class="act-btn" onclick="emailDraft()">email draft</button>
+    <button class="act-btn" onclick="copyDraft()">copy</button>
+    <button class="act-btn" onclick="shareDraft()">share</button>
+    <button class="act-btn act-save" onclick="saveDraftLocked()">save <span class="sd-lock">&#128274;</span></button>
   </div>
+  <button id="da-new" onclick="newSession()">new session &rarr;</button>
 </div>
 
 <!-- SHARED PAYWALL MODAL (time + atmosphere modes) -->
@@ -1311,6 +1328,7 @@ var sessionUnlocked = {}; // atmosphere index -> true (99¢ session-only unlock;
 var pwMode = 'time';      // active paywall mode: 'time' | 'atmosphere'
 var pwAtmoIdx = -1;       // atmosphere index the modal is offering (atmosphere mode)
 var pwArmed = false;      // scrim-click dismiss only arms after the entrance settles
+var savedThisSession = false; // draft saved via the 99¢/sub paywall this session
 
 function splitWords(t){
   var out = [], re = /\S+/g, m, i = 0;
@@ -1452,6 +1470,17 @@ function wsKeystroke(e){
   if(e.key === 'Enter'){ e.preventDefault(); wsText += '\n'; renderWriting(); haptic('light'); return; }
   if(e.key.length === 1){
     e.preventDefault();
+    // CROSS OUT, MOVE ON: if the last word typed is struck and the user resumes
+    // typing a real character flush against it, force a space first so the new
+    // text becomes a fresh, UN-struck word instead of extending the struck token.
+    if(crossout && e.key !== ' '){
+      var tail = splitWords(wsText);
+      var lastTok = tail[tail.length - 1];
+      var endsOpen = /\S$/.test(wsText); // cursor sits flush against a word (no trailing space/newline)
+      if(lastTok && struck[lastTok.idx] && endsOpen){
+        wsText += ' ';
+      }
+    }
     wsText += e.key;
     lastTypeTs = Date.now();
     renderWriting();
@@ -1483,13 +1512,46 @@ window.finishSession = function(){
   clearInterval(hintTimer);
   var n = wcCount(wsText);
   var m = Math.floor(wsSecs/60), s = wsSecs%60;
-  document.getElementById('cpl-words').textContent = n;
-  document.getElementById('cpl-time').textContent = m + ':' + (s<10?'0':'') + s;
-  var first = (wsText.trim().split('\n')[0] || '').slice(0,90);
-  document.getElementById('cpl-ft').textContent = first ? '\u201c' + first + '\u201d' : '(a quiet start)';
+  var timeStr = m + ':' + (s<10?'0':'') + s;
   document.getElementById('writescreen').classList.remove('live');
   document.getElementById('complete-screen').classList.add('visible');
+  var first = (wsText.trim().split('\n')[0] || '').slice(0,90);
+  document.getElementById('cpl-ft').textContent = first ? '\u201c' + first + '\u201d' : '(a quiet start)';
+  cplCountUp(n, wsSecs, timeStr);
 };
+
+/* count-up with haptic texture \u2014 words tick up; a light tap rides every few
+   increments; both land on a weighted pulse synced to the settle bounce. */
+function cplCountUp(words, totalSecs, timeStr){
+  var wEl = document.getElementById('cpl-words');
+  var tEl = document.getElementById('cpl-time');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  wEl.classList.remove('landed'); tEl.classList.remove('landed');
+  if(reduce || words <= 0){
+    wEl.textContent = words; tEl.textContent = timeStr;
+    haptic('medium');
+    return;
+  }
+  var DUR = Math.min(1100, 420 + words * 9);
+  var t0 = null, lastTick = 0;
+  function frame(ts){
+    if(t0 === null) t0 = ts;
+    var p = Math.min(1, (ts - t0) / DUR);
+    var eased = 1 - Math.pow(1 - p, 3);
+    wEl.textContent = Math.round(eased * words);
+    var curSecs = Math.round(eased * totalSecs);
+    tEl.textContent = Math.floor(curSecs/60) + ':' + ((curSecs%60)<10?'0':'') + (curSecs%60);
+    if(ts - lastTick > 68 && p < 1){ haptic('light'); lastTick = ts; }
+    if(p < 1){ requestAnimationFrame(frame); }
+    else {
+      wEl.textContent = words; tEl.textContent = timeStr;
+      haptic('medium');
+      wEl.classList.add('landed'); tEl.classList.add('landed');
+      setTimeout(function(){ wEl.classList.remove('landed'); tEl.classList.remove('landed'); }, 360);
+    }
+  }
+  requestAnimationFrame(frame);
+}
 /* arm the elapsed counter + (if a limit is set) the countdown — shared by
    startWriting (cross) and every extension path so the logic isn't duplicated */
 function armTimers(){
@@ -1538,10 +1600,10 @@ window.keepGoing = function(){
   // unlimited-duration session: resume as before — no extension, no paywall
   if(wsLimit === 0){ resumeWriting(); haptic('light'); return; }
   keepGoingCount++;
-  if(keepGoingCount <= 2){
-    grantExtension();           // 1st & 2nd presses: free 30s
+  if(keepGoingCount <= 1){
+    grantExtension();           // 1st press: one free 30s
   } else {
-    openPaywall('time');        // 3rd+ press: paywall; writing stays paused
+    openPaywall('time');        // 2nd+ press: paywall; writing stays paused
   }
 };
 window.showDraft = function(){
@@ -1557,15 +1619,38 @@ window.copyDraft = function(){
   t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, 1800);
   haptic('light');
 };
-window.emailDraft = function(){
-  var subj = encodeURIComponent('My writefwd draft');
-  var body2 = encodeURIComponent(wsText.trim());
-  window.location.href = 'mailto:?subject=' + subj + '&body=' + body2;
+window.shareDraft = function(){
   haptic('light');
+  var text = wsText.trim();
+  // native share sheet where it exists (most phones); mailto fallback on desktop.
+  // (future: dedicated targets for instagram stories / threads / twitter)
+  if(navigator.share){
+    navigator.share({ title: 'My writefwd draft', text: text }).catch(function(){});
+  } else {
+    var subj = encodeURIComponent('My writefwd draft');
+    var body2 = encodeURIComponent(text);
+    window.location.href = 'mailto:?subject=' + subj + '&body=' + body2;
+  }
 };
+/* save draft — paid. opens the shared paywall in 'save' mode. no-op if already saved. */
+window.saveDraftLocked = function(){
+  if(savedThisSession) return;
+  openPaywall('save');
+};
+/* mark the save button kept — shared by the 99¢ and subscription success paths */
+function markDraftSaved(){
+  savedThisSession = true;
+  var sd = document.querySelector('.act-save');
+  if(sd){ sd.innerHTML = 'saved ✓'; sd.classList.add('saved'); sd.disabled = true; }
+  var t = document.getElementById('toast'); t.textContent = 'saved · here when you return';
+  t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, 2000);
+}
 window.newSession = function(){
   wsText=''; wsSecs=0; wsActive=false; struck={};
   keepGoingCount=0; sessionUnlocked={};   // fresh session: free extends reset, atmospheres re-lock
+  savedThisSession=false;                 // draft save re-locks next session
+  var sd=document.querySelector('.act-save');
+  if(sd){ sd.innerHTML='save <span class="sd-lock">&#128274;</span>'; sd.classList.remove('saved'); sd.disabled=false; }
   document.getElementById('ws-lines').innerHTML=''; wsLineEls={};
   document.getElementById('ws-ghost').textContent='';
   document.getElementById('ws-wc').textContent='0 words';
@@ -1640,10 +1725,18 @@ function openPaywall(mode, atmoIdx){
     eb.textContent  = 'keep going';                   // NOT "writer's edition"
     dot.style.display = 'none';                       // eyebrow only
     hl.textContent  = "you're in it.";
-    sl.textContent  = 'another stretch, or stop waiting on the clock at all.';
-    aLab.textContent = '+ 30 seconds';
-    aSub.textContent = 'just this once';
+    sl.textContent  = "don't stop now — write as long as you want.";
+    aLab.textContent = 'keep going, no limit';
+    aSub.textContent = 'this session';
     dis.textContent  = "i'm done for now →";
+  } else if(mode === 'save'){
+    eb.textContent  = 'save this draft';
+    dot.style.display = 'none';
+    hl.textContent  = 'keep what you wrote.';
+    sl.textContent  = "hold onto this one, or never lose a draft again.";
+    aLab.textContent = 'save this draft';
+    aSub.textContent = 'just this one';
+    dis.textContent  = "i'll copy it instead →";
   } else {
     var a = ATMOS[pwAtmoIdx];
     eb.textContent  = 'a locked room';                // "writer's edition" lives ONLY on the $9 badge
@@ -1711,7 +1804,12 @@ window.pwChooseA = function(){
     if(pwMode === 'time'){
       // TODO: real 99¢ checkout
       pwClose();
-      grantExtension();                 // session-only 30s; does NOT touch keepGoingCount
+      resumeWritingNoTimer();           // 99¢ → no limit for the rest of THIS session (no tier change)
+    } else if(pwMode === 'save'){
+      // TODO: real 99¢ checkout → persist draft
+      pwClose();
+      setTimeout(function(){ haptic('soft'); }, 180);  // gentle "draft kept" landing
+      markDraftSaved();
     } else {
       // TODO: real 99¢ checkout
       var idx = pwAtmoIdx;
@@ -1736,6 +1834,8 @@ window.pwChooseB = function(){
     setTier('paid');                     // demo: full unlock (buildAtmos + applyAtmo light the room)
     if(pwMode === 'time'){
       resumeWritingNoTimer();            // resume with no timer wall
+    } else if(pwMode === 'save'){
+      markDraftSaved();
     } else {
       roomBloom();
     }
