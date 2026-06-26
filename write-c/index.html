@@ -2012,7 +2012,24 @@ function recross(){
 }
 window.recross = recross;
 
-document.getElementById('begin').onclick = cross;
+/* ── mobile fork (placeholder) ──
+   Desktop keeps `cross`. On phones we'll branch to a dedicated mobile write
+   screen in a later step; for now this only confirms the routing fires. */
+function mobileBegin(){
+  var a = ATMOS[sel];
+  var label;
+  if(a.name === 'paper'){ label = nightMode ? 'dark paper' : 'paper'; }
+  else if(a.name === 'candlewick'){ label = 'candlewick'; }
+  else { label = a.name; }
+  var durSel = document.querySelector('.dur.sel');
+  var mins = durSel ? parseFloat(durSel.getAttribute('data-min')) : 0;
+  alert('mobile begin fired — atmosphere: ' + label + ', minutes: ' + mins);
+}
+
+document.getElementById('begin').onclick = function(){
+  if(window.innerWidth <= 600){ mobileBegin(); }
+  else { cross(); }
+};
 document.addEventListener('keydown', function(e){
   // ` (backtick) toggles the state-preview harness — for testing only
   if(e.key === '`' && !wsActive){
