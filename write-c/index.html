@@ -727,11 +727,14 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
     -webkit-overflow-scrolling: touch;
     align-items: flex-start;
   }
-  /* narrower rule-key so the three dashes still align at the smaller font */
-  .rule .rk { width: 108px; }
+  /* each rule must fit on ONE line — smaller font + key column wide enough to
+     hold the longest key ("copy when you're done") so the dashes still align */
+  .rule { white-space: nowrap; font-size: 10px; gap: 7px; }
+  .rule .rd { white-space: nowrap; }
+  .rule .rk { width: 128px; }
   /* compressed vertical rhythm so "begin" sits above the fold */
   #stage { padding: 18px 18px 28px; }
-  #rules { margin-bottom: 16px; padding: 13px 14px; }
+  #rules { margin-bottom: 16px; padding: 13px 10px; }
   #atmo-label { margin-bottom: 10px; }
   #atmo-row, .atmo-locked { margin-bottom: 16px; }
   .atmo-free { margin-bottom: 12px; }
@@ -1017,9 +1020,9 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
   <!-- first-timer rules -->
   <div id="rules">
     <div id="outcome">You're about to write the thing you haven't been able to start.</div>
-    <div class="rule"><span class="rk">no backspace</span><span class="rd">— words lock as you go</span></div>
-    <div class="rule"><span class="rk">text fades behind you</span><span class="rd">— keep your eyes ahead</span></div>
-    <div class="rule"><span class="rk">when you're done</span><span class="rd">— copy or email your draft</span></div>
+    <div class="rule"><span class="rk">no backspace</span><span class="rd">— so you can't second-guess</span></div>
+    <div class="rule"><span class="rk">text fades</span><span class="rd">— so you keep moving</span></div>
+    <div class="rule"><span class="rk">copy when you're done</span><span class="rd">— leave with something real</span></div>
   </div>
 
   <!-- atmosphere -->
