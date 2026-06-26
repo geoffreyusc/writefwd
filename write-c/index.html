@@ -810,7 +810,7 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
   #m-tap {
     flex: 1; display: flex; flex-direction: column; gap: 4px;
     align-items: center; justify-content: center;
-    font-family: 'Courier New', monospace; font-size: 16px;
+    font-family: var(--fs); font-size: 16px;
     letter-spacing: 0.1em; text-transform: uppercase; color: var(--m-ui, #999);
     cursor: text; -webkit-tap-highlight-color: transparent;
   }
@@ -823,11 +823,28 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
     padding: 7px 18px; padding-bottom: max(14px, env(safe-area-inset-bottom));
     background: var(--m-bg, #060608); border-top: 1px solid rgba(128,128,128,0.18); flex-shrink: 0;
   }
+  /* lock = a real two-state sliding switch, NOT a bordered button like FINISH */
   .m-lock {
-    background: none; border: 1px solid var(--m-ui, #555); border-radius: 2px;
-    font-family: 'Courier New', Courier, monospace; font-size: 9px;
-    letter-spacing: 0.1em; text-transform: lowercase; color: var(--m-ui, #888);
-    padding: 6px 10px; min-height: 32px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    display: flex; align-items: center; gap: 7px;
+    background: none; border: none; border-radius: 100px;
+    padding: 4px 4px; min-height: 32px; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .m-lock-track {
+    position: relative; width: 26px; height: 15px; border-radius: 100px;
+    border: 1px solid var(--m-ui, #888); background: transparent; flex-shrink: 0;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .m-lock-knob {
+    position: absolute; top: 1px; left: 1px; width: 11px; height: 11px;
+    border-radius: 50%; background: var(--m-ui, #888);
+    transition: transform 0.2s, background 0.2s;
+  }
+  .m-lock.on .m-lock-track { background: var(--m-cur, var(--m-ui, #888)); border-color: var(--m-cur, var(--m-ui, #888)); }
+  .m-lock.on .m-lock-knob { transform: translateX(11px); background: var(--m-bg, #060608); }
+  .m-lock-lbl {
+    font-family: var(--fs); font-size: 9px; letter-spacing: 0.06em;
+    text-transform: lowercase; color: var(--m-ui, #888); white-space: nowrap;
   }
   .m-actions { display: flex; align-items: center; gap: 9px; }
   .m-szg { display: flex; align-items: baseline; gap: 3px; }
@@ -1167,7 +1184,10 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
   ></div>
 
   <div class="m-ftr">
-    <button class="m-lock" id="m-lock-btn">lock</button>
+    <button class="m-lock" id="m-lock-btn" type="button" aria-label="backspace behavior">
+      <span class="m-lock-track"><span class="m-lock-knob"></span></span>
+      <span class="m-lock-lbl">no backspace</span>
+    </button>
     <div class="m-actions">
       <div class="m-szg">
         <button class="m-sz m-ss" onclick="mSetFs('s')">A</button>
@@ -2215,11 +2235,12 @@ function mobileBegin(){
   var paperRoom = (a.name === 'paper');
   var bg, ink, fade2, fade1, ui;
   if(paperRoom && !nightMode){
-    bg = '#f0ede8'; ink = '#111';     fade2 = '#c4c0b6'; fade1 = '#aaa89f'; ui = '#888078';
+    // current line near-black + bolder; faded lines readable-but-receding
+    bg = '#f0ede8'; ink = '#111';     fade2 = '#8a857c'; fade1 = '#5a564c'; ui = '#888078';
   } else if(paperRoom && nightMode){
-    bg = '#1a1a1a'; ink = '#e8e8e8';  fade2 = '#3a3a3a'; fade1 = '#5e5e64'; ui = '#8a8a90';
+    bg = '#1a1a1a'; ink = '#f0f0f0';  fade2 = '#5e5e64'; fade1 = '#9a9aa0'; ui = '#8a8a90';
   } else {
-    bg = a.bg;      ink = a.bright;    fade2 = '#1e1e1e'; fade1 = '#444';    ui = 'rgba(245,226,184,0.78)';
+    bg = a.bg;      ink = a.bright;    fade2 = hexToRgba(a.bright, 0.25); fade1 = hexToRgba(a.bright, 0.5); ui = 'rgba(245,226,184,0.78)';
   }
   mAtmTextColor = ink; mFade2 = fade2; mFade1 = fade1;
   var we = document.getElementById('m-write');
@@ -2255,13 +2276,16 @@ function mShow(id){
   for(var i=0;i<ss.length;i++) ss[i].classList.remove('m-on');
   var el = mEl(id); if(el) el.classList.add('m-on');
   mScr = id;
+  var stageEl = mEl('stage');
   if(id === 'm-write'){
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
     document.body.style.width = '100%';
+    if(stageEl) stageEl.style.display = 'none';   // fully hide onboarding so chips can't bleed through
     var we = mEl('m-write'); if(we){ we.style.height = ''; we.style.top = ''; }
   } else {
     document.body.style.overflow = ''; document.body.style.position = ''; document.body.style.width = '';
+    if(stageEl) stageEl.style.display = '';        // restore onboarding if we leave the write screen
   }
 }
 
@@ -2321,10 +2345,19 @@ function mRenderStrip(){
     if(lineIdx < 0){ el.innerHTML = ''; el.style.color = 'transparent'; continue; }
     var isCur = (lineIdx === show.length - 1);
     el.style.color = cols[i];
+    el.style.fontWeight = isCur ? '500' : '400';   // current line slightly bolder; fades stay normal
     var html = mRl(show[lineIdx]);
     if(isCur){ html += '<span id="m-cur" class="m-cur ' + (mStarted ? 'typing' : 'idle') + '"></span>'; }
     el.innerHTML = html;
   }
+  mUpdateTap();   // hint follows the buffer: shown when empty, hidden once writing starts
+}
+
+/* tap-to-write hint is tied to the buffer being empty (NOT to focus/blur) */
+function mUpdateTap(){
+  if(!mTapEl) return;
+  if(mAllText){ mTapEl.classList.add('hidden'); }
+  else { mTapEl.classList.remove('hidden'); }
 }
 
 function mStartType(){ if(!mStarted) mStarted = true; }
@@ -2404,10 +2437,14 @@ function mEnterWrite(){
   mInitStrip(); mRenderStrip(); mStartRaf();
 }
 
-/* mobile lock/cross-out toggle drives the SHARED crossout via wsToggleCrossout */
+/* mobile lock/cross-out toggle drives the SHARED crossout via wsToggleCrossout.
+   Moves the switch (.on) AND sets the label from the shared `crossout`. */
 function mSyncLockLabel(){
   var b = mEl('m-lock-btn');
-  if(b) b.textContent = crossout ? 'cross out' : 'lock';
+  if(!b) return;
+  b.classList.toggle('on', crossout);
+  var lbl = b.querySelector('.m-lock-lbl');
+  if(lbl) lbl.textContent = crossout ? 'cross out' : 'no backspace';
 }
 
 /* FINISH — STOPGAP: shows the draft text. SEAM: wire to write-c's real
@@ -2441,8 +2478,8 @@ if(mWriteEl){
   });
 }
 if(mInp){
-  mInp.addEventListener('focus', function(){ mTapEl.classList.add('hidden'); mWriteEl.classList.add('kb-open'); });
-  mInp.addEventListener('blur', function(){ if(!mRaw.trim()) mTapEl.classList.remove('hidden'); mWriteEl.classList.remove('kb-open'); });
+  mInp.addEventListener('focus', function(){ mWriteEl.classList.add('kb-open'); mUpdateTap(); });
+  mInp.addEventListener('blur', function(){ mWriteEl.classList.remove('kb-open'); mUpdateTap(); });
   mInp.addEventListener('beforeinput', function(e){
     var t = e.inputType || '';
     if(t.indexOf('delete') === 0){ e.preventDefault(); mBs(); return; }
