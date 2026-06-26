@@ -739,6 +739,115 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
   #dur-row { margin-bottom: 16px; }
   #mark { margin-bottom: 12px; }
 }
+
+/* ════════════════════════════════════════════════
+   MOBILE WRITE SCREEN (ported from root index.html; m- prefixed)
+   Base rules keep it hidden everywhere — JS adds .m-on only at <=600px.
+   The @media block below styles it. Atmosphere drives --m-bg / --m-ui / --m-cur.
+════════════════════════════════════════════════ */
+.m-scr { display: none; }
+.m-scr.m-on { display: flex; flex-direction: column; }
+#m-input { display: none; }
+
+@media (max-width: 600px) {
+  #m-write {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 100vh; height: 100dvh;
+    overflow: hidden; flex-direction: column;
+    z-index: 40;                       /* above onboarding #stage (z5) */
+    background: var(--m-bg, #060608);
+    font-family: 'Courier New', Courier, monospace;
+  }
+  #m-write.kb-open { padding-bottom: env(safe-area-inset-bottom); }
+
+  #m-write .m-hdr {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 18px; border-bottom: 1px solid rgba(128,128,128,0.18); flex-shrink: 0;
+  }
+  .m-hdr-l { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--m-ui, #555); }
+  .m-hdr-r { display: flex; align-items: center; gap: 10px; font-size: 9px; color: var(--m-ui, #555); }
+  .m-ibar { width: 36px; height: 2px; border-radius: 1px; background: rgba(128,128,128,0.18); overflow: hidden; }
+  .m-ifil { height: 100%; width: 0%; background: var(--m-ui, rgba(245,226,184,0.4)); border-radius: 1px; transition: width 0.6s ease; }
+  #m-write .m-hdr-mark { color: var(--m-ui, #555); }
+  #m-write .m-hdr-wc { color: var(--m-ui, #888); }
+
+  #m-write .m-strip {
+    flex-shrink: 0; height: 136px; position: relative; overflow: hidden;
+    background: var(--m-bg, #060608);
+  }
+  .m-bloom {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 100%, rgba(245,226,184,0.10), transparent 65%);
+    pointer-events: none; z-index: 0; opacity: 0; transition: opacity 0.6s;
+  }
+  .m-sfade {
+    position: absolute; top: 0; left: 0; right: 0; height: 22px;
+    background: linear-gradient(to bottom, var(--m-bg, #060608), transparent);
+    pointer-events: none; z-index: 3;
+  }
+  .m-sl {
+    position: absolute; left: 20px; right: 20px;
+    font-size: 19px; line-height: 1.9; min-height: 36px;
+    white-space: pre-wrap; word-break: break-word;
+    transition: color 0.6s ease, opacity 0.6s ease; z-index: 1;
+  }
+  .m-strip .m-sl-cur { text-shadow: 0 0 18px rgba(240,240,240,0.30), 0 0 40px rgba(240,240,240,0.12); }
+  #m-write.candlewick .m-strip .m-sl-cur {
+    text-shadow: 0 0 18px rgba(245,226,184,0.6), 0 0 40px rgba(245,226,184,0.3), 0 0 80px rgba(245,226,184,0.15);
+  }
+  .m-cur {
+    display: inline-block; width: 0.48em; height: 0.88em;
+    vertical-align: -0.12em; margin-left: 1px;
+    background: var(--m-cur, rgba(245,226,184,0.88));
+  }
+  .m-cur.idle   { animation: m-hb 2.4s ease-in-out infinite; }
+  .m-cur.typing { animation: m-blink 1.1s steps(1) infinite; }
+  .m-cur.m-shake { animation: m-shake 0.16s ease-out; }
+  @keyframes m-hb { 0%,100%{opacity:0.15;} 40%{opacity:0.75;} 60%{opacity:0.45;} 75%{opacity:0.65;} }
+  @keyframes m-blink { 0%,50%{opacity:1;} 50.01%,100%{opacity:0;} }
+  @keyframes m-shake { 0%{transform:translateX(0);} 25%{transform:translateX(-3px);} 50%{transform:translateX(3px);} 75%{transform:translateX(-2px);} 100%{transform:translateX(0);} }
+
+  #m-tap {
+    flex: 1; display: flex; flex-direction: column; gap: 4px;
+    align-items: center; justify-content: center;
+    font-family: 'Courier New', monospace; font-size: 16px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--m-ui, #999);
+    cursor: text; -webkit-tap-highlight-color: transparent;
+  }
+  #m-tap.hidden { display: none; }
+  #m-tap-sub { font-size: 12px; color: var(--m-ui, #666); letter-spacing: 0.06em; text-transform: none; opacity: 0.8; }
+  .m-struck-word { text-decoration: line-through; color: #8a8076; opacity: 0.6; }
+
+  #m-write .m-ftr {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 18px; padding-bottom: max(14px, env(safe-area-inset-bottom));
+    background: var(--m-bg, #060608); border-top: 1px solid rgba(128,128,128,0.18); flex-shrink: 0;
+  }
+  .m-lock {
+    background: none; border: 1px solid var(--m-ui, #555); border-radius: 2px;
+    font-family: 'Courier New', Courier, monospace; font-size: 9px;
+    letter-spacing: 0.1em; text-transform: lowercase; color: var(--m-ui, #888);
+    padding: 6px 10px; min-height: 32px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .m-actions { display: flex; align-items: center; gap: 9px; }
+  .m-szg { display: flex; align-items: baseline; gap: 3px; }
+  .m-sz { background: none; border: none; cursor: pointer; font-family: 'Courier New', Courier, monospace; padding: 2px 3px; color: var(--m-ui, rgba(245,226,184,0.6)); opacity: 0.5; -webkit-tap-highlight-color: transparent; }
+  .m-sz-on { opacity: 1; }
+  .m-ss { font-size: 10px; } .m-sm { font-size: 13px; } .m-szl { font-size: 17px; line-height: 1; }
+  .m-vs { width: 1px; height: 13px; background: rgba(128,128,128,0.22); }
+  .m-fin {
+    font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; border-radius: 2px;
+    padding: 8px 14px; background: transparent; font-family: 'Courier New', Courier, monospace;
+    color: var(--m-ui, rgba(245,226,184,0.8)); border: 1px solid var(--m-ui, rgba(245,226,184,0.4));
+    cursor: pointer; min-height: 36px; display: flex; align-items: center; -webkit-tap-highlight-color: transparent;
+  }
+
+  #m-input {
+    display: block; position: fixed; opacity: 0; pointer-events: none;
+    width: 1px; height: 1px; top: 0; left: 0; font-size: 16px;
+    overflow: hidden; -webkit-user-select: text; user-select: text;
+  }
+}
 /* ── SHARED PAYWALL MODAL (free-tier paper styling; one component, two modes) ── */
 .pw-overlay{
   position: fixed; inset: 0; z-index: 8;
@@ -1021,6 +1130,53 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
     </button>
 
     <button type="button" class="pw-dismiss" id="pw-dismiss" onclick="pwDismiss()"></button>
+  </div>
+</div>
+
+<!-- MOBILE WRITE SCREEN (ported; shown only <=600px via JS .m-on) -->
+<div class="m-scr" id="m-write">
+  <div class="m-hdr">
+    <div class="m-hdr-l m-hdr-mark">writefwd</div>
+    <div class="m-hdr-r">
+      <div class="m-ibar"><div class="m-ifil" id="m-ifil"></div></div>
+      <span id="m-wc" class="m-hdr-wc">0 words</span>
+    </div>
+  </div>
+
+  <div class="m-strip" id="m-strip">
+    <div class="m-bloom" id="m-bloom"></div>
+    <div class="m-sfade"></div>
+    <div class="m-sl" id="m-sl0"></div>
+    <div class="m-sl" id="m-sl1"></div>
+    <div class="m-sl m-sl-cur" id="m-sl2"></div>
+  </div>
+
+  <div id="m-tap" aria-label="Tap to write">
+    <span>Tap here to write</span>
+    <span id="m-tap-sub">your words appear above</span>
+  </div>
+
+  <div
+    id="m-input"
+    contenteditable="true"
+    autocorrect="off"
+    autocapitalize="sentences"
+    spellcheck="false"
+    inputmode="text"
+    aria-label="Writing area"
+  ></div>
+
+  <div class="m-ftr">
+    <button class="m-lock" id="m-lock-btn">lock</button>
+    <div class="m-actions">
+      <div class="m-szg">
+        <button class="m-sz m-ss" onclick="mSetFs('s')">A</button>
+        <button class="m-sz m-sm m-sz-on" onclick="mSetFs('m')">A</button>
+        <button class="m-sz m-szl" onclick="mSetFs('l')">A</button>
+      </div>
+      <div class="m-vs"></div>
+      <button class="m-fin" id="m-fin-btn">FINISH</button>
+    </div>
   </div>
 </div>
 
@@ -2051,18 +2207,284 @@ function recross(){
 }
 window.recross = recross;
 
-/* ── mobile fork (placeholder) ──
-   Desktop keeps `cross`. On phones we'll branch to a dedicated mobile write
-   screen in a later step; for now this only confirms the routing fires. */
+/* ── mobile fork — enter the ported mobile write screen ──
+   Desktop keeps `cross`. On phones, begin themes #m-write from the chosen
+   atmosphere and hands off to the m- writing engine below. */
 function mobileBegin(){
   var a = ATMOS[sel];
-  var label;
-  if(a.name === 'paper'){ label = nightMode ? 'dark paper' : 'paper'; }
-  else if(a.name === 'candlewick'){ label = 'candlewick'; }
-  else { label = a.name; }
+  var paperRoom = (a.name === 'paper');
+  var bg, ink, fade2, fade1, ui;
+  if(paperRoom && !nightMode){
+    bg = '#f0ede8'; ink = '#111';     fade2 = '#c4c0b6'; fade1 = '#aaa89f'; ui = '#888078';
+  } else if(paperRoom && nightMode){
+    bg = '#1a1a1a'; ink = '#e8e8e8';  fade2 = '#3a3a3a'; fade1 = '#5e5e64'; ui = '#8a8a90';
+  } else {
+    bg = a.bg;      ink = a.bright;    fade2 = '#1e1e1e'; fade1 = '#444';    ui = 'rgba(245,226,184,0.78)';
+  }
+  mAtmTextColor = ink; mFade2 = fade2; mFade1 = fade1;
+  var we = document.getElementById('m-write');
+  we.style.setProperty('--m-bg', bg);
+  we.style.setProperty('--m-ui', ui);
+  we.style.setProperty('--m-cur', ink);
+  we.classList.toggle('candlewick', a.name === 'candlewick');
+  mSyncLockLabel();
+  // duration read for parity with desktop; mobile countdown is a SEAM (not wired)
   var durSel = document.querySelector('.dur.sel');
-  var mins = durSel ? parseFloat(durSel.getAttribute('data-min')) : 0;
-  alert('mobile begin fired — atmosphere: ' + label + ', minutes: ' + mins);
+  mMins = durSel ? parseFloat(durSel.getAttribute('data-min')) : 0;
+  mEnterWrite();
+  setTimeout(mFocus, 60);
+}
+
+/* ════════════════════════════════════════════════
+   MOBILE WRITE ENGINE (ported from root index.html; m- prefixed)
+   Runs only via mobileBegin() (<=600px). Reuses the SHARED `crossout` and the
+   SHARED haptic(); never touches the desktop engine (wsKeystroke etc.).
+════════════════════════════════════════════════ */
+var mAllText = '';
+var mWc = 0, mFs = 19, mLh = 35;
+var mStarted = false, mNrg = 0, mLastT = 0, mRaf = null;
+var mScr = '';
+var mAtmTextColor = '#111';
+var mFade2 = '#1e1e1e', mFade1 = '#444';
+var mMins = 0;
+
+function mEl(id){ return document.getElementById(id); }
+
+function mShow(id){
+  var ss = document.querySelectorAll('.m-scr');
+  for(var i=0;i<ss.length;i++) ss[i].classList.remove('m-on');
+  var el = mEl(id); if(el) el.classList.add('m-on');
+  mScr = id;
+  if(id === 'm-write'){
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    var we = mEl('m-write'); if(we){ we.style.height = ''; we.style.top = ''; }
+  } else {
+    document.body.style.overflow = ''; document.body.style.position = ''; document.body.style.width = '';
+  }
+}
+
+function mInitStrip(){
+  mLh = mFs * 1.9;
+  var h = Math.round(mLh * 3) + 8;
+  var strip = mEl('m-strip'); if(strip) strip.style.height = h + 'px';
+  var ids = ['m-sl0','m-sl1','m-sl2'];
+  for(var i=0;i<3;i++){
+    var el = mEl(ids[i]); if(!el) continue;
+    el.style.fontSize = mFs + 'px';
+    el.style.lineHeight = '1.9';
+    el.style.bottom = Math.round((2 - i) * mLh + 4) + 'px';
+  }
+}
+
+function mStartRaf(){
+  if(mRaf) return;
+  function frame(){
+    var active = (Date.now() - mLastT) < 1500;
+    mNrg += ((active ? 1 : 0) - mNrg) * 0.035;
+    var ifil = mEl('m-ifil'); if(ifil) ifil.style.width = Math.round(mNrg * 100) + '%';
+    var bloom = mEl('m-bloom'); if(bloom) bloom.style.opacity = (0.3 + mNrg * 0.4).toFixed(2);
+    var cur = mEl('m-cur');
+    if(cur){
+      var blur = (2 + mNrg * 6).toFixed(1);
+      var alp = (0.12 + mNrg * 0.2).toFixed(2);
+      cur.style.boxShadow = '0 0 ' + blur + 'px rgba(245,226,184,' + alp + ')';
+      cur.style.transform = 'scaleX(' + (1 + mNrg * 0.09).toFixed(3) + ')';
+    }
+    mRaf = requestAnimationFrame(frame);
+  }
+  mRaf = requestAnimationFrame(frame);
+}
+
+function mEsc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function mRl(txt){
+  var html = '', re = /<m-struck>([^<]*)<\/m-struck>/g, last = 0, m;
+  while((m = re.exec(txt))){
+    html += mEsc(txt.slice(last, m.index));
+    html += '<span class="m-struck-word">' + mEsc(m[1]) + '</span>';
+    last = re.lastIndex;
+  }
+  html += mEsc(txt.slice(last));
+  return html;
+}
+
+function mRenderStrip(){
+  var lines = mAllText.split('\n');
+  var show = lines.slice(-3);
+  var ids = ['m-sl0','m-sl1','m-sl2'];
+  var cols = [mFade2, mFade1, mAtmTextColor]; // two-back, one-back, current (atmosphere)
+  for(var i=0;i<3;i++){
+    var el = mEl(ids[i]); if(!el) continue;
+    var lineIdx = i - (3 - show.length);
+    if(lineIdx < 0){ el.innerHTML = ''; el.style.color = 'transparent'; continue; }
+    var isCur = (lineIdx === show.length - 1);
+    el.style.color = cols[i];
+    var html = mRl(show[lineIdx]);
+    if(isCur){ html += '<span id="m-cur" class="m-cur ' + (mStarted ? 'typing' : 'idle') + '"></span>'; }
+    el.innerHTML = html;
+  }
+}
+
+function mStartType(){ if(!mStarted) mStarted = true; }
+
+function mCleanText(){
+  return mAllText.replace(/<m-struck>[^<]*<\/m-struck>/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function mRemoveLastCleanWord(text, word){
+  var idx = text.lastIndexOf(word);
+  while(idx !== -1){
+    var before = text.slice(0, idx);
+    var open = (before.match(/<m-struck>/g) || []).length;
+    var close = (before.match(/<\/m-struck>/g) || []).length;
+    if(open === close){ return (text.slice(0, idx) + text.slice(idx + word.length)).replace(/ +/g, ' '); }
+    idx = text.lastIndexOf(word, idx - 1);
+  }
+  return text;
+}
+
+function mTc(ch){
+  mLastT = Date.now(); mStartType();
+  var nl = mAllText.lastIndexOf('\n');
+  var curLine = mAllText.slice(nl + 1);
+  var cleanCur = curLine.replace(/<m-struck>[^<]*<\/m-struck>/g, '');
+  var wrapAt = Math.floor((window.innerWidth - 40) / (mFs * 0.6));
+  if(ch === ' ' && cleanCur.length > wrapAt){ mAllText += '\n'; }
+  else { mAllText += ch; }
+  mCntW(); mRenderStrip();
+}
+
+function mNl(){ mLastT = Date.now(); mStartType(); mAllText += '\n'; mCntW(); mRenderStrip(); }
+
+/* backspace — SHARED crossout model (write-c). Default (lock) = refuse. */
+function mBs(){
+  mLastT = Date.now();
+  if(!crossout){
+    // refusal — no going back
+    haptic('rigid');
+    var cur = mEl('m-cur');
+    if(cur){ cur.classList.remove('m-shake'); void cur.offsetWidth; cur.classList.add('m-shake'); }
+    return;
+  }
+  // cross-out mode: strike the last live word
+  var cleanWords = mCleanText().split(/\s+/).filter(function(w){ return w.length > 0; });
+  if(cleanWords.length === 0) return;
+  var lastWord = cleanWords[cleanWords.length - 1];
+  mAllText = mRemoveLastCleanWord(mAllText, lastWord);
+  mAllText += ' <m-struck>' + lastWord + '</m-struck>';
+  mCntW(); mRenderStrip();
+  haptic('soft');
+}
+
+function mCntW(){
+  var clean = mCleanText();
+  mWc = clean ? clean.split(/\s+/).filter(function(w){ return w.length > 0; }).length : 0;
+  var el = mEl('m-wc'); if(el) el.textContent = mWc + (mWc === 1 ? ' word' : ' words');
+}
+
+window.mSetFs = function(s){
+  var szs = { s:14, m:19, l:24 };
+  mFs = szs[s];
+  mInitStrip(); mRenderStrip();
+  var map = { s:'m-ss', m:'m-sm', l:'m-szl' };
+  var els = document.querySelectorAll('.m-sz');
+  for(var i=0;i<els.length;i++){
+    var el = els[i];
+    var match = el.classList.contains(map[s]);
+    el.className = el.className.replace(/ ?m-sz-on/g, '') + (match ? ' m-sz-on' : '');
+  }
+};
+
+function mEnterWrite(){
+  mShow('m-write');
+  var sids = ['m-sl0','m-sl1','m-sl2'];
+  for(var i=0;i<sids.length;i++){ var el = mEl(sids[i]); if(el){ el.style.opacity = '1'; el.style.transition = ''; } }
+  mInitStrip(); mRenderStrip(); mStartRaf();
+}
+
+/* mobile lock/cross-out toggle drives the SHARED crossout via wsToggleCrossout */
+function mSyncLockLabel(){
+  var b = mEl('m-lock-btn');
+  if(b) b.textContent = crossout ? 'cross out' : 'lock';
+}
+
+/* FINISH — STOPGAP: shows the draft text. SEAM: wire to write-c's real
+   complete-screen flow (#complete-screen / desktop finish path) in a later step. */
+function mFinish(){
+  var inp = mEl('m-input'); if(inp) inp.blur();
+  if(mRaf){ cancelAnimationFrame(mRaf); mRaf = null; }
+  var clean = mCleanText();
+  alert('you wrote ' + mWc + (mWc === 1 ? ' word' : ' words') + '.\n\n' + (clean || '(nothing yet)'));
+}
+
+/* ── real iOS keyboard capture (hidden contenteditable) ── */
+var mInp = mEl('m-input');
+var mTapEl = mEl('m-tap');
+var mWriteEl = mEl('m-write');
+var mRaw = '';
+
+function mCursorEnd(){
+  try {
+    var s = window.getSelection(); var range = document.createRange();
+    range.selectNodeContents(mInp); range.collapse(false);
+    s.removeAllRanges(); s.addRange(range);
+  } catch(e){}
+}
+function mFocus(){ if(!mInp) return; mInp.focus(); mCursorEnd(); }
+
+if(mWriteEl){
+  mWriteEl.addEventListener('click', function(e){
+    var onBtn = e.target && e.target.closest && e.target.closest('button');
+    if(mScr === 'm-write' && !onBtn) mFocus();
+  });
+}
+if(mInp){
+  mInp.addEventListener('focus', function(){ mTapEl.classList.add('hidden'); mWriteEl.classList.add('kb-open'); });
+  mInp.addEventListener('blur', function(){ if(!mRaw.trim()) mTapEl.classList.remove('hidden'); mWriteEl.classList.remove('kb-open'); });
+  mInp.addEventListener('beforeinput', function(e){
+    var t = e.inputType || '';
+    if(t.indexOf('delete') === 0){ e.preventDefault(); mBs(); return; }
+    if(t === 'insertParagraph' || t === 'insertLineBreak'){ e.preventDefault(); mNl(); }
+  });
+  mInp.addEventListener('input', function(){
+    var raw = mInp.innerText || '';
+    if(raw.length < mRaw.length){ mInp.innerText = mRaw; mCursorEnd(); return; }
+    var added = raw.slice(mRaw.length); mRaw = raw;
+    for(var i=0;i<added.length;i++){ var ch = added[i]; if(ch === '\n') mNl(); else mTc(ch); }
+  });
+  mInp.addEventListener('keydown', function(e){
+    if(e.key === 'Backspace' || e.key === 'Delete'){ e.preventDefault(); mBs(); return; }
+    if((e.metaKey || e.ctrlKey) && (e.key === 'z' || e.key === 'Z')){ e.preventDefault(); }
+  });
+  mInp.addEventListener('paste', function(e){
+    e.preventDefault();
+    var text = ((e.clipboardData || window.clipboardData).getData('text/plain')) || '';
+    for(var i=0;i<text.length;i++){ var ch = text[i]; if(ch === '\n') mNl(); else mTc(ch); }
+    mRaw += text; mInp.innerText = mRaw; mCursorEnd();
+  });
+}
+var mLockBtn = mEl('m-lock-btn');
+if(mLockBtn){
+  mLockBtn.addEventListener('click', function(){
+    wsToggleCrossout();   // flips the SHARED crossout + desktop toggle UI + light haptic
+    mSyncLockLabel();     // reflect new mode on the mobile toggle
+  });
+}
+var mFinBtn = mEl('m-fin-btn');
+if(mFinBtn){ mFinBtn.addEventListener('click', mFinish); }
+
+/* keep #m-write pinned to the visible area above the iOS keyboard */
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', function(){
+    var vv = window.visualViewport;
+    var writeEl = mEl('m-write');
+    if(writeEl && mScr === 'm-write'){
+      writeEl.style.height = vv.height + 'px';
+      writeEl.style.top = vv.offsetTop + 'px';
+    }
+  });
 }
 
 document.getElementById('begin').onclick = function(){
