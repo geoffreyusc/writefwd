@@ -715,6 +715,18 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
   #stage { padding: 28px 20px; }
   #prompt { font-size: 21px; }
 }
+/* mobile: let the onboarding scroll instead of clipping the top */
+@media (max-width: 600px) {
+  html, body { height: auto; min-height: 100%; }
+  body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    align-items: flex-start;
+  }
+  #stage {
+    padding: 24px 20px 40px;
+  }
+}
 /* ── SHARED PAYWALL MODAL (free-tier paper styling; one component, two modes) ── */
 .pw-overlay{
   position: fixed; inset: 0; z-index: 8;
@@ -1189,6 +1201,16 @@ function applyAtmo(){
     body.classList.toggle('night', nightMode);
     body.style.background = '';
     glow.style.opacity = '0';
+    glow.style.background = '';
+    body.style.removeProperty('--fly-color');
+    body.style.removeProperty('--fly-glow');
+    body.style.removeProperty('--g-bright');
+    body.style.removeProperty('--g-dim');
+    body.style.removeProperty('--g-shadow');
+    body.style.removeProperty('--g-prompt');
+    body.style.removeProperty('--g-prompt-glow');
+    body.style.removeProperty('--g-meta');
+    body.style.removeProperty('--g-text');
   }
 }
 
