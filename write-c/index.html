@@ -157,7 +157,7 @@ body.hide-outcome #outcome { display: none; }
   display: flex; align-items: baseline; gap: 11px;
   transition: color 0.8s;
 }
-.rule .rk { transition: color 0.8s; }       /* known half */
+.rule .rk { flex-shrink: 0; width: 130px; transition: color 0.8s; }       /* known half — fixed width aligns the three dashes */
 .rule .rd { transition: color 0.8s; }       /* dim half  */
 .rule::before {
   content: '·'; font-family: var(--fs); flex-shrink: 0;
@@ -170,9 +170,13 @@ body.hide-outcome #outcome { display: none; }
   text-transform: uppercase; margin-bottom: 16px; transition: color 0.8s;
 }
 #atmo-row {
-  display: flex; align-items: flex-start; justify-content: center;
-  gap: 14px; margin-bottom: 38px; flex-wrap: wrap;
+  display: flex; flex-direction: column; align-items: center;
+  margin-bottom: 38px;
 }
+/* free pair (paper, candlewick) on top; the four locked rooms below */
+.atmo-free   { display: flex; justify-content: center; gap: 18px; margin-bottom: 12px; }
+.atmo-locked { display: flex; justify-content: center; gap: 13px; }
+.atmo-locked .atmo { transform: scale(0.85); }   /* visually demote locked */
 .atmo {
   position: relative; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; gap: 9px;
@@ -723,9 +727,17 @@ body.gallery .ws-sw-label { color: var(--g-dim, #6a6a70); }
     -webkit-overflow-scrolling: touch;
     align-items: flex-start;
   }
-  #stage {
-    padding: 24px 20px 40px;
-  }
+  /* narrower rule-key so the three dashes still align at the smaller font */
+  .rule .rk { width: 108px; }
+  /* compressed vertical rhythm so "begin" sits above the fold */
+  #stage { padding: 18px 18px 28px; }
+  #rules { margin-bottom: 16px; padding: 13px 14px; }
+  #atmo-label { margin-bottom: 10px; }
+  #atmo-row, .atmo-locked { margin-bottom: 16px; }
+  .atmo-free { margin-bottom: 12px; }
+  #dur-label { margin-bottom: 9px; }
+  #dur-row { margin-bottom: 16px; }
+  #mark { margin-bottom: 12px; }
 }
 /* ── SHARED PAYWALL MODAL (free-tier paper styling; one component, two modes) ── */
 .pw-overlay{
@@ -1116,6 +1128,11 @@ var whisperEl = document.getElementById('whisper');
 /* ── build atmosphere row ── */
 function buildAtmos(){
   atmoRow.innerHTML = '';
+  // two centered rows: first 2 atmospheres (free pair) on top, the rest below
+  var freeRow   = document.createElement('div'); freeRow.className   = 'atmo-free';
+  var lockedRow = document.createElement('div'); lockedRow.className = 'atmo-locked';
+  atmoRow.appendChild(freeRow);
+  atmoRow.appendChild(lockedRow);
   ATMOS.forEach(function(a, i){
     var locked = (tier === 'free' && !a.free && !sessionUnlocked[i]);
     var isDemo = (tier === 'free' && a.name === 'candlewick'); // unlocked taste of paid
@@ -1138,7 +1155,7 @@ function buildAtmos(){
         selectAtmo(i);
       }
     };
-    atmoRow.appendChild(el);
+    (i < 2 ? freeRow : lockedRow).appendChild(el);
   });
 }
 
